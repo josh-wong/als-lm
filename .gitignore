@@ -38,3 +38,6 @@ data/collection.log
 # Corpus processing outputs
 data/processed/
 data/stats.md
+
+# Tokenized data (Phase 3 - binary files, regenerable from corpus + tokenizer)
+data/tokenized/
