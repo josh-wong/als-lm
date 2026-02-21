@@ -34,3 +34,7 @@ data/scrapers/
 data/sources.json
 data/sources.md
 data/collection.log
+
+# Corpus processing outputs
+data/processed/
+data/stats.md
