@@ -21,3 +21,16 @@ Thumbs.db
 
 # Planning artifacts
 .planning/
+
+# Python
+*.pyc
+__pycache__/
+venv/
+.venv/
+
+# Data collection
+data/raw/
+data/scrapers/
+data/sources.json
+data/sources.md
+data/collection.log
