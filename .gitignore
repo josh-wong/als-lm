@@ -41,3 +41,6 @@ data/stats.md
 
 # Tokenized data (Phase 3 - binary files, regenerable from corpus + tokenizer)
 data/tokenized/
+
+# Environment validation reports (Phase 4.1)
+reports/
