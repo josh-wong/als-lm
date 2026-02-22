@@ -95,8 +95,9 @@ if [ "$TOTAL_RAM_MB" -lt 32000 ] 2>/dev/null; then
     echo ""
     warn "WSL2 RAM is ${TOTAL_RAM_MB}MB (< 32GB)."
     warn "DeepSpeed CPU offloading needs substantial RAM for optimizer states."
-    warn "Edit C:\\Users\\<you>\\.wslconfig and set memory=58GB (or higher),"
-    warn "then run 'wsl --shutdown' from PowerShell and restart WSL2."
+    warn "Edit C:\\Users\\<you>\\.wslconfig and set memory to your total RAM minus ~8GB."
+    warn "Also set processors=10 and swap=8GB for training workloads."
+    warn "Then run 'wsl --shutdown' from PowerShell and restart WSL2."
 fi
 
 echo ""
@@ -141,7 +142,7 @@ echo ""
 echo "Installing DeepSpeed with pre-built CPUAdam extension..."
 info "Setting DS_BUILD_CPU_ADAM=1 for C++ extension compilation"
 
-DS_BUILD_CPU_ADAM=1 pip install deepspeed==0.18.6 ninja
+DS_BUILD_CPU_ADAM=1 pip install --no-build-isolation deepspeed==0.18.6 ninja
 ok "DeepSpeed installed"
 
 echo ""
@@ -213,7 +214,7 @@ else
     echo "  2. Ensure CUDA_HOME is set: echo \$CUDA_HOME"
     echo "  3. Ensure gcc is compatible: gcc --version (CUDA 12.8 supports up to gcc 14)"
     echo "  4. Ensure Python dev headers: dpkg -l | grep python3-dev"
-    echo "  5. Try reinstalling: DS_BUILD_CPU_ADAM=1 pip install --force-reinstall deepspeed==0.18.6"
+    echo "  5. Try reinstalling: DS_BUILD_CPU_ADAM=1 pip install --no-build-isolation --force-reinstall deepspeed==0.18.6"
     echo ""
     echo "  Without CPUAdam, training will be 5-7x slower (Python fallback)."
     echo "  This makes 500M model training impractical (20-84 days instead of 4-12)."

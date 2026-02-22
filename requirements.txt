@@ -1,11 +1,11 @@
 # Data collection (v0.1.0)
 requests==2.32.3
 biopython==1.83
-lxml==5.3.0
+lxml==5.1.1
 trafilatura==1.8.1
 beautifulsoup4==4.12.3
 tenacity==8.2.3
-pubmed-parser==0.4.1
+pubmed-parser==0.5.1
 pyyaml==6.0.2
 tqdm==4.66.2
 

@@ -32,11 +32,13 @@ The sections below cover the five most frequent failures encountered when settin
 
 **Cause:** The `.wslconfig` file on the Windows side limits how much system RAM WSL2 can access. The default is 50% of system RAM, but an explicit low value (such as `memory=8GB`) overrides this. DeepSpeed CPU offloading needs substantial system RAM for optimizer states (approximately 8-12GB for a 500M parameter model), so an 8GB limit will cause immediate OOM.
 
-**Fix:** Edit `C:\Users\<username>\.wslconfig` (create the file if it does not exist) and set the memory limit to your system RAM minus approximately 6GB for Windows. For a 64GB system, use the following configuration.
+**Fix:** Edit `C:\Users\<username>\.wslconfig` (create the file if it does not exist) and configure WSL2 resource limits. Set memory to your system RAM minus approximately 8GB for Windows, allocate most CPU threads to WSL2, and provide enough swap as a safety net for DeepSpeed memory spikes. For a 64GB system with a 6-core/12-thread CPU, use the following configuration.
 
 ```ini
 [wsl2]
-memory=58GB
+memory=56GB
+processors=10
+swap=8GB
 ```
 
 After saving the file, shut down WSL2 from PowerShell and restart it.
@@ -115,7 +117,7 @@ export CUDA_HOME=/usr/local/cuda
 export PATH=/usr/local/cuda/bin:$PATH
 
 # Force rebuild
-DS_BUILD_CPU_ADAM=1 pip install --force-reinstall deepspeed==0.18.6
+DS_BUILD_CPU_ADAM=1 pip install --no-build-isolation --force-reinstall deepspeed==0.18.6
 ```
 
 **Verify:** Run `ds_report` and confirm the CPUAdam status.
