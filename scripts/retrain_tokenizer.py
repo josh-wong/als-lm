@@ -2,17 +2,18 @@
 """Retrain BPE tokenizer on the full ALS corpus and produce production artifacts.
 
 Orchestration script that coordinates the full tokenizer retraining pipeline:
-1. Archive v0.1 tokenizer files to tokenizer/v0.1/
+1. Archive current tokenizer files to tokenizer/{version}/
 2. Validate real corpus exists and check size
 3. Retrain tokenizer at 16K and 32K vocabulary sizes
 4. Build medical term validation list (~100 domain-specific terms)
 5. Select winner based on medical term single-token coverage
-6. Generate three-way validation report (old v0.1 vs new ALS vs GPT-2)
+6. Generate three-way validation report (previous vs new ALS vs GPT-2)
 7. Save tokenizer in HuggingFace transformers directory format
 8. Retokenize corpus into nanoGPT binary format (train.bin, val.bin, meta.pkl)
 
 Usage:
     python scripts/retrain_tokenizer.py
+    python scripts/retrain_tokenizer.py --archive-version v0.2
     python scripts/retrain_tokenizer.py --dry-run
     python scripts/retrain_tokenizer.py --skip-archive
     python scripts/retrain_tokenizer.py --steps 1,2,3,4,5
@@ -62,23 +63,35 @@ GENERAL_ENGLISH_FILTER = {
 }
 
 
-def step1_archive_v01(tokenizer_dir: Path, dry_run: bool = False) -> None:
-    """Archive existing v0.1 tokenizer files to tokenizer/v0.1/."""
-    print("\n=== Step 1: Archive v0.1 tokenizer files ===")
+def step1_archive(tokenizer_dir: Path, archive_version: str = "v0.1", dry_run: bool = False) -> None:
+    """Archive existing tokenizer files to tokenizer/{archive_version}/.
 
-    v01_dir = tokenizer_dir / "v0.1"
+    Args:
+        tokenizer_dir: Path to tokenizer directory.
+        archive_version: Version label for the archive directory (e.g., "v0.1", "v0.2").
+        dry_run: If True, report planned actions without executing.
+    """
+    print(f"\n=== Step 1: Archive tokenizer files to {archive_version} ===")
+
+    archive_dir = tokenizer_dir / archive_version
     files_to_archive = [
         "als_tokenizer.json",
         "als_tokenizer_16k.json",
         "als_tokenizer_32k.json",
         "als_tokenizer_50k.json",
         "training_summary.json",
+        "validation_report.json",
+        "VALIDATION.md",
     ]
+
+    if archive_dir.exists():
+        print(f"  WARNING: Archive directory {archive_dir} already exists, skipping archive.")
+        return
 
     existing = [f for f in files_to_archive if (tokenizer_dir / f).exists()]
 
     if not existing:
-        print("  No v0.1 files found to archive, skipping.")
+        print(f"  No files found to archive, skipping.")
         return
 
     print(f"  Found {len(existing)} files to archive:")
@@ -88,19 +101,18 @@ def step1_archive_v01(tokenizer_dir: Path, dry_run: bool = False) -> None:
         print(f"    {f} ({size_kb:.1f} KB)")
 
     if dry_run:
-        print(f"  [DRY RUN] Would create {v01_dir} and move {len(existing)} files")
+        print(f"  [DRY RUN] Would create {archive_dir} and copy {len(existing)} files")
         return
 
-    v01_dir.mkdir(parents=True, exist_ok=True)
+    archive_dir.mkdir(parents=True, exist_ok=True)
 
     for f in existing:
         src = tokenizer_dir / f
-        dst = v01_dir / f
+        dst = archive_dir / f
         shutil.copy2(str(src), str(dst))
-        src.unlink()
-        print(f"  Archived: {f} -> v0.1/{f}")
+        print(f"  Archived: {f} -> {archive_version}/{f}")
 
-    print(f"  Archived {len(existing)} files to {v01_dir}")
+    print(f"  Archived {len(existing)} files to {archive_dir}")
 
 
 def step2_validate_corpus(corpus_path: Path, dry_run: bool = False) -> float:
@@ -392,13 +404,19 @@ def step6_validation_report(
     terms: list[dict],
     corpus_path: Path,
     val_path: Path,
+    archive_version: str = "v0.1",
     dry_run: bool = False,
 ) -> None:
     """Generate a three-way validation report comparing old, new, and GPT-2 tokenizers."""
     print("\n=== Step 6: Three-way validation report ===")
 
     new_tok_path = tokenizer_dir / "als_tokenizer.json"
-    old_tok_path = tokenizer_dir / "v0.1" / "als_tokenizer.json"
+
+    # Find the previous tokenizer for comparison, checking the most recent archive first
+    old_tok_path = tokenizer_dir / archive_version / "als_tokenizer.json"
+    if not old_tok_path.exists():
+        # Fall back to v0.1 if the specified archive doesn't have the canonical tokenizer
+        old_tok_path = tokenizer_dir / "v0.1" / "als_tokenizer.json"
 
     if not new_tok_path.exists():
         print(f"  ERROR: New tokenizer not found at {new_tok_path}", file=sys.stderr)
@@ -888,7 +906,12 @@ def main():
     parser.add_argument(
         "--skip-archive",
         action="store_true",
-        help="Skip step 1 (archiving v0.1 files), useful for re-runs",
+        help="Skip step 1 (archiving files), useful for re-runs",
+    )
+    parser.add_argument(
+        "--archive-version",
+        default="v0.1",
+        help="Version label for archive directory (default: v0.1). Use v0.2 for Phase 4.2.1.",
     )
     parser.add_argument(
         "--steps",
@@ -947,12 +970,13 @@ def main():
     print(f"Corpus: {corpus_path}")
     print(f"Tokenizer dir: {tokenizer_dir}")
     print(f"Output dir: {output_dir}")
+    print(f"Archive version: {args.archive_version}")
 
     start_time = time.time()
 
-    # Step 1: Archive v0.1 files
+    # Step 1: Archive current files
     if 1 in steps_to_run:
-        step1_archive_v01(tokenizer_dir, dry_run=args.dry_run)
+        step1_archive(tokenizer_dir, archive_version=args.archive_version, dry_run=args.dry_run)
 
     # Step 2: Validate corpus
     if 2 in steps_to_run:
@@ -986,7 +1010,8 @@ def main():
     # Step 6: Validation report
     if 6 in steps_to_run:
         step6_validation_report(
-            tokenizer_dir, terms, corpus_path, val_path, dry_run=args.dry_run
+            tokenizer_dir, terms, corpus_path, val_path,
+            archive_version=args.archive_version, dry_run=args.dry_run
         )
 
     # Step 7: HuggingFace format
