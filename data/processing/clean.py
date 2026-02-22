@@ -334,7 +334,7 @@ def _scrub_pii(text: str) -> str:
         except ImportError:
             # Fallback for standalone execution
             parent = Path(__file__).resolve().parent.parent
-            sys.path.insert(0, str(parent))
+            sys.path.append(str(parent))
             from scrapers.pii_scrubber import PIIScrubber
 
         scrubber = PIIScrubber()

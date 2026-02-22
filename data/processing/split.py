@@ -17,6 +17,7 @@ import argparse
 import json
 import logging
 import random
+import re
 import sys
 from collections import Counter
 from pathlib import Path
@@ -312,8 +313,8 @@ def write_per_document_files(
         doc_dir.mkdir(parents=True, exist_ok=True)
 
         doc_id = doc.get("id", "unknown")
-        # Sanitize doc_id for filesystem use
-        safe_id = doc_id.replace("/", "_").replace("\\", "_")
+        # Sanitize doc_id for filesystem use — strip all non-safe characters
+        safe_id = re.sub(r"[^a-zA-Z0-9_\-.]", "_", doc_id)
         file_path = doc_dir / f"{safe_id}.txt"
 
         with open(file_path, "w", encoding="utf-8") as f:

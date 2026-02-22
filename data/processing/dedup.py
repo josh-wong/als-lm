@@ -138,9 +138,10 @@ def deduplicate_documents(
                 logger.warning("Duplicate ID in corpus: %s (%s)", doc_id, e)
                 duplicates.add(doc_id)
 
-    # Log rejections
+    # Log rejections — index by ID to avoid O(n²) lookups
+    doc_by_id = {d["id"]: d for d in documents}
     for doc_id in duplicates:
-        doc = next(d for d in documents if d["id"] == doc_id)
+        doc = doc_by_id[doc_id]
         matched_id = duplicate_matches.get(doc_id, "unknown")
         _log_dedup_rejection(
             doc_id=doc_id,
