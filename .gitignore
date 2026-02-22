@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+out/
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Planning artifacts
+.planning/
+
+# Python
+*.pyc
+__pycache__/
+venv/
+.venv/
+
+# Data collection
+data/raw/
+data/scrapers/
+data/sources.json
+data/sources.md
+data/collection.log
+
+# Corpus processing outputs
+data/processed/
+data/stats.md
+
+# Tokenized data (Phase 3 - binary files, regenerable from corpus + tokenizer)
+data/tokenized/

@@ -1,0 +1,6403 @@
+{
+  "metadata": {
+    "date": "2026-02-21T18:15:59.787438+00:00",
+    "terms_file": "reports/medical_terms.json",
+    "threshold": 3,
+    "tokenizer_count": 3
+  },
+  "tokenizers": {
+    "als_tokenizer_16k": {
+      "tokenizer_name": "als_tokenizer_16k",
+      "tokenizer_path": "tokenizer/als_tokenizer_16k.json",
+      "vocab_size": 3379,
+      "threshold": 3,
+      "total_terms": 195,
+      "flagged_count": 115,
+      "flagged_pct": 59.0,
+      "category_breakdown": {
+        "abbreviation": {
+          "total": 42,
+          "flagged": 5,
+          "flagged_pct": 11.9
+        },
+        "clinical": {
+          "total": 97,
+          "flagged": 69,
+          "flagged_pct": 71.1
+        },
+        "disease": {
+          "total": 10,
+          "flagged": 9,
+          "flagged_pct": 90.0
+        },
+        "drug": {
+          "total": 31,
+          "flagged": 19,
+          "flagged_pct": 61.3
+        },
+        "gene": {
+          "total": 15,
+          "flagged": 13,
+          "flagged_pct": 86.7
+        }
+      },
+      "results": [
+        {
+          "term": "ALS",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "ALS"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "FVC",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "FVC"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "ALSFRS-R",
+          "category": "abbreviation",
+          "n_subtokens": 4,
+          "subtokens": [
+            "ALS",
+            "FRS",
+            "-",
+            "R"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "FTD",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "FTD"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "RNA",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "RNA"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "FDA",
+          "category": "abbreviation",
+          "n_subtokens": 2,
+          "subtokens": [
+            "F",
+            "DA"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "CSF",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "CSF"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "NfL",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "NfL"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "AMPA",
+          "category": "abbreviation",
+          "n_subtokens": 3,
+          "subtokens": [
+            "A",
+            "M",
+            "PA"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "UMN",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "UMN"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "LMN",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "LMN"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "PLS",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "PLS"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "PMA",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "PMA"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "NMDA",
+          "category": "abbreviation",
+          "n_subtokens": 2,
+          "subtokens": [
+            "N",
+            "MDA"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "ASO",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "ASO"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "VALOR",
+          "category": "abbreviation",
+          "n_subtokens": 2,
+          "subtokens": [
+            "VAL",
+            "OR"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "PBA",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "PBA"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "GGGGCC",
+          "category": "abbreviation",
+          "n_subtokens": 3,
+          "subtokens": [
+            "GG",
+            "GG",
+            "CC"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "CAG",
+          "category": "abbreviation",
+          "n_subtokens": 2,
+          "subtokens": [
+            "C",
+            "AG"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "iPSC",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "iPSC"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "ALS-FTD",
+          "category": "abbreviation",
+          "n_subtokens": 3,
+          "subtokens": [
+            "ALS",
+            "-",
+            "FTD"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "CENTAUR",
+          "category": "abbreviation",
+          "n_subtokens": 3,
+          "subtokens": [
+            "C",
+            "EN",
+            "TAUR"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "EMG",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "EMG"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "MND",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "MND"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "PBP",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "PBP"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "NIV",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "NIV"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "BiPAP",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "BiPAP"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "PEG",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "PEG"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "DTI",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "DTI"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "PET",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "PET"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "AAV",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "AAV"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "MSC",
+          "category": "abbreviation",
+          "n_subtokens": 2,
+          "subtokens": [
+            "M",
+            "SC"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "SBMA",
+          "category": "abbreviation",
+          "n_subtokens": 2,
+          "subtokens": [
+            "S",
+            "BMA"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "HSP",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "HSP"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "sALS",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "sALS"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "fALS",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "fALS"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "bvFTD",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "bvFTD"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "AAC",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "AAC"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "SNIP",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "SNIP"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "SVC",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "SVC"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "pNfH",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "pNfH"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "RNAi",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "RNAi"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "criteria",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "c",
+            "rit",
+            "eria"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "dysfunction",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "dys",
+            "function"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "degeneration",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "de",
+            "gener",
+            "ation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "function",
+          "category": "clinical",
+          "n_subtokens": 1,
+          "subtokens": [
+            "function"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "mutation",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "mut",
+            "ation"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "denervation",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "d",
+            "ener",
+            "vation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "diagnosis",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "diagn",
+            "osis"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "sclerosis",
+          "category": "clinical",
+          "n_subtokens": 1,
+          "subtokens": [
+            "sclerosis"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "excitotoxicity",
+          "category": "clinical",
+          "n_subtokens": 5,
+          "subtokens": [
+            "e",
+            "x",
+            "c",
+            "it",
+            "otoxicity"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "bulbar onset",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "bulbar",
+            "Ġonset"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "combination",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "com",
+            "bination"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "El Escorial criteria",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "E",
+            "l",
+            "ĠEscorial",
+            "Ġcriteria"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "communication",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "com",
+            "m",
+            "unication"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "capacity",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "cap",
+            "ac",
+            "ity"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "quality",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "qu",
+            "ality"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "ventilation",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "ventil",
+            "ation"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "neuroinflammation",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "n",
+            "euro",
+            "inflammation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "prognosis",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "pro",
+            "gn",
+            "osis"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "atrophy",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "at",
+            "roph",
+            "y"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "limb onset",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "l",
+            "imb",
+            "Ġonset"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "proteostasis",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "pro",
+            "te",
+            "ostasis"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "aggregation",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "ag",
+            "g",
+            "reg",
+            "ation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "microglia",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "m",
+            "ic",
+            "roglia"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "interaction",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "in",
+            "t",
+            "era",
+            "ction"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "population",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "p",
+            "op",
+            "ulation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "Awaji criteria",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "A",
+            "waj",
+            "i",
+            "Ġcriteria"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "conduction",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "con",
+            "duction"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "gastrostomy",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "g",
+            "astro",
+            "stomy"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "respiratory failure",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "re",
+            "spiratory",
+            "Ġfailure"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "non-invasive ventilation",
+          "category": "clinical",
+          "n_subtokens": 5,
+          "subtokens": [
+            "n",
+            "on",
+            "-",
+            "invasive",
+            "Ġventilation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "fasciculation",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "f",
+            "ascic",
+            "ulation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "dementia",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "de",
+            "ment",
+            "ia"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "sensitivity",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "s",
+            "ens",
+            "itivity"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "spasticity",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "sp",
+            "asticity"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "production",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "pro",
+            "duction"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "asthenia",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "as",
+            "th",
+            "enia"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "examination",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "e",
+            "x",
+            "am",
+            "ination"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "via",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "v",
+            "ia"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "autophagy",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "a",
+            "ut",
+            "ophag",
+            "y"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "concentration",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "con",
+            "cent",
+            "ration"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "hypothesis",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "h",
+            "yp",
+            "othes",
+            "is"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "tolerability",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "t",
+            "olerability"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "utility",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "ut",
+            "ility"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "tomography",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "t",
+            "om",
+            "ography"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "dysphagia",
+          "category": "clinical",
+          "n_subtokens": 1,
+          "subtokens": [
+            "dysphagia"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "hyperreflexia",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "h",
+            "yp",
+            "errefle",
+            "xia"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "clonus",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "cl",
+            "on",
+            "us"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "sialorrhea",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "s",
+            "ial",
+            "orrhea"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "Babinski sign",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "B",
+            "abins",
+            "ki",
+            "Ġsign"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "diaphragmatic pacing",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "d",
+            "iaph",
+            "ragmatic",
+            "Ġpacing"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "percutaneous endoscopic gastrostomy",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "per",
+            "cutaneous",
+            "Ġendoscopic",
+            "Ġgastrostomy"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "stability",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "st",
+            "ability"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "instability",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "in",
+            "st",
+            "ability"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "reduction",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "red",
+            "u",
+            "ction"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "distribution",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "d",
+            "is",
+            "trib",
+            "ution"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "modification",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "m",
+            "od",
+            "ific",
+            "ation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "susceptibility",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "s",
+            "us",
+            "ceptibility"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "ataxia",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "at",
+            "ax",
+            "ia"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "formation",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "for",
+            "mation"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "mislocalization",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "m",
+            "is",
+            "localiz",
+            "ation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "reinnervation",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "re",
+            "inner",
+            "vation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "electromyography",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "e",
+            "lect",
+            "romyography"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "action",
+          "category": "clinical",
+          "n_subtokens": 1,
+          "subtokens": [
+            "action"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "inhibition",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "inhib",
+            "ition"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "formulation",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "f",
+            "orm",
+            "ulation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "paralysis",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "p",
+            "ar",
+            "alysis"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "ability",
+          "category": "clinical",
+          "n_subtokens": 1,
+          "subtokens": [
+            "ability"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "depletion",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "de",
+            "ple",
+            "tion"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "stimulation",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "st",
+            "imulation"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "overactivation",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "o",
+            "ver",
+            "activ",
+            "ation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "activation",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "activ",
+            "ation"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "accumulation",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "ac",
+            "cum",
+            "ulation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "pathogenesis",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "path",
+            "ogen",
+            "esis"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "condition",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "con",
+            "dit",
+            "ion"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "paraplegia",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "p",
+            "ar",
+            "ap",
+            "legia"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "duration",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "d",
+            "ur",
+            "ation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "malnutrition",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "m",
+            "alnutrit",
+            "ion"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "hypoventilation",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "h",
+            "y",
+            "poventil",
+            "ation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "Gold Coast criteria",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "G",
+            "old",
+            "ĠCoast",
+            "Ġcriteria"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "Hepatotoxicity",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "H",
+            "e",
+            "pat",
+            "otoxicity"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "dysarthria",
+          "category": "clinical",
+          "n_subtokens": 1,
+          "subtokens": [
+            "dysarthria"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "disruption",
+          "category": "clinical",
+          "n_subtokens": 5,
+          "subtokens": [
+            "d",
+            "is",
+            "ru",
+            "pt",
+            "ion"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "loss-of-function",
+          "category": "clinical",
+          "n_subtokens": 7,
+          "subtokens": [
+            "l",
+            "os",
+            "s",
+            "-",
+            "of",
+            "-",
+            "function"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "generation",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "gener",
+            "ation"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "analysis",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "an",
+            "alysis"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "arthralgia",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "arthr",
+            "algia"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "injection",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "in",
+            "jection"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "degradation",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "de",
+            "gra",
+            "dation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "motion",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "m",
+            "ot",
+            "ion"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "personality",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "p",
+            "ers",
+            "on",
+            "ality"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "disinhibition",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "d",
+            "is",
+            "inhib",
+            "ition"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "availability",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "ava",
+            "il",
+            "ability"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "option",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "o",
+            "pt",
+            "ion"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "spirometry",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "sp",
+            "i",
+            "rom",
+            "etry"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "tracheostomy",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "trac",
+            "heost",
+            "omy"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "neurodegeneration",
+          "category": "clinical",
+          "n_subtokens": 5,
+          "subtokens": [
+            "n",
+            "euro",
+            "de",
+            "gener",
+            "ation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "apoptosis",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "a",
+            "po",
+            "pt",
+            "osis"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "motor neuron disease",
+          "category": "disease",
+          "n_subtokens": 4,
+          "subtokens": [
+            "m",
+            "otor",
+            "Ġneuron",
+            "Ġdisease"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "amyotrophic lateral sclerosis",
+          "category": "disease",
+          "n_subtokens": 5,
+          "subtokens": [
+            "am",
+            "y",
+            "otrophic",
+            "Ġlateral",
+            "Ġsclerosis"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "primary lateral sclerosis",
+          "category": "disease",
+          "n_subtokens": 5,
+          "subtokens": [
+            "p",
+            "rim",
+            "ary",
+            "Ġlateral",
+            "Ġsclerosis"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "progressive muscular atrophy",
+          "category": "disease",
+          "n_subtokens": 5,
+          "subtokens": [
+            "p",
+            "rog",
+            "ressive",
+            "Ġmuscular",
+            "Ġatrophy"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "spinocerebellar ataxia",
+          "category": "disease",
+          "n_subtokens": 5,
+          "subtokens": [
+            "sp",
+            "inoce",
+            "rebell",
+            "ar",
+            "Ġataxia"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "multifocal motor neuropathy",
+          "category": "disease",
+          "n_subtokens": 6,
+          "subtokens": [
+            "m",
+            "ult",
+            "ifoc",
+            "al",
+            "Ġmotor",
+            "Ġneuropathy"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "progressive bulbar palsy",
+          "category": "disease",
+          "n_subtokens": 5,
+          "subtokens": [
+            "p",
+            "rog",
+            "ressive",
+            "Ġbulbar",
+            "Ġpalsy"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "Kennedy disease",
+          "category": "disease",
+          "n_subtokens": 4,
+          "subtokens": [
+            "K",
+            "enned",
+            "y",
+            "Ġdisease"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "hereditary spastic paraplegia",
+          "category": "disease",
+          "n_subtokens": 4,
+          "subtokens": [
+            "he",
+            "reditary",
+            "Ġspastic",
+            "Ġparaplegia"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "frontotemporal dementia",
+          "category": "disease",
+          "n_subtokens": 2,
+          "subtokens": [
+            "frontotemporal",
+            "Ġdementia"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "disease",
+          "category": "drug",
+          "n_subtokens": 4,
+          "subtokens": [
+            "d",
+            "is",
+            "e",
+            "ase"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "Phase",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "P",
+            "h",
+            "ase"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "riluzole",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "r",
+            "iluzole"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "decline",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "de",
+            "cl",
+            "ine"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "tofersen",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "t",
+            "ofersen"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "edaravone",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "ed",
+            "aravone"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "one",
+          "category": "drug",
+          "n_subtokens": 1,
+          "subtokens": [
+            "one"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "AMX0035",
+          "category": "drug",
+          "n_subtokens": 4,
+          "subtokens": [
+            "A",
+            "M",
+            "X",
+            "0035"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "release",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "re",
+            "lease"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "sodium phenylbutyrate",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "s",
+            "odium",
+            "Ġphenylbutyrate"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "taurursodiol",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "t",
+            "aurursodiol"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "dismutase",
+          "category": "drug",
+          "n_subtokens": 4,
+          "subtokens": [
+            "d",
+            "ism",
+            "ut",
+            "ase"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "baseline",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "b",
+            "ase",
+            "line"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "baclofen",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "b",
+            "acl",
+            "ofen"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "tizanidine",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "t",
+            "iz",
+            "anidine"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "dantrolene",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "d",
+            "an",
+            "trolene"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "botulinum toxin",
+          "category": "drug",
+          "n_subtokens": 4,
+          "subtokens": [
+            "b",
+            "ot",
+            "ulinum",
+            "Ġtoxin"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "increase",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "in",
+            "cre",
+            "ase"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "tone",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "t",
+            "one"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "polyglutamine",
+          "category": "drug",
+          "n_subtokens": 4,
+          "subtokens": [
+            "po",
+            "ly",
+            "glutam",
+            "ine"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "dextromethorphan",
+          "category": "drug",
+          "n_subtokens": 4,
+          "subtokens": [
+            "de",
+            "xt",
+            "romethor",
+            "phan"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "quinidine",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "qu",
+            "inidine"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "role",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "ro",
+            "le"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "benzothiazole",
+          "category": "drug",
+          "n_subtokens": 4,
+          "subtokens": [
+            "b",
+            "en",
+            "zoth",
+            "iazole"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "kinase",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "kin",
+            "ase"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "bone",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "b",
+            "one"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "April",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "A",
+            "pr",
+            "il"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "alone",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "al",
+            "one"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "radicava",
+          "category": "drug",
+          "n_subtokens": 4,
+          "subtokens": [
+            "ra",
+            "d",
+            "ic",
+            "ava"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "nuedexta",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "n",
+            "u",
+            "edexta"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "rilutek",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "r",
+            "ilu",
+            "tek"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "SOD1",
+          "category": "gene",
+          "n_subtokens": 2,
+          "subtokens": [
+            "SOD",
+            "1"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "TDP-43",
+          "category": "gene",
+          "n_subtokens": 3,
+          "subtokens": [
+            "TDP",
+            "-",
+            "43"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "C9orf72",
+          "category": "gene",
+          "n_subtokens": 4,
+          "subtokens": [
+            "C",
+            "9",
+            "orf",
+            "72"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "FUS",
+          "category": "gene",
+          "n_subtokens": 2,
+          "subtokens": [
+            "F",
+            "US"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "ATXN2",
+          "category": "gene",
+          "n_subtokens": 4,
+          "subtokens": [
+            "A",
+            "TX",
+            "N",
+            "2"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "SOD1-ALS",
+          "category": "gene",
+          "n_subtokens": 4,
+          "subtokens": [
+            "SOD",
+            "1",
+            "-",
+            "ALS"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "GluR2",
+          "category": "gene",
+          "n_subtokens": 4,
+          "subtokens": [
+            "G",
+            "lu",
+            "R",
+            "2"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "BIIB078",
+          "category": "gene",
+          "n_subtokens": 3,
+          "subtokens": [
+            "B",
+            "IIB",
+            "078"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "TARDBP",
+          "category": "gene",
+          "n_subtokens": 3,
+          "subtokens": [
+            "TA",
+            "R",
+            "DBP"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "D90A",
+          "category": "gene",
+          "n_subtokens": 3,
+          "subtokens": [
+            "D",
+            "90",
+            "A"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "A4V",
+          "category": "gene",
+          "n_subtokens": 3,
+          "subtokens": [
+            "A",
+            "4",
+            "V"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "CYP1A2",
+          "category": "gene",
+          "n_subtokens": 5,
+          "subtokens": [
+            "C",
+            "YP",
+            "1",
+            "A",
+            "2"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "TBK1",
+          "category": "gene",
+          "n_subtokens": 3,
+          "subtokens": [
+            "T",
+            "BK",
+            "1"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "OPTN",
+          "category": "gene",
+          "n_subtokens": 3,
+          "subtokens": [
+            "O",
+            "PT",
+            "N"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "NEK1",
+          "category": "gene",
+          "n_subtokens": 3,
+          "subtokens": [
+            "N",
+            "EK",
+            "1"
+          ],
+          "flagged": true
+        }
+      ]
+    },
+    "als_tokenizer_32k": {
+      "tokenizer_name": "als_tokenizer_32k",
+      "tokenizer_path": "tokenizer/als_tokenizer_32k.json",
+      "vocab_size": 3379,
+      "threshold": 3,
+      "total_terms": 195,
+      "flagged_count": 115,
+      "flagged_pct": 59.0,
+      "category_breakdown": {
+        "abbreviation": {
+          "total": 42,
+          "flagged": 5,
+          "flagged_pct": 11.9
+        },
+        "clinical": {
+          "total": 97,
+          "flagged": 69,
+          "flagged_pct": 71.1
+        },
+        "disease": {
+          "total": 10,
+          "flagged": 9,
+          "flagged_pct": 90.0
+        },
+        "drug": {
+          "total": 31,
+          "flagged": 19,
+          "flagged_pct": 61.3
+        },
+        "gene": {
+          "total": 15,
+          "flagged": 13,
+          "flagged_pct": 86.7
+        }
+      },
+      "results": [
+        {
+          "term": "ALS",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "ALS"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "FVC",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "FVC"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "ALSFRS-R",
+          "category": "abbreviation",
+          "n_subtokens": 4,
+          "subtokens": [
+            "ALS",
+            "FRS",
+            "-",
+            "R"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "FTD",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "FTD"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "RNA",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "RNA"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "FDA",
+          "category": "abbreviation",
+          "n_subtokens": 2,
+          "subtokens": [
+            "F",
+            "DA"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "CSF",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "CSF"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "NfL",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "NfL"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "AMPA",
+          "category": "abbreviation",
+          "n_subtokens": 3,
+          "subtokens": [
+            "A",
+            "M",
+            "PA"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "UMN",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "UMN"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "LMN",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "LMN"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "PLS",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "PLS"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "PMA",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "PMA"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "NMDA",
+          "category": "abbreviation",
+          "n_subtokens": 2,
+          "subtokens": [
+            "N",
+            "MDA"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "ASO",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "ASO"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "VALOR",
+          "category": "abbreviation",
+          "n_subtokens": 2,
+          "subtokens": [
+            "VAL",
+            "OR"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "PBA",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "PBA"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "GGGGCC",
+          "category": "abbreviation",
+          "n_subtokens": 3,
+          "subtokens": [
+            "GG",
+            "GG",
+            "CC"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "CAG",
+          "category": "abbreviation",
+          "n_subtokens": 2,
+          "subtokens": [
+            "C",
+            "AG"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "iPSC",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "iPSC"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "ALS-FTD",
+          "category": "abbreviation",
+          "n_subtokens": 3,
+          "subtokens": [
+            "ALS",
+            "-",
+            "FTD"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "CENTAUR",
+          "category": "abbreviation",
+          "n_subtokens": 3,
+          "subtokens": [
+            "C",
+            "EN",
+            "TAUR"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "EMG",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "EMG"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "MND",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "MND"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "PBP",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "PBP"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "NIV",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "NIV"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "BiPAP",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "BiPAP"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "PEG",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "PEG"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "DTI",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "DTI"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "PET",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "PET"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "AAV",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "AAV"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "MSC",
+          "category": "abbreviation",
+          "n_subtokens": 2,
+          "subtokens": [
+            "M",
+            "SC"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "SBMA",
+          "category": "abbreviation",
+          "n_subtokens": 2,
+          "subtokens": [
+            "S",
+            "BMA"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "HSP",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "HSP"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "sALS",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "sALS"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "fALS",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "fALS"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "bvFTD",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "bvFTD"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "AAC",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "AAC"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "SNIP",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "SNIP"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "SVC",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "SVC"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "pNfH",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "pNfH"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "RNAi",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "RNAi"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "criteria",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "c",
+            "rit",
+            "eria"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "dysfunction",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "dys",
+            "function"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "degeneration",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "de",
+            "gener",
+            "ation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "function",
+          "category": "clinical",
+          "n_subtokens": 1,
+          "subtokens": [
+            "function"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "mutation",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "mut",
+            "ation"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "denervation",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "d",
+            "ener",
+            "vation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "diagnosis",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "diagn",
+            "osis"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "sclerosis",
+          "category": "clinical",
+          "n_subtokens": 1,
+          "subtokens": [
+            "sclerosis"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "excitotoxicity",
+          "category": "clinical",
+          "n_subtokens": 5,
+          "subtokens": [
+            "e",
+            "x",
+            "c",
+            "it",
+            "otoxicity"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "bulbar onset",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "bulbar",
+            "Ġonset"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "combination",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "com",
+            "bination"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "El Escorial criteria",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "E",
+            "l",
+            "ĠEscorial",
+            "Ġcriteria"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "communication",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "com",
+            "m",
+            "unication"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "capacity",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "cap",
+            "ac",
+            "ity"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "quality",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "qu",
+            "ality"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "ventilation",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "ventil",
+            "ation"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "neuroinflammation",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "n",
+            "euro",
+            "inflammation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "prognosis",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "pro",
+            "gn",
+            "osis"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "atrophy",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "at",
+            "roph",
+            "y"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "limb onset",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "l",
+            "imb",
+            "Ġonset"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "proteostasis",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "pro",
+            "te",
+            "ostasis"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "aggregation",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "ag",
+            "g",
+            "reg",
+            "ation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "microglia",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "m",
+            "ic",
+            "roglia"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "interaction",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "in",
+            "t",
+            "era",
+            "ction"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "population",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "p",
+            "op",
+            "ulation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "Awaji criteria",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "A",
+            "waj",
+            "i",
+            "Ġcriteria"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "conduction",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "con",
+            "duction"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "gastrostomy",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "g",
+            "astro",
+            "stomy"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "respiratory failure",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "re",
+            "spiratory",
+            "Ġfailure"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "non-invasive ventilation",
+          "category": "clinical",
+          "n_subtokens": 5,
+          "subtokens": [
+            "n",
+            "on",
+            "-",
+            "invasive",
+            "Ġventilation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "fasciculation",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "f",
+            "ascic",
+            "ulation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "dementia",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "de",
+            "ment",
+            "ia"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "sensitivity",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "s",
+            "ens",
+            "itivity"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "spasticity",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "sp",
+            "asticity"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "production",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "pro",
+            "duction"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "asthenia",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "as",
+            "th",
+            "enia"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "examination",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "e",
+            "x",
+            "am",
+            "ination"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "via",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "v",
+            "ia"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "autophagy",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "a",
+            "ut",
+            "ophag",
+            "y"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "concentration",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "con",
+            "cent",
+            "ration"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "hypothesis",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "h",
+            "yp",
+            "othes",
+            "is"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "tolerability",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "t",
+            "olerability"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "utility",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "ut",
+            "ility"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "tomography",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "t",
+            "om",
+            "ography"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "dysphagia",
+          "category": "clinical",
+          "n_subtokens": 1,
+          "subtokens": [
+            "dysphagia"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "hyperreflexia",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "h",
+            "yp",
+            "errefle",
+            "xia"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "clonus",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "cl",
+            "on",
+            "us"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "sialorrhea",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "s",
+            "ial",
+            "orrhea"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "Babinski sign",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "B",
+            "abins",
+            "ki",
+            "Ġsign"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "diaphragmatic pacing",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "d",
+            "iaph",
+            "ragmatic",
+            "Ġpacing"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "percutaneous endoscopic gastrostomy",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "per",
+            "cutaneous",
+            "Ġendoscopic",
+            "Ġgastrostomy"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "stability",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "st",
+            "ability"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "instability",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "in",
+            "st",
+            "ability"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "reduction",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "red",
+            "u",
+            "ction"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "distribution",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "d",
+            "is",
+            "trib",
+            "ution"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "modification",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "m",
+            "od",
+            "ific",
+            "ation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "susceptibility",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "s",
+            "us",
+            "ceptibility"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "ataxia",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "at",
+            "ax",
+            "ia"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "formation",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "for",
+            "mation"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "mislocalization",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "m",
+            "is",
+            "localiz",
+            "ation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "reinnervation",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "re",
+            "inner",
+            "vation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "electromyography",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "e",
+            "lect",
+            "romyography"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "action",
+          "category": "clinical",
+          "n_subtokens": 1,
+          "subtokens": [
+            "action"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "inhibition",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "inhib",
+            "ition"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "formulation",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "f",
+            "orm",
+            "ulation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "paralysis",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "p",
+            "ar",
+            "alysis"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "ability",
+          "category": "clinical",
+          "n_subtokens": 1,
+          "subtokens": [
+            "ability"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "depletion",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "de",
+            "ple",
+            "tion"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "stimulation",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "st",
+            "imulation"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "overactivation",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "o",
+            "ver",
+            "activ",
+            "ation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "activation",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "activ",
+            "ation"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "accumulation",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "ac",
+            "cum",
+            "ulation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "pathogenesis",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "path",
+            "ogen",
+            "esis"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "condition",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "con",
+            "dit",
+            "ion"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "paraplegia",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "p",
+            "ar",
+            "ap",
+            "legia"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "duration",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "d",
+            "ur",
+            "ation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "malnutrition",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "m",
+            "alnutrit",
+            "ion"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "hypoventilation",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "h",
+            "y",
+            "poventil",
+            "ation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "Gold Coast criteria",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "G",
+            "old",
+            "ĠCoast",
+            "Ġcriteria"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "Hepatotoxicity",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "H",
+            "e",
+            "pat",
+            "otoxicity"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "dysarthria",
+          "category": "clinical",
+          "n_subtokens": 1,
+          "subtokens": [
+            "dysarthria"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "disruption",
+          "category": "clinical",
+          "n_subtokens": 5,
+          "subtokens": [
+            "d",
+            "is",
+            "ru",
+            "pt",
+            "ion"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "loss-of-function",
+          "category": "clinical",
+          "n_subtokens": 7,
+          "subtokens": [
+            "l",
+            "os",
+            "s",
+            "-",
+            "of",
+            "-",
+            "function"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "generation",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "gener",
+            "ation"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "analysis",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "an",
+            "alysis"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "arthralgia",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "arthr",
+            "algia"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "injection",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "in",
+            "jection"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "degradation",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "de",
+            "gra",
+            "dation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "motion",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "m",
+            "ot",
+            "ion"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "personality",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "p",
+            "ers",
+            "on",
+            "ality"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "disinhibition",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "d",
+            "is",
+            "inhib",
+            "ition"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "availability",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "ava",
+            "il",
+            "ability"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "option",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "o",
+            "pt",
+            "ion"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "spirometry",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "sp",
+            "i",
+            "rom",
+            "etry"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "tracheostomy",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "trac",
+            "heost",
+            "omy"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "neurodegeneration",
+          "category": "clinical",
+          "n_subtokens": 5,
+          "subtokens": [
+            "n",
+            "euro",
+            "de",
+            "gener",
+            "ation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "apoptosis",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "a",
+            "po",
+            "pt",
+            "osis"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "motor neuron disease",
+          "category": "disease",
+          "n_subtokens": 4,
+          "subtokens": [
+            "m",
+            "otor",
+            "Ġneuron",
+            "Ġdisease"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "amyotrophic lateral sclerosis",
+          "category": "disease",
+          "n_subtokens": 5,
+          "subtokens": [
+            "am",
+            "y",
+            "otrophic",
+            "Ġlateral",
+            "Ġsclerosis"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "primary lateral sclerosis",
+          "category": "disease",
+          "n_subtokens": 5,
+          "subtokens": [
+            "p",
+            "rim",
+            "ary",
+            "Ġlateral",
+            "Ġsclerosis"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "progressive muscular atrophy",
+          "category": "disease",
+          "n_subtokens": 5,
+          "subtokens": [
+            "p",
+            "rog",
+            "ressive",
+            "Ġmuscular",
+            "Ġatrophy"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "spinocerebellar ataxia",
+          "category": "disease",
+          "n_subtokens": 5,
+          "subtokens": [
+            "sp",
+            "inoce",
+            "rebell",
+            "ar",
+            "Ġataxia"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "multifocal motor neuropathy",
+          "category": "disease",
+          "n_subtokens": 6,
+          "subtokens": [
+            "m",
+            "ult",
+            "ifoc",
+            "al",
+            "Ġmotor",
+            "Ġneuropathy"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "progressive bulbar palsy",
+          "category": "disease",
+          "n_subtokens": 5,
+          "subtokens": [
+            "p",
+            "rog",
+            "ressive",
+            "Ġbulbar",
+            "Ġpalsy"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "Kennedy disease",
+          "category": "disease",
+          "n_subtokens": 4,
+          "subtokens": [
+            "K",
+            "enned",
+            "y",
+            "Ġdisease"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "hereditary spastic paraplegia",
+          "category": "disease",
+          "n_subtokens": 4,
+          "subtokens": [
+            "he",
+            "reditary",
+            "Ġspastic",
+            "Ġparaplegia"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "frontotemporal dementia",
+          "category": "disease",
+          "n_subtokens": 2,
+          "subtokens": [
+            "frontotemporal",
+            "Ġdementia"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "disease",
+          "category": "drug",
+          "n_subtokens": 4,
+          "subtokens": [
+            "d",
+            "is",
+            "e",
+            "ase"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "Phase",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "P",
+            "h",
+            "ase"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "riluzole",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "r",
+            "iluzole"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "decline",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "de",
+            "cl",
+            "ine"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "tofersen",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "t",
+            "ofersen"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "edaravone",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "ed",
+            "aravone"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "one",
+          "category": "drug",
+          "n_subtokens": 1,
+          "subtokens": [
+            "one"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "AMX0035",
+          "category": "drug",
+          "n_subtokens": 4,
+          "subtokens": [
+            "A",
+            "M",
+            "X",
+            "0035"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "release",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "re",
+            "lease"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "sodium phenylbutyrate",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "s",
+            "odium",
+            "Ġphenylbutyrate"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "taurursodiol",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "t",
+            "aurursodiol"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "dismutase",
+          "category": "drug",
+          "n_subtokens": 4,
+          "subtokens": [
+            "d",
+            "ism",
+            "ut",
+            "ase"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "baseline",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "b",
+            "ase",
+            "line"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "baclofen",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "b",
+            "acl",
+            "ofen"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "tizanidine",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "t",
+            "iz",
+            "anidine"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "dantrolene",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "d",
+            "an",
+            "trolene"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "botulinum toxin",
+          "category": "drug",
+          "n_subtokens": 4,
+          "subtokens": [
+            "b",
+            "ot",
+            "ulinum",
+            "Ġtoxin"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "increase",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "in",
+            "cre",
+            "ase"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "tone",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "t",
+            "one"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "polyglutamine",
+          "category": "drug",
+          "n_subtokens": 4,
+          "subtokens": [
+            "po",
+            "ly",
+            "glutam",
+            "ine"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "dextromethorphan",
+          "category": "drug",
+          "n_subtokens": 4,
+          "subtokens": [
+            "de",
+            "xt",
+            "romethor",
+            "phan"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "quinidine",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "qu",
+            "inidine"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "role",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "ro",
+            "le"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "benzothiazole",
+          "category": "drug",
+          "n_subtokens": 4,
+          "subtokens": [
+            "b",
+            "en",
+            "zoth",
+            "iazole"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "kinase",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "kin",
+            "ase"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "bone",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "b",
+            "one"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "April",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "A",
+            "pr",
+            "il"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "alone",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "al",
+            "one"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "radicava",
+          "category": "drug",
+          "n_subtokens": 4,
+          "subtokens": [
+            "ra",
+            "d",
+            "ic",
+            "ava"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "nuedexta",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "n",
+            "u",
+            "edexta"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "rilutek",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "r",
+            "ilu",
+            "tek"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "SOD1",
+          "category": "gene",
+          "n_subtokens": 2,
+          "subtokens": [
+            "SOD",
+            "1"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "TDP-43",
+          "category": "gene",
+          "n_subtokens": 3,
+          "subtokens": [
+            "TDP",
+            "-",
+            "43"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "C9orf72",
+          "category": "gene",
+          "n_subtokens": 4,
+          "subtokens": [
+            "C",
+            "9",
+            "orf",
+            "72"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "FUS",
+          "category": "gene",
+          "n_subtokens": 2,
+          "subtokens": [
+            "F",
+            "US"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "ATXN2",
+          "category": "gene",
+          "n_subtokens": 4,
+          "subtokens": [
+            "A",
+            "TX",
+            "N",
+            "2"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "SOD1-ALS",
+          "category": "gene",
+          "n_subtokens": 4,
+          "subtokens": [
+            "SOD",
+            "1",
+            "-",
+            "ALS"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "GluR2",
+          "category": "gene",
+          "n_subtokens": 4,
+          "subtokens": [
+            "G",
+            "lu",
+            "R",
+            "2"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "BIIB078",
+          "category": "gene",
+          "n_subtokens": 3,
+          "subtokens": [
+            "B",
+            "IIB",
+            "078"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "TARDBP",
+          "category": "gene",
+          "n_subtokens": 3,
+          "subtokens": [
+            "TA",
+            "R",
+            "DBP"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "D90A",
+          "category": "gene",
+          "n_subtokens": 3,
+          "subtokens": [
+            "D",
+            "90",
+            "A"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "A4V",
+          "category": "gene",
+          "n_subtokens": 3,
+          "subtokens": [
+            "A",
+            "4",
+            "V"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "CYP1A2",
+          "category": "gene",
+          "n_subtokens": 5,
+          "subtokens": [
+            "C",
+            "YP",
+            "1",
+            "A",
+            "2"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "TBK1",
+          "category": "gene",
+          "n_subtokens": 3,
+          "subtokens": [
+            "T",
+            "BK",
+            "1"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "OPTN",
+          "category": "gene",
+          "n_subtokens": 3,
+          "subtokens": [
+            "O",
+            "PT",
+            "N"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "NEK1",
+          "category": "gene",
+          "n_subtokens": 3,
+          "subtokens": [
+            "N",
+            "EK",
+            "1"
+          ],
+          "flagged": true
+        }
+      ]
+    },
+    "als_tokenizer_50k": {
+      "tokenizer_name": "als_tokenizer_50k",
+      "tokenizer_path": "tokenizer/als_tokenizer_50k.json",
+      "vocab_size": 3379,
+      "threshold": 3,
+      "total_terms": 195,
+      "flagged_count": 115,
+      "flagged_pct": 59.0,
+      "category_breakdown": {
+        "abbreviation": {
+          "total": 42,
+          "flagged": 5,
+          "flagged_pct": 11.9
+        },
+        "clinical": {
+          "total": 97,
+          "flagged": 69,
+          "flagged_pct": 71.1
+        },
+        "disease": {
+          "total": 10,
+          "flagged": 9,
+          "flagged_pct": 90.0
+        },
+        "drug": {
+          "total": 31,
+          "flagged": 19,
+          "flagged_pct": 61.3
+        },
+        "gene": {
+          "total": 15,
+          "flagged": 13,
+          "flagged_pct": 86.7
+        }
+      },
+      "results": [
+        {
+          "term": "ALS",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "ALS"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "FVC",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "FVC"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "ALSFRS-R",
+          "category": "abbreviation",
+          "n_subtokens": 4,
+          "subtokens": [
+            "ALS",
+            "FRS",
+            "-",
+            "R"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "FTD",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "FTD"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "RNA",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "RNA"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "FDA",
+          "category": "abbreviation",
+          "n_subtokens": 2,
+          "subtokens": [
+            "F",
+            "DA"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "CSF",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "CSF"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "NfL",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "NfL"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "AMPA",
+          "category": "abbreviation",
+          "n_subtokens": 3,
+          "subtokens": [
+            "A",
+            "M",
+            "PA"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "UMN",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "UMN"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "LMN",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "LMN"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "PLS",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "PLS"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "PMA",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "PMA"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "NMDA",
+          "category": "abbreviation",
+          "n_subtokens": 2,
+          "subtokens": [
+            "N",
+            "MDA"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "ASO",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "ASO"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "VALOR",
+          "category": "abbreviation",
+          "n_subtokens": 2,
+          "subtokens": [
+            "VAL",
+            "OR"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "PBA",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "PBA"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "GGGGCC",
+          "category": "abbreviation",
+          "n_subtokens": 3,
+          "subtokens": [
+            "GG",
+            "GG",
+            "CC"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "CAG",
+          "category": "abbreviation",
+          "n_subtokens": 2,
+          "subtokens": [
+            "C",
+            "AG"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "iPSC",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "iPSC"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "ALS-FTD",
+          "category": "abbreviation",
+          "n_subtokens": 3,
+          "subtokens": [
+            "ALS",
+            "-",
+            "FTD"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "CENTAUR",
+          "category": "abbreviation",
+          "n_subtokens": 3,
+          "subtokens": [
+            "C",
+            "EN",
+            "TAUR"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "EMG",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "EMG"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "MND",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "MND"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "PBP",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "PBP"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "NIV",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "NIV"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "BiPAP",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "BiPAP"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "PEG",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "PEG"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "DTI",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "DTI"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "PET",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "PET"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "AAV",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "AAV"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "MSC",
+          "category": "abbreviation",
+          "n_subtokens": 2,
+          "subtokens": [
+            "M",
+            "SC"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "SBMA",
+          "category": "abbreviation",
+          "n_subtokens": 2,
+          "subtokens": [
+            "S",
+            "BMA"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "HSP",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "HSP"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "sALS",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "sALS"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "fALS",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "fALS"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "bvFTD",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "bvFTD"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "AAC",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "AAC"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "SNIP",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "SNIP"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "SVC",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "SVC"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "pNfH",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "pNfH"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "RNAi",
+          "category": "abbreviation",
+          "n_subtokens": 1,
+          "subtokens": [
+            "RNAi"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "criteria",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "c",
+            "rit",
+            "eria"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "dysfunction",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "dys",
+            "function"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "degeneration",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "de",
+            "gener",
+            "ation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "function",
+          "category": "clinical",
+          "n_subtokens": 1,
+          "subtokens": [
+            "function"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "mutation",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "mut",
+            "ation"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "denervation",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "d",
+            "ener",
+            "vation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "diagnosis",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "diagn",
+            "osis"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "sclerosis",
+          "category": "clinical",
+          "n_subtokens": 1,
+          "subtokens": [
+            "sclerosis"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "excitotoxicity",
+          "category": "clinical",
+          "n_subtokens": 5,
+          "subtokens": [
+            "e",
+            "x",
+            "c",
+            "it",
+            "otoxicity"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "bulbar onset",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "bulbar",
+            "Ġonset"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "combination",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "com",
+            "bination"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "El Escorial criteria",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "E",
+            "l",
+            "ĠEscorial",
+            "Ġcriteria"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "communication",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "com",
+            "m",
+            "unication"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "capacity",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "cap",
+            "ac",
+            "ity"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "quality",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "qu",
+            "ality"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "ventilation",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "ventil",
+            "ation"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "neuroinflammation",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "n",
+            "euro",
+            "inflammation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "prognosis",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "pro",
+            "gn",
+            "osis"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "atrophy",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "at",
+            "roph",
+            "y"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "limb onset",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "l",
+            "imb",
+            "Ġonset"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "proteostasis",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "pro",
+            "te",
+            "ostasis"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "aggregation",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "ag",
+            "g",
+            "reg",
+            "ation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "microglia",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "m",
+            "ic",
+            "roglia"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "interaction",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "in",
+            "t",
+            "era",
+            "ction"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "population",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "p",
+            "op",
+            "ulation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "Awaji criteria",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "A",
+            "waj",
+            "i",
+            "Ġcriteria"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "conduction",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "con",
+            "duction"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "gastrostomy",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "g",
+            "astro",
+            "stomy"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "respiratory failure",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "re",
+            "spiratory",
+            "Ġfailure"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "non-invasive ventilation",
+          "category": "clinical",
+          "n_subtokens": 5,
+          "subtokens": [
+            "n",
+            "on",
+            "-",
+            "invasive",
+            "Ġventilation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "fasciculation",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "f",
+            "ascic",
+            "ulation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "dementia",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "de",
+            "ment",
+            "ia"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "sensitivity",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "s",
+            "ens",
+            "itivity"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "spasticity",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "sp",
+            "asticity"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "production",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "pro",
+            "duction"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "asthenia",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "as",
+            "th",
+            "enia"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "examination",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "e",
+            "x",
+            "am",
+            "ination"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "via",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "v",
+            "ia"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "autophagy",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "a",
+            "ut",
+            "ophag",
+            "y"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "concentration",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "con",
+            "cent",
+            "ration"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "hypothesis",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "h",
+            "yp",
+            "othes",
+            "is"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "tolerability",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "t",
+            "olerability"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "utility",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "ut",
+            "ility"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "tomography",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "t",
+            "om",
+            "ography"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "dysphagia",
+          "category": "clinical",
+          "n_subtokens": 1,
+          "subtokens": [
+            "dysphagia"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "hyperreflexia",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "h",
+            "yp",
+            "errefle",
+            "xia"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "clonus",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "cl",
+            "on",
+            "us"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "sialorrhea",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "s",
+            "ial",
+            "orrhea"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "Babinski sign",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "B",
+            "abins",
+            "ki",
+            "Ġsign"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "diaphragmatic pacing",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "d",
+            "iaph",
+            "ragmatic",
+            "Ġpacing"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "percutaneous endoscopic gastrostomy",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "per",
+            "cutaneous",
+            "Ġendoscopic",
+            "Ġgastrostomy"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "stability",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "st",
+            "ability"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "instability",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "in",
+            "st",
+            "ability"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "reduction",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "red",
+            "u",
+            "ction"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "distribution",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "d",
+            "is",
+            "trib",
+            "ution"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "modification",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "m",
+            "od",
+            "ific",
+            "ation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "susceptibility",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "s",
+            "us",
+            "ceptibility"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "ataxia",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "at",
+            "ax",
+            "ia"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "formation",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "for",
+            "mation"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "mislocalization",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "m",
+            "is",
+            "localiz",
+            "ation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "reinnervation",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "re",
+            "inner",
+            "vation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "electromyography",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "e",
+            "lect",
+            "romyography"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "action",
+          "category": "clinical",
+          "n_subtokens": 1,
+          "subtokens": [
+            "action"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "inhibition",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "inhib",
+            "ition"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "formulation",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "f",
+            "orm",
+            "ulation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "paralysis",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "p",
+            "ar",
+            "alysis"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "ability",
+          "category": "clinical",
+          "n_subtokens": 1,
+          "subtokens": [
+            "ability"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "depletion",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "de",
+            "ple",
+            "tion"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "stimulation",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "st",
+            "imulation"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "overactivation",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "o",
+            "ver",
+            "activ",
+            "ation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "activation",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "activ",
+            "ation"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "accumulation",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "ac",
+            "cum",
+            "ulation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "pathogenesis",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "path",
+            "ogen",
+            "esis"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "condition",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "con",
+            "dit",
+            "ion"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "paraplegia",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "p",
+            "ar",
+            "ap",
+            "legia"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "duration",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "d",
+            "ur",
+            "ation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "malnutrition",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "m",
+            "alnutrit",
+            "ion"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "hypoventilation",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "h",
+            "y",
+            "poventil",
+            "ation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "Gold Coast criteria",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "G",
+            "old",
+            "ĠCoast",
+            "Ġcriteria"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "Hepatotoxicity",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "H",
+            "e",
+            "pat",
+            "otoxicity"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "dysarthria",
+          "category": "clinical",
+          "n_subtokens": 1,
+          "subtokens": [
+            "dysarthria"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "disruption",
+          "category": "clinical",
+          "n_subtokens": 5,
+          "subtokens": [
+            "d",
+            "is",
+            "ru",
+            "pt",
+            "ion"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "loss-of-function",
+          "category": "clinical",
+          "n_subtokens": 7,
+          "subtokens": [
+            "l",
+            "os",
+            "s",
+            "-",
+            "of",
+            "-",
+            "function"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "generation",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "gener",
+            "ation"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "analysis",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "an",
+            "alysis"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "arthralgia",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "arthr",
+            "algia"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "injection",
+          "category": "clinical",
+          "n_subtokens": 2,
+          "subtokens": [
+            "in",
+            "jection"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "degradation",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "de",
+            "gra",
+            "dation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "motion",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "m",
+            "ot",
+            "ion"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "personality",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "p",
+            "ers",
+            "on",
+            "ality"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "disinhibition",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "d",
+            "is",
+            "inhib",
+            "ition"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "availability",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "ava",
+            "il",
+            "ability"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "option",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "o",
+            "pt",
+            "ion"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "spirometry",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "sp",
+            "i",
+            "rom",
+            "etry"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "tracheostomy",
+          "category": "clinical",
+          "n_subtokens": 3,
+          "subtokens": [
+            "trac",
+            "heost",
+            "omy"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "neurodegeneration",
+          "category": "clinical",
+          "n_subtokens": 5,
+          "subtokens": [
+            "n",
+            "euro",
+            "de",
+            "gener",
+            "ation"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "apoptosis",
+          "category": "clinical",
+          "n_subtokens": 4,
+          "subtokens": [
+            "a",
+            "po",
+            "pt",
+            "osis"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "motor neuron disease",
+          "category": "disease",
+          "n_subtokens": 4,
+          "subtokens": [
+            "m",
+            "otor",
+            "Ġneuron",
+            "Ġdisease"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "amyotrophic lateral sclerosis",
+          "category": "disease",
+          "n_subtokens": 5,
+          "subtokens": [
+            "am",
+            "y",
+            "otrophic",
+            "Ġlateral",
+            "Ġsclerosis"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "primary lateral sclerosis",
+          "category": "disease",
+          "n_subtokens": 5,
+          "subtokens": [
+            "p",
+            "rim",
+            "ary",
+            "Ġlateral",
+            "Ġsclerosis"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "progressive muscular atrophy",
+          "category": "disease",
+          "n_subtokens": 5,
+          "subtokens": [
+            "p",
+            "rog",
+            "ressive",
+            "Ġmuscular",
+            "Ġatrophy"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "spinocerebellar ataxia",
+          "category": "disease",
+          "n_subtokens": 5,
+          "subtokens": [
+            "sp",
+            "inoce",
+            "rebell",
+            "ar",
+            "Ġataxia"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "multifocal motor neuropathy",
+          "category": "disease",
+          "n_subtokens": 6,
+          "subtokens": [
+            "m",
+            "ult",
+            "ifoc",
+            "al",
+            "Ġmotor",
+            "Ġneuropathy"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "progressive bulbar palsy",
+          "category": "disease",
+          "n_subtokens": 5,
+          "subtokens": [
+            "p",
+            "rog",
+            "ressive",
+            "Ġbulbar",
+            "Ġpalsy"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "Kennedy disease",
+          "category": "disease",
+          "n_subtokens": 4,
+          "subtokens": [
+            "K",
+            "enned",
+            "y",
+            "Ġdisease"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "hereditary spastic paraplegia",
+          "category": "disease",
+          "n_subtokens": 4,
+          "subtokens": [
+            "he",
+            "reditary",
+            "Ġspastic",
+            "Ġparaplegia"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "frontotemporal dementia",
+          "category": "disease",
+          "n_subtokens": 2,
+          "subtokens": [
+            "frontotemporal",
+            "Ġdementia"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "disease",
+          "category": "drug",
+          "n_subtokens": 4,
+          "subtokens": [
+            "d",
+            "is",
+            "e",
+            "ase"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "Phase",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "P",
+            "h",
+            "ase"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "riluzole",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "r",
+            "iluzole"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "decline",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "de",
+            "cl",
+            "ine"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "tofersen",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "t",
+            "ofersen"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "edaravone",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "ed",
+            "aravone"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "one",
+          "category": "drug",
+          "n_subtokens": 1,
+          "subtokens": [
+            "one"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "AMX0035",
+          "category": "drug",
+          "n_subtokens": 4,
+          "subtokens": [
+            "A",
+            "M",
+            "X",
+            "0035"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "release",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "re",
+            "lease"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "sodium phenylbutyrate",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "s",
+            "odium",
+            "Ġphenylbutyrate"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "taurursodiol",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "t",
+            "aurursodiol"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "dismutase",
+          "category": "drug",
+          "n_subtokens": 4,
+          "subtokens": [
+            "d",
+            "ism",
+            "ut",
+            "ase"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "baseline",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "b",
+            "ase",
+            "line"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "baclofen",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "b",
+            "acl",
+            "ofen"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "tizanidine",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "t",
+            "iz",
+            "anidine"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "dantrolene",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "d",
+            "an",
+            "trolene"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "botulinum toxin",
+          "category": "drug",
+          "n_subtokens": 4,
+          "subtokens": [
+            "b",
+            "ot",
+            "ulinum",
+            "Ġtoxin"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "increase",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "in",
+            "cre",
+            "ase"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "tone",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "t",
+            "one"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "polyglutamine",
+          "category": "drug",
+          "n_subtokens": 4,
+          "subtokens": [
+            "po",
+            "ly",
+            "glutam",
+            "ine"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "dextromethorphan",
+          "category": "drug",
+          "n_subtokens": 4,
+          "subtokens": [
+            "de",
+            "xt",
+            "romethor",
+            "phan"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "quinidine",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "qu",
+            "inidine"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "role",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "ro",
+            "le"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "benzothiazole",
+          "category": "drug",
+          "n_subtokens": 4,
+          "subtokens": [
+            "b",
+            "en",
+            "zoth",
+            "iazole"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "kinase",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "kin",
+            "ase"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "bone",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "b",
+            "one"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "April",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "A",
+            "pr",
+            "il"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "alone",
+          "category": "drug",
+          "n_subtokens": 2,
+          "subtokens": [
+            "al",
+            "one"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "radicava",
+          "category": "drug",
+          "n_subtokens": 4,
+          "subtokens": [
+            "ra",
+            "d",
+            "ic",
+            "ava"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "nuedexta",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "n",
+            "u",
+            "edexta"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "rilutek",
+          "category": "drug",
+          "n_subtokens": 3,
+          "subtokens": [
+            "r",
+            "ilu",
+            "tek"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "SOD1",
+          "category": "gene",
+          "n_subtokens": 2,
+          "subtokens": [
+            "SOD",
+            "1"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "TDP-43",
+          "category": "gene",
+          "n_subtokens": 3,
+          "subtokens": [
+            "TDP",
+            "-",
+            "43"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "C9orf72",
+          "category": "gene",
+          "n_subtokens": 4,
+          "subtokens": [
+            "C",
+            "9",
+            "orf",
+            "72"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "FUS",
+          "category": "gene",
+          "n_subtokens": 2,
+          "subtokens": [
+            "F",
+            "US"
+          ],
+          "flagged": false
+        },
+        {
+          "term": "ATXN2",
+          "category": "gene",
+          "n_subtokens": 4,
+          "subtokens": [
+            "A",
+            "TX",
+            "N",
+            "2"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "SOD1-ALS",
+          "category": "gene",
+          "n_subtokens": 4,
+          "subtokens": [
+            "SOD",
+            "1",
+            "-",
+            "ALS"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "GluR2",
+          "category": "gene",
+          "n_subtokens": 4,
+          "subtokens": [
+            "G",
+            "lu",
+            "R",
+            "2"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "BIIB078",
+          "category": "gene",
+          "n_subtokens": 3,
+          "subtokens": [
+            "B",
+            "IIB",
+            "078"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "TARDBP",
+          "category": "gene",
+          "n_subtokens": 3,
+          "subtokens": [
+            "TA",
+            "R",
+            "DBP"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "D90A",
+          "category": "gene",
+          "n_subtokens": 3,
+          "subtokens": [
+            "D",
+            "90",
+            "A"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "A4V",
+          "category": "gene",
+          "n_subtokens": 3,
+          "subtokens": [
+            "A",
+            "4",
+            "V"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "CYP1A2",
+          "category": "gene",
+          "n_subtokens": 5,
+          "subtokens": [
+            "C",
+            "YP",
+            "1",
+            "A",
+            "2"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "TBK1",
+          "category": "gene",
+          "n_subtokens": 3,
+          "subtokens": [
+            "T",
+            "BK",
+            "1"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "OPTN",
+          "category": "gene",
+          "n_subtokens": 3,
+          "subtokens": [
+            "O",
+            "PT",
+            "N"
+          ],
+          "flagged": true
+        },
+        {
+          "term": "NEK1",
+          "category": "gene",
+          "n_subtokens": 3,
+          "subtokens": [
+            "N",
+            "EK",
+            "1"
+          ],
+          "flagged": true
+        }
+      ]
+    }
+  }
+}

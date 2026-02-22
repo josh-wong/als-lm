@@ -1,0 +1,1172 @@
+[
+  {
+    "term": "ALS",
+    "category": "abbreviation",
+    "corpus_frequency": 5834,
+    "source": "curated"
+  },
+  {
+    "term": "FVC",
+    "category": "abbreviation",
+    "corpus_frequency": 630,
+    "source": "curated"
+  },
+  {
+    "term": "ALSFRS-R",
+    "category": "abbreviation",
+    "corpus_frequency": 625,
+    "source": "curated"
+  },
+  {
+    "term": "FTD",
+    "category": "abbreviation",
+    "corpus_frequency": 611,
+    "source": "curated"
+  },
+  {
+    "term": "RNA",
+    "category": "abbreviation",
+    "corpus_frequency": 455,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "FDA",
+    "category": "abbreviation",
+    "corpus_frequency": 266,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "CSF",
+    "category": "abbreviation",
+    "corpus_frequency": 188,
+    "source": "curated"
+  },
+  {
+    "term": "NfL",
+    "category": "abbreviation",
+    "corpus_frequency": 188,
+    "source": "curated"
+  },
+  {
+    "term": "AMPA",
+    "category": "abbreviation",
+    "corpus_frequency": 188,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "UMN",
+    "category": "abbreviation",
+    "corpus_frequency": 180,
+    "source": "curated"
+  },
+  {
+    "term": "LMN",
+    "category": "abbreviation",
+    "corpus_frequency": 180,
+    "source": "curated"
+  },
+  {
+    "term": "PLS",
+    "category": "abbreviation",
+    "corpus_frequency": 178,
+    "source": "curated"
+  },
+  {
+    "term": "PMA",
+    "category": "abbreviation",
+    "corpus_frequency": 178,
+    "source": "curated"
+  },
+  {
+    "term": "NMDA",
+    "category": "abbreviation",
+    "corpus_frequency": 94,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "ASO",
+    "category": "abbreviation",
+    "corpus_frequency": 92,
+    "source": "curated"
+  },
+  {
+    "term": "VALOR",
+    "category": "abbreviation",
+    "corpus_frequency": 92,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "PBA",
+    "category": "abbreviation",
+    "corpus_frequency": 91,
+    "source": "curated"
+  },
+  {
+    "term": "GGGGCC",
+    "category": "abbreviation",
+    "corpus_frequency": 89,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "CAG",
+    "category": "abbreviation",
+    "corpus_frequency": 89,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "iPSC",
+    "category": "abbreviation",
+    "corpus_frequency": 87,
+    "source": "curated"
+  },
+  {
+    "term": "ALS-FTD",
+    "category": "abbreviation",
+    "corpus_frequency": 87,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "CENTAUR",
+    "category": "abbreviation",
+    "corpus_frequency": 86,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "EMG",
+    "category": "abbreviation",
+    "corpus_frequency": 0,
+    "source": "curated"
+  },
+  {
+    "term": "MND",
+    "category": "abbreviation",
+    "corpus_frequency": 0,
+    "source": "curated"
+  },
+  {
+    "term": "PBP",
+    "category": "abbreviation",
+    "corpus_frequency": 0,
+    "source": "curated"
+  },
+  {
+    "term": "NIV",
+    "category": "abbreviation",
+    "corpus_frequency": 0,
+    "source": "curated"
+  },
+  {
+    "term": "BiPAP",
+    "category": "abbreviation",
+    "corpus_frequency": 0,
+    "source": "curated"
+  },
+  {
+    "term": "PEG",
+    "category": "abbreviation",
+    "corpus_frequency": 0,
+    "source": "curated"
+  },
+  {
+    "term": "DTI",
+    "category": "abbreviation",
+    "corpus_frequency": 0,
+    "source": "curated"
+  },
+  {
+    "term": "PET",
+    "category": "abbreviation",
+    "corpus_frequency": 0,
+    "source": "curated"
+  },
+  {
+    "term": "AAV",
+    "category": "abbreviation",
+    "corpus_frequency": 0,
+    "source": "curated"
+  },
+  {
+    "term": "MSC",
+    "category": "abbreviation",
+    "corpus_frequency": 0,
+    "source": "curated"
+  },
+  {
+    "term": "SBMA",
+    "category": "abbreviation",
+    "corpus_frequency": 0,
+    "source": "curated"
+  },
+  {
+    "term": "HSP",
+    "category": "abbreviation",
+    "corpus_frequency": 0,
+    "source": "curated"
+  },
+  {
+    "term": "sALS",
+    "category": "abbreviation",
+    "corpus_frequency": 0,
+    "source": "curated"
+  },
+  {
+    "term": "fALS",
+    "category": "abbreviation",
+    "corpus_frequency": 0,
+    "source": "curated"
+  },
+  {
+    "term": "bvFTD",
+    "category": "abbreviation",
+    "corpus_frequency": 0,
+    "source": "curated"
+  },
+  {
+    "term": "AAC",
+    "category": "abbreviation",
+    "corpus_frequency": 0,
+    "source": "curated"
+  },
+  {
+    "term": "SNIP",
+    "category": "abbreviation",
+    "corpus_frequency": 0,
+    "source": "curated"
+  },
+  {
+    "term": "SVC",
+    "category": "abbreviation",
+    "corpus_frequency": 0,
+    "source": "curated"
+  },
+  {
+    "term": "pNfH",
+    "category": "abbreviation",
+    "corpus_frequency": 0,
+    "source": "curated"
+  },
+  {
+    "term": "RNAi",
+    "category": "abbreviation",
+    "corpus_frequency": 0,
+    "source": "curated"
+  },
+  {
+    "term": "criteria",
+    "category": "clinical",
+    "corpus_frequency": 888,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "dysfunction",
+    "category": "clinical",
+    "corpus_frequency": 727,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "degeneration",
+    "category": "clinical",
+    "corpus_frequency": 721,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "function",
+    "category": "clinical",
+    "corpus_frequency": 640,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "mutation",
+    "category": "clinical",
+    "corpus_frequency": 608,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "denervation",
+    "category": "clinical",
+    "corpus_frequency": 454,
+    "source": "curated"
+  },
+  {
+    "term": "diagnosis",
+    "category": "clinical",
+    "corpus_frequency": 451,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "sclerosis",
+    "category": "clinical",
+    "corpus_frequency": 449,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "excitotoxicity",
+    "category": "clinical",
+    "corpus_frequency": 372,
+    "source": "curated"
+  },
+  {
+    "term": "bulbar onset",
+    "category": "clinical",
+    "corpus_frequency": 364,
+    "source": "curated"
+  },
+  {
+    "term": "combination",
+    "category": "clinical",
+    "corpus_frequency": 360,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "El Escorial criteria",
+    "category": "clinical",
+    "corpus_frequency": 354,
+    "source": "curated"
+  },
+  {
+    "term": "communication",
+    "category": "clinical",
+    "corpus_frequency": 281,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "capacity",
+    "category": "clinical",
+    "corpus_frequency": 280,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "quality",
+    "category": "clinical",
+    "corpus_frequency": 276,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "ventilation",
+    "category": "clinical",
+    "corpus_frequency": 275,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "neuroinflammation",
+    "category": "clinical",
+    "corpus_frequency": 274,
+    "source": "curated"
+  },
+  {
+    "term": "prognosis",
+    "category": "clinical",
+    "corpus_frequency": 271,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "atrophy",
+    "category": "clinical",
+    "corpus_frequency": 268,
+    "source": "curated"
+  },
+  {
+    "term": "limb onset",
+    "category": "clinical",
+    "corpus_frequency": 186,
+    "source": "curated"
+  },
+  {
+    "term": "proteostasis",
+    "category": "clinical",
+    "corpus_frequency": 184,
+    "source": "curated"
+  },
+  {
+    "term": "aggregation",
+    "category": "clinical",
+    "corpus_frequency": 184,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "microglia",
+    "category": "clinical",
+    "corpus_frequency": 184,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "interaction",
+    "category": "clinical",
+    "corpus_frequency": 184,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "population",
+    "category": "clinical",
+    "corpus_frequency": 183,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "Awaji criteria",
+    "category": "clinical",
+    "corpus_frequency": 182,
+    "source": "curated"
+  },
+  {
+    "term": "conduction",
+    "category": "clinical",
+    "corpus_frequency": 182,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "gastrostomy",
+    "category": "clinical",
+    "corpus_frequency": 181,
+    "source": "curated"
+  },
+  {
+    "term": "respiratory failure",
+    "category": "clinical",
+    "corpus_frequency": 181,
+    "source": "curated"
+  },
+  {
+    "term": "non-invasive ventilation",
+    "category": "clinical",
+    "corpus_frequency": 181,
+    "source": "curated"
+  },
+  {
+    "term": "fasciculation",
+    "category": "clinical",
+    "corpus_frequency": 179,
+    "source": "curated"
+  },
+  {
+    "term": "dementia",
+    "category": "clinical",
+    "corpus_frequency": 179,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "sensitivity",
+    "category": "clinical",
+    "corpus_frequency": 179,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "spasticity",
+    "category": "clinical",
+    "corpus_frequency": 177,
+    "source": "curated"
+  },
+  {
+    "term": "production",
+    "category": "clinical",
+    "corpus_frequency": 177,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "asthenia",
+    "category": "clinical",
+    "corpus_frequency": 176,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "examination",
+    "category": "clinical",
+    "corpus_frequency": 176,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "via",
+    "category": "clinical",
+    "corpus_frequency": 176,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "autophagy",
+    "category": "clinical",
+    "corpus_frequency": 174,
+    "source": "curated"
+  },
+  {
+    "term": "concentration",
+    "category": "clinical",
+    "corpus_frequency": 94,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "hypothesis",
+    "category": "clinical",
+    "corpus_frequency": 94,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "tolerability",
+    "category": "clinical",
+    "corpus_frequency": 94,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "utility",
+    "category": "clinical",
+    "corpus_frequency": 93,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "tomography",
+    "category": "clinical",
+    "corpus_frequency": 93,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "dysphagia",
+    "category": "clinical",
+    "corpus_frequency": 92,
+    "source": "curated"
+  },
+  {
+    "term": "hyperreflexia",
+    "category": "clinical",
+    "corpus_frequency": 92,
+    "source": "curated"
+  },
+  {
+    "term": "clonus",
+    "category": "clinical",
+    "corpus_frequency": 92,
+    "source": "curated"
+  },
+  {
+    "term": "sialorrhea",
+    "category": "clinical",
+    "corpus_frequency": 92,
+    "source": "curated"
+  },
+  {
+    "term": "Babinski sign",
+    "category": "clinical",
+    "corpus_frequency": 92,
+    "source": "curated"
+  },
+  {
+    "term": "diaphragmatic pacing",
+    "category": "clinical",
+    "corpus_frequency": 92,
+    "source": "curated"
+  },
+  {
+    "term": "percutaneous endoscopic gastrostomy",
+    "category": "clinical",
+    "corpus_frequency": 92,
+    "source": "curated"
+  },
+  {
+    "term": "stability",
+    "category": "clinical",
+    "corpus_frequency": 92,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "instability",
+    "category": "clinical",
+    "corpus_frequency": 92,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "reduction",
+    "category": "clinical",
+    "corpus_frequency": 92,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "distribution",
+    "category": "clinical",
+    "corpus_frequency": 92,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "modification",
+    "category": "clinical",
+    "corpus_frequency": 92,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "susceptibility",
+    "category": "clinical",
+    "corpus_frequency": 92,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "ataxia",
+    "category": "clinical",
+    "corpus_frequency": 92,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "formation",
+    "category": "clinical",
+    "corpus_frequency": 92,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "mislocalization",
+    "category": "clinical",
+    "corpus_frequency": 92,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "reinnervation",
+    "category": "clinical",
+    "corpus_frequency": 91,
+    "source": "curated"
+  },
+  {
+    "term": "electromyography",
+    "category": "clinical",
+    "corpus_frequency": 91,
+    "source": "curated"
+  },
+  {
+    "term": "action",
+    "category": "clinical",
+    "corpus_frequency": 91,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "inhibition",
+    "category": "clinical",
+    "corpus_frequency": 91,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "formulation",
+    "category": "clinical",
+    "corpus_frequency": 91,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "paralysis",
+    "category": "clinical",
+    "corpus_frequency": 91,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "ability",
+    "category": "clinical",
+    "corpus_frequency": 91,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "depletion",
+    "category": "clinical",
+    "corpus_frequency": 90,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "stimulation",
+    "category": "clinical",
+    "corpus_frequency": 90,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "overactivation",
+    "category": "clinical",
+    "corpus_frequency": 90,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "activation",
+    "category": "clinical",
+    "corpus_frequency": 90,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "accumulation",
+    "category": "clinical",
+    "corpus_frequency": 90,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "pathogenesis",
+    "category": "clinical",
+    "corpus_frequency": 90,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "condition",
+    "category": "clinical",
+    "corpus_frequency": 89,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "paraplegia",
+    "category": "clinical",
+    "corpus_frequency": 89,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "duration",
+    "category": "clinical",
+    "corpus_frequency": 89,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "malnutrition",
+    "category": "clinical",
+    "corpus_frequency": 89,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "hypoventilation",
+    "category": "clinical",
+    "corpus_frequency": 89,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "Gold Coast criteria",
+    "category": "clinical",
+    "corpus_frequency": 88,
+    "source": "curated"
+  },
+  {
+    "term": "Hepatotoxicity",
+    "category": "clinical",
+    "corpus_frequency": 88,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "dysarthria",
+    "category": "clinical",
+    "corpus_frequency": 87,
+    "source": "curated"
+  },
+  {
+    "term": "disruption",
+    "category": "clinical",
+    "corpus_frequency": 87,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "loss-of-function",
+    "category": "clinical",
+    "corpus_frequency": 87,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "generation",
+    "category": "clinical",
+    "corpus_frequency": 87,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "analysis",
+    "category": "clinical",
+    "corpus_frequency": 87,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "arthralgia",
+    "category": "clinical",
+    "corpus_frequency": 87,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "injection",
+    "category": "clinical",
+    "corpus_frequency": 87,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "degradation",
+    "category": "clinical",
+    "corpus_frequency": 87,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "motion",
+    "category": "clinical",
+    "corpus_frequency": 87,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "personality",
+    "category": "clinical",
+    "corpus_frequency": 87,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "disinhibition",
+    "category": "clinical",
+    "corpus_frequency": 87,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "availability",
+    "category": "clinical",
+    "corpus_frequency": 83,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "option",
+    "category": "clinical",
+    "corpus_frequency": 83,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "spirometry",
+    "category": "clinical",
+    "corpus_frequency": 0,
+    "source": "curated"
+  },
+  {
+    "term": "tracheostomy",
+    "category": "clinical",
+    "corpus_frequency": 0,
+    "source": "curated"
+  },
+  {
+    "term": "neurodegeneration",
+    "category": "clinical",
+    "corpus_frequency": 0,
+    "source": "curated"
+  },
+  {
+    "term": "apoptosis",
+    "category": "clinical",
+    "corpus_frequency": 0,
+    "source": "curated"
+  },
+  {
+    "term": "motor neuron disease",
+    "category": "disease",
+    "corpus_frequency": 1357,
+    "source": "curated"
+  },
+  {
+    "term": "amyotrophic lateral sclerosis",
+    "category": "disease",
+    "corpus_frequency": 449,
+    "source": "curated"
+  },
+  {
+    "term": "primary lateral sclerosis",
+    "category": "disease",
+    "corpus_frequency": 449,
+    "source": "curated"
+  },
+  {
+    "term": "progressive muscular atrophy",
+    "category": "disease",
+    "corpus_frequency": 178,
+    "source": "curated"
+  },
+  {
+    "term": "spinocerebellar ataxia",
+    "category": "disease",
+    "corpus_frequency": 92,
+    "source": "curated"
+  },
+  {
+    "term": "multifocal motor neuropathy",
+    "category": "disease",
+    "corpus_frequency": 91,
+    "source": "curated"
+  },
+  {
+    "term": "progressive bulbar palsy",
+    "category": "disease",
+    "corpus_frequency": 89,
+    "source": "curated"
+  },
+  {
+    "term": "Kennedy disease",
+    "category": "disease",
+    "corpus_frequency": 89,
+    "source": "curated"
+  },
+  {
+    "term": "hereditary spastic paraplegia",
+    "category": "disease",
+    "corpus_frequency": 89,
+    "source": "curated"
+  },
+  {
+    "term": "frontotemporal dementia",
+    "category": "disease",
+    "corpus_frequency": 87,
+    "source": "curated"
+  },
+  {
+    "term": "disease",
+    "category": "drug",
+    "corpus_frequency": 1533,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "Phase",
+    "category": "drug",
+    "corpus_frequency": 451,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "riluzole",
+    "category": "drug",
+    "corpus_frequency": 443,
+    "source": "curated"
+  },
+  {
+    "term": "decline",
+    "category": "drug",
+    "corpus_frequency": 441,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "tofersen",
+    "category": "drug",
+    "corpus_frequency": 367,
+    "source": "curated"
+  },
+  {
+    "term": "edaravone",
+    "category": "drug",
+    "corpus_frequency": 362,
+    "source": "curated"
+  },
+  {
+    "term": "one",
+    "category": "drug",
+    "corpus_frequency": 361,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "AMX0035",
+    "category": "drug",
+    "corpus_frequency": 263,
+    "source": "curated"
+  },
+  {
+    "term": "release",
+    "category": "drug",
+    "corpus_frequency": 179,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "sodium phenylbutyrate",
+    "category": "drug",
+    "corpus_frequency": 177,
+    "source": "curated"
+  },
+  {
+    "term": "taurursodiol",
+    "category": "drug",
+    "corpus_frequency": 177,
+    "source": "curated"
+  },
+  {
+    "term": "dismutase",
+    "category": "drug",
+    "corpus_frequency": 177,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "baseline",
+    "category": "drug",
+    "corpus_frequency": 94,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "baclofen",
+    "category": "drug",
+    "corpus_frequency": 92,
+    "source": "curated"
+  },
+  {
+    "term": "tizanidine",
+    "category": "drug",
+    "corpus_frequency": 92,
+    "source": "curated"
+  },
+  {
+    "term": "dantrolene",
+    "category": "drug",
+    "corpus_frequency": 92,
+    "source": "curated"
+  },
+  {
+    "term": "botulinum toxin",
+    "category": "drug",
+    "corpus_frequency": 92,
+    "source": "curated"
+  },
+  {
+    "term": "increase",
+    "category": "drug",
+    "corpus_frequency": 92,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "tone",
+    "category": "drug",
+    "corpus_frequency": 92,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "polyglutamine",
+    "category": "drug",
+    "corpus_frequency": 92,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "dextromethorphan",
+    "category": "drug",
+    "corpus_frequency": 91,
+    "source": "curated"
+  },
+  {
+    "term": "quinidine",
+    "category": "drug",
+    "corpus_frequency": 91,
+    "source": "curated"
+  },
+  {
+    "term": "role",
+    "category": "drug",
+    "corpus_frequency": 91,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "benzothiazole",
+    "category": "drug",
+    "corpus_frequency": 88,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "kinase",
+    "category": "drug",
+    "corpus_frequency": 87,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "bone",
+    "category": "drug",
+    "corpus_frequency": 87,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "April",
+    "category": "drug",
+    "corpus_frequency": 87,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "alone",
+    "category": "drug",
+    "corpus_frequency": 87,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "radicava",
+    "category": "drug",
+    "corpus_frequency": 0,
+    "source": "curated"
+  },
+  {
+    "term": "nuedexta",
+    "category": "drug",
+    "corpus_frequency": 0,
+    "source": "curated"
+  },
+  {
+    "term": "rilutek",
+    "category": "drug",
+    "corpus_frequency": 0,
+    "source": "curated"
+  },
+  {
+    "term": "SOD1",
+    "category": "gene",
+    "corpus_frequency": 1342,
+    "source": "curated"
+  },
+  {
+    "term": "TDP-43",
+    "category": "gene",
+    "corpus_frequency": 1085,
+    "source": "curated"
+  },
+  {
+    "term": "C9orf72",
+    "category": "gene",
+    "corpus_frequency": 640,
+    "source": "curated"
+  },
+  {
+    "term": "FUS",
+    "category": "gene",
+    "corpus_frequency": 351,
+    "source": "curated"
+  },
+  {
+    "term": "ATXN2",
+    "category": "gene",
+    "corpus_frequency": 276,
+    "source": "curated"
+  },
+  {
+    "term": "SOD1-ALS",
+    "category": "gene",
+    "corpus_frequency": 174,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "GluR2",
+    "category": "gene",
+    "corpus_frequency": 94,
+    "source": "curated"
+  },
+  {
+    "term": "BIIB078",
+    "category": "gene",
+    "corpus_frequency": 94,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "TARDBP",
+    "category": "gene",
+    "corpus_frequency": 92,
+    "source": "curated"
+  },
+  {
+    "term": "D90A",
+    "category": "gene",
+    "corpus_frequency": 89,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "A4V",
+    "category": "gene",
+    "corpus_frequency": 89,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "CYP1A2",
+    "category": "gene",
+    "corpus_frequency": 88,
+    "source": "auto-extracted"
+  },
+  {
+    "term": "TBK1",
+    "category": "gene",
+    "corpus_frequency": 87,
+    "source": "curated"
+  },
+  {
+    "term": "OPTN",
+    "category": "gene",
+    "corpus_frequency": 87,
+    "source": "curated"
+  },
+  {
+    "term": "NEK1",
+    "category": "gene",
+    "corpus_frequency": 87,
+    "source": "curated"
+  }
+]
