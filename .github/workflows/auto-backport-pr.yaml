@@ -1,0 +1,20 @@
+# auto-backport-pr.yml
+# This workflow is triggered when a pull request is merged.
+name: Auto-PR (for backporting to version branches)
+
+on:
+  pull_request:
+    branches:
+      - main
+      - "[0-9]+"
+      - "[0-9]+.[0-9]+"
+    types:
+      - closed
+  workflow_dispatch:
+
+jobs:
+  if_merged:
+    uses: josh-wong/actions/.github/workflows/auto-pr-reusable.yaml@main
+    secrets: inherit
+    with:
+      project_base_name: "ALS-LM" # Required. The base name of the project for which the PR is being created."
