@@ -2,23 +2,23 @@
 
 Three-way comparison of the v0.1 ALS-LM prototype tokenizer, the new v0.2 ALS-LM production tokenizer, and the GPT-2 standard tokenizer. This report validates medical term handling, corpus-level efficiency, and encoding performance.
 
-- **Date:** 2026-02-22T14:08:59.491615+00:00
-- **Corpus size:** 35.93 MB (5,382,896 words, 37,680,058 characters)
-- **Documents:** 19,163
+- **Date:** 2026-02-23T14:31:49.359212+00:00
+- **Corpus size:** 673.48 MB (101,303,590 words, 706,191,475 characters)
+- **Documents:** 35,088
 - **Terms evaluated:** 100
 
 ## Corpus-level metrics
 
 Key metrics comparing tokenizer efficiency across the full corpus.
 
-| Metric                      | v0.1 ALS-LM | New v0.2 ALS-LM |     GPT-2 |
-|-----------------------------|-------------|-----------------|-----------|
-| Vocabulary size             |       3,379 |          32,768 |    50,257 |
-| Total corpus tokens         |  12,023,535 |       7,185,473 | 8,194,652 |
-| Fertility (tokens/word)     |      2.2337 |          1.3349 |    1.5224 |
-| Compression (chars/token)   |      3.1339 |          5.2439 |    4.5981 |
-| Encoding speed (tokens/sec) |      66,882 |          64,124 | 3,040,217 |
-| Docs within 1024 tokens (%) |       93.4% |           96.8% |     96.3% |
+| Metric                      | v0.1 ALS-LM | New v0.2 ALS-LM | GPT-2       |
+|-----------------------------|-------------|-----------------|-------------|
+| Vocabulary size             |      32,768 |          50,257 |      50,257 |
+| Total corpus tokens         | 153,485,846 |     142,833,967 | 162,592,689 |
+| Fertility (tokens/word)     |      1.5151 |          1.4100 |      1.6050 |
+| Compression (chars/token)   |      4.6010 |          4.9441 |      4.3433 |
+| Encoding speed (tokens/sec) |     598,759 |         549,938 |   3,503,665 |
+| Docs within 1024 tokens (%) |       54.5% |           54.6% |       54.2% |
 
 ## Medical term analysis by category
 
@@ -26,152 +26,131 @@ Each term is encoded by all three tokenizers. Lower subtoken counts indicate bet
 
 ### Abbreviation
 
-Terms in this category: 16
+Terms in this category: 42
 
-| Term     | v0.1 ALS-LM | New v0.2 ALS-LM | GPT-2 | New tokens           |
-|----------|-------------|-----------------|-------|----------------------|
-| ALS      |           1 |               1 |     1 | `ALS`                |
-| FVC      |           1 |               1 |     2 | `FVC`                |
-| FTD      |           1 |               1 |     2 | `FTD`                |
-| RNA      |           1 |               1 |     1 | `RNA`                |
-| FDA      |           2 |               1 |     2 | `FDA`                |
-| CSF      |           1 |               1 |     2 | `CSF`                |
-| NfL      |           1 |               1 |     3 | `NfL`                |
-| AMPA     |           3 |               1 |     2 | `AMPA`               |
-| UMN      |           1 |               1 |     2 | `UMN`                |
-| LMN      |           1 |               1 |     2 | `LMN`                |
-| PLS      |           1 |               1 |     2 | `PLS`                |
-| PMA      |           1 |               1 |     2 | `PMA`                |
-| NMDA     |           2 |               1 |     2 | `NMDA`               |
-| ASO      |           1 |               1 |     2 | `ASO`                |
-| ALSFRS-R |           4 |               3 |     5 | `ALSFRS` + `-` + `R` |
-| VALOR    |           2 |               3 |     2 | `V` + `AL` + `OR`    |
+| Term     | v0.1 ALS-LM | New v0.2 ALS-LM | GPT-2 | New v0.2 ALS-LM tokens |
+|----------|-------------|-----------------|-------|------------------------|
+| ALS      |           1 |               1 |     1 | `ALS`                  |
+| FVC      |           1 |               1 |     2 | `FVC`                  |
+| FTD      |           1 |               1 |     2 | `FTD`                  |
+| RNA      |           1 |               1 |     1 | `RNA`                  |
+| FDA      |           1 |               1 |     2 | `FDA`                  |
+| CSF      |           1 |               1 |     2 | `CSF`                  |
+| NfL      |           1 |               1 |     3 | `NfL`                  |
+| AMPA     |           1 |               1 |     2 | `AMPA`                 |
+| UMN      |           1 |               1 |     2 | `UMN`                  |
+| LMN      |           1 |               1 |     2 | `LMN`                  |
+| PLS      |           1 |               1 |     2 | `PLS`                  |
+| PMA      |           1 |               1 |     2 | `PMA`                  |
+| NMDA     |           1 |               1 |     2 | `NMDA`                 |
+| ASO      |           1 |               1 |     2 | `ASO`                  |
+| PBA      |           1 |               1 |     2 | `PBA`                  |
+| GGGGCC   |           1 |               1 |     2 | `GGGGCC`               |
+| CAG      |           1 |               1 |     2 | `CAG`                  |
+| iPSC     |           1 |               1 |     3 | `iPSC`                 |
+| EMG      |           1 |               1 |     2 | `EMG`                  |
+| MND      |           1 |               1 |     2 | `MND`                  |
+| PBP      |           1 |               1 |     2 | `PBP`                  |
+| NIV      |           1 |               1 |     2 | `NIV`                  |
+| PEG      |           1 |               1 |     2 | `PEG`                  |
+| DTI      |           1 |               1 |     2 | `DTI`                  |
+| PET      |           1 |               1 |     1 | `PET`                  |
+| AAV      |           1 |               1 |     2 | `AAV`                  |
+| MSC      |           1 |               1 |     2 | `MSC`                  |
+| SBMA     |           1 |               1 |     2 | `SBMA`                 |
+| HSP      |           1 |               1 |     2 | `HSP`                  |
+| sALS     |           1 |               1 |     2 | `sALS`                 |
+| fALS     |           1 |               1 |     2 | `fALS`                 |
+| bvFTD    |           1 |               1 |     4 | `bvFTD`                |
+| AAC      |           1 |               1 |     2 | `AAC`                  |
+| SVC      |           1 |               1 |     2 | `SVC`                  |
+| pNfH     |           1 |               1 |     4 | `pNfH`                 |
+| RNAi     |           1 |               1 |     2 | `RNAi`                 |
+| CENTAUR  |           2 |               2 |     3 | `CE` + `NTAUR`         |
+| BiPAP    |           1 |               2 |     3 | `BiP` + `AP`           |
+| SNIP     |           1 |               2 |     2 | `SN` + `IP`            |
+| ALSFRS-R |           3 |               3 |     5 | `ALSFRS` + `-` + `R`   |
+| VALOR    |           3 |               3 |     2 | `V` + `AL` + `OR`      |
+| ALS-FTD  |           3 |               3 |     4 | `ALS` + `-` + `FTD`    |
 
 ### Clinical
 
 Terms in this category: 58
 
-| Term                                | v0.1 ALS-LM | New v0.2 ALS-LM | GPT-2 | New tokens                                           |
+| Term                                | v0.1 ALS-LM | New v0.2 ALS-LM | GPT-2 | New v0.2 ALS-LM tokens                               |
 |-------------------------------------|-------------|-----------------|-------|------------------------------------------------------|
-| criteria                            |           3 |               1 |     2 | `criteria`                                           |
-| degeneration                        |           3 |               1 |     3 | `degeneration`                                       |
-| mutation                            |           2 |               1 |     2 | `mutation`                                           |
-| diagnosis                           |           2 |               1 |     2 | `diagnosis`                                          |
-| communication                       |           3 |               1 |     1 | `communication`                                      |
-| quality                             |           2 |               1 |     1 | `quality`                                            |
-| ventilation                         |           2 |               1 |     2 | `ventilation`                                        |
-| aggregation                         |           4 |               1 |     2 | `aggregation`                                        |
-| microglia                           |           3 |               1 |     3 | `microglia`                                          |
-| interaction                         |           4 |               1 |     2 | `interaction`                                        |
-| gastrostomy                         |           3 |               1 |     4 | `gastrostomy`                                        |
-| dementia                            |           3 |               1 |     3 | `dementia`                                           |
-| sensitivity                         |           3 |               1 |     2 | `sensitivity`                                        |
-| spasticity                          |           2 |               1 |     3 | `spasticity`                                         |
-| production                          |           2 |               1 |     1 | `production`                                         |
-| asthenia                            |           3 |               1 |     3 | `asthenia`                                           |
-| via                                 |           2 |               1 |     1 | `via`                                                |
-| autophagy                           |           4 |               1 |     3 | `autophagy`                                          |
-| concentration                       |           3 |               1 |     3 | `concentration`                                      |
-| tolerability                        |           2 |               1 |     3 | `tolerability`                                       |
-| utility                             |           2 |               1 |     2 | `utility`                                            |
-| dysphagia                           |           1 |               1 |     5 | `dysphagia`                                          |
-| sialorrhea                          |           3 |               1 |     4 | `sialorrhea`                                         |
-| stability                           |           2 |               1 |     2 | `stability`                                          |
-| reduction                           |           3 |               1 |     2 | `reduction`                                          |
-| ataxia                              |           3 |               1 |     3 | `ataxia`                                             |
-| formation                           |           2 |               1 |     1 | `formation`                                          |
-| dysfunction                         |           2 |               2 |     3 | `dys` + `function`                                   |
-| denervation                         |           3 |               2 |     2 | `den` + `ervation`                                   |
-| sclerosis                           |           1 |               2 |     2 | `s` + `clerosis`                                     |
-| excitotoxicity                      |           5 |               2 |     4 | `excit` + `otoxicity`                                |
+| dysfunction                         |           2 |               1 |     3 | `dysfunction`                                        |
+| degeneration                        |           1 |               1 |     3 | `degeneration`                                       |
+| mutation                            |           1 |               1 |     2 | `mutation`                                           |
+| diagnosis                           |           1 |               1 |     2 | `diagnosis`                                          |
+| communication                       |           1 |               1 |     1 | `communication`                                      |
+| capacity                            |           2 |               1 |     1 | `capacity`                                           |
+| quality                             |           1 |               1 |     1 | `quality`                                            |
+| neuroinflammation                   |           2 |               1 |     4 | `neuroinflammation`                                  |
+| atrophy                             |           2 |               1 |     2 | `atrophy`                                            |
+| aggregation                         |           1 |               1 |     2 | `aggregation`                                        |
+| microglia                           |           1 |               1 |     3 | `microglia`                                          |
+| interaction                         |           1 |               1 |     2 | `interaction`                                        |
+| dementia                            |           1 |               1 |     3 | `dementia`                                           |
+| sensitivity                         |           1 |               1 |     2 | `sensitivity`                                        |
+| production                          |           1 |               1 |     1 | `production`                                         |
+| asthenia                            |           1 |               1 |     3 | `asthenia`                                           |
+| examination                         |           2 |               1 |     1 | `examination`                                        |
+| via                                 |           1 |               1 |     1 | `via`                                                |
+| autophagy                           |           1 |               1 |     3 | `autophagy`                                          |
+| concentration                       |           1 |               1 |     3 | `concentration`                                      |
+| utility                             |           1 |               1 |     2 | `utility`                                            |
+| stability                           |           1 |               1 |     2 | `stability`                                          |
+| reduction                           |           1 |               1 |     2 | `reduction`                                          |
+| distribution                        |           2 |               1 |     2 | `distribution`                                       |
+| modification                        |           2 |               1 |     2 | `modification`                                       |
+| ataxia                              |           1 |               1 |     3 | `ataxia`                                             |
+| formation                           |           1 |               1 |     1 | `formation`                                          |
+| criteria                            |           1 |               2 |     2 | `cri` + `teria`                                      |
+| denervation                         |           2 |               2 |     2 | `den` + `ervation`                                   |
+| sclerosis                           |           2 |               2 |     2 | `s` + `clerosis`                                     |
+| excitotoxicity                      |           2 |               2 |     4 | `ex` + `citotoxicity`                                |
 | bulbar onset                        |           2 |               2 |     3 | `bulbar` + `Ġonset`                                  |
-| combination                         |           2 |               2 |     2 | `comb` + `ination`                                   |
-| capacity                            |           3 |               2 |     1 | `c` + `apacity`                                      |
-| neuroinflammation                   |           3 |               2 |     4 | `neuro` + `inflammation`                             |
-| prognosis                           |           3 |               2 |     3 | `pro` + `gnosis`                                     |
-| atrophy                             |           3 |               2 |     2 | `at` + `rophy`                                       |
-| limb onset                          |           3 |               2 |     3 | `limb` + `Ġonset`                                    |
-| proteostasis                        |           3 |               2 |     4 | `prote` + `ostasis`                                  |
-| conduction                          |           2 |               2 |     2 | `cond` + `uction`                                    |
-| respiratory failure                 |           3 |               2 |     4 | `respiratory` + `Ġfailure`                           |
-| examination                         |           4 |               2 |     1 | `ex` + `amination`                                   |
-| hypothesis                          |           4 |               2 |     3 | `hyp` + `othesis`                                    |
-| tomography                          |           3 |               2 |     2 | `t` + `omography`                                    |
-| hyperreflexia                       |           4 |               2 |     4 | `hyper` + `reflexia`                                 |
-| clonus                              |           3 |               2 |     3 | `cl` + `onus`                                        |
-| instability                         |           3 |               2 |     2 | `in` + `stability`                                   |
-| distribution                        |           4 |               2 |     2 | `dis` + `tribution`                                  |
-| modification                        |           4 |               2 |     2 | `mod` + `ification`                                  |
-| susceptibility                      |           3 |               2 |     4 | `sus` + `ceptibility`                                |
-| mislocalization                     |           4 |               2 |     4 | `mis` + `localization`                               |
-| El Escorial criteria                |           4 |               3 |     4 | `El` + `ĠEscorial` + `Ġcriteria`                     |
-| Awaji criteria                      |           4 |               3 |     3 | `A` + `waji` + `Ġcriteria`                           |
-| fasciculation                       |           3 |               3 |     4 | `f` + `ascic` + `ulation`                            |
-| diaphragmatic pacing                |           4 |               3 |     5 | `d` + `iaphragmatic` + `Ġpacing`                     |
-| non-invasive ventilation            |           5 |               4 |     5 | `non` + `-` + `invasive` + `Ġventilation`            |
+| combination                         |           2 |               2 |     2 | `com` + `bination`                                   |
+| ventilation                         |           1 |               2 |     2 | `v` + `entilation`                                   |
+| limb onset                          |           2 |               2 |     3 | `limb` + `Ġonset`                                    |
+| proteostasis                        |           2 |               2 |     4 | `prote` + `ostasis`                                  |
+| conduction                          |           2 |               2 |     2 | `con` + `duction`                                    |
+| gastrostomy                         |           1 |               2 |     4 | `gastro` + `stomy`                                   |
+| respiratory failure                 |           2 |               2 |     4 | `respiratory` + `Ġfailure`                           |
+| spasticity                          |           1 |               2 |     3 | `sp` + `asticity`                                    |
+| hypothesis                          |           2 |               2 |     3 | `hyp` + `othesis`                                    |
+| tolerability                        |           1 |               2 |     3 | `toler` + `ability`                                  |
+| tomography                          |           2 |               2 |     2 | `tom` + `ography`                                    |
+| dysphagia                           |           1 |               2 |     5 | `dys` + `phagia`                                     |
+| hyperreflexia                       |           2 |               2 |     4 | `hyper` + `reflexia`                                 |
+| clonus                              |           2 |               2 |     3 | `cl` + `onus`                                        |
+| sialorrhea                          |           1 |               2 |     4 | `sial` + `orrhea`                                    |
+| instability                         |           2 |               2 |     2 | `in` + `stability`                                   |
+| susceptibility                      |           2 |               2 |     4 | `sus` + `ceptibility`                                |
+| mislocalization                     |           2 |               2 |     4 | `mis` + `localization`                               |
+| El Escorial criteria                |           3 |               3 |     4 | `El` + `ĠEscorial` + `Ġcriteria`                     |
+| prognosis                           |           2 |               3 |     3 | `pro` + `gn` + `osis`                                |
+| fasciculation                       |           3 |               3 |     4 | `fas` + `cic` + `ulation`                            |
+| diaphragmatic pacing                |           3 |               3 |     5 | `dia` + `phragmatic` + `Ġpacing`                     |
+| Awaji criteria                      |           3 |               4 |     3 | `A` + `wa` + `ji` + `Ġcriteria`                      |
+| non-invasive ventilation            |           4 |               4 |     5 | `non` + `-` + `invasive` + `Ġventilation`            |
 | Babinski sign                       |           4 |               4 |     4 | `B` + `ab` + `inski` + `Ġsign`                       |
 | percutaneous endoscopic gastrostomy |           4 |               4 |     8 | `per` + `cutaneous` + `Ġendoscopic` + `Ġgastrostomy` |
-
-### Disease
-
-Terms in this category: 5
-
-| Term                          | v0.1 ALS-LM | New v0.2 ALS-LM | GPT-2 | New tokens                                |
-|-------------------------------|-------------|-----------------|-------|-------------------------------------------|
-| motor neuron disease          |           4 |               3 |     4 | `motor` + `Ġneuron` + `Ġdisease`          |
-| amyotrophic lateral sclerosis |           5 |               3 |     5 | `amyotrophic` + `Ġlateral` + `Ġsclerosis` |
-| primary lateral sclerosis     |           5 |               3 |     3 | `primary` + `Ġlateral` + `Ġsclerosis`     |
-| progressive muscular atrophy  |           5 |               3 |     5 | `progressive` + `Ġmuscular` + `Ġatrophy`  |
-| spinocerebellar ataxia        |           5 |               3 |     9 | `sp` + `inocerebellar` + `Ġataxia`        |
-
-### Drug
-
-Terms in this category: 13
-
-| Term                  | v0.1 ALS-LM | New v0.2 ALS-LM | GPT-2 | New tokens                   |
-|-----------------------|-------------|-----------------|-------|------------------------------|
-| Phase                 |           3 |               1 |     1 | `Phase`                      |
-| riluzole              |           2 |               1 |     3 | `riluzole`                   |
-| tofersen              |           2 |               1 |     3 | `tofersen`                   |
-| edaravone             |           2 |               1 |     3 | `edaravone`                  |
-| one                   |           1 |               1 |     1 | `one`                        |
-| release               |           2 |               1 |     1 | `release`                    |
-| taurursodiol          |           2 |               1 |     5 | `taurursodiol`               |
-| baseline              |           3 |               1 |     2 | `baseline`                   |
-| decline               |           3 |               2 |     2 | `de` + `cline`               |
-| AMX0035               |           4 |               2 |     4 | `AMX` + `0035`               |
-| sodium phenylbutyrate |           3 |               2 |     7 | `sodium` + `Ġphenylbutyrate` |
-| dismutase             |           4 |               2 |     4 | `d` + `ismutase`             |
-| baclofen              |           3 |               2 |     4 | `b` + `aclofen`              |
-
-### Gene
-
-Terms in this category: 8
-
-| Term     | v0.1 ALS-LM | New v0.2 ALS-LM | GPT-2 | New tokens                |
-|----------|-------------|-----------------|-------|---------------------------|
-| FUS      |           2 |               1 |     2 | `FUS`                     |
-| SOD1     |           2 |               2 |     3 | `SOD` + `1`               |
-| ATXN2    |           4 |               2 |     4 | `ATXN` + `2`              |
-| BIIB078  |           3 |               2 |     4 | `BIIB` + `078`            |
-| TDP-43   |           3 |               3 |     4 | `TDP` + `-` + `43`        |
-| GluR2    |           4 |               3 |     4 | `Glu` + `R` + `2`         |
-| C9orf72  |           4 |               4 |     4 | `C` + `9` + `orf` + `72`  |
-| SOD1-ALS |           4 |               4 |     5 | `SOD` + `1` + `-` + `ALS` |
 
 ## Summary statistics
 
 Aggregate comparison across all evaluated terms.
 
-| Metric                     |     v0.1 ALS-LM |      New v0.2 ALS-LM |        GPT-2 |
-|----------------------------|-----------------|----------------------|--------------|
-| Average subtokens per term |            2.81 |                 1.73 |         2.94 |
-| Single-token terms         |              14 |                   50 |           12 |
+| Metric                     | v0.1 ALS-LM | New v0.2 ALS-LM | GPT-2 |
+|----------------------------|-------------|-----------------|-------|
+| Average subtokens per term |        1.48 |            1.52 |  2.58 |
+| Single-token terms         |          65 |              63 |    10 |
 
-| Comparison                      |   Wins | Losses |   Ties |
-|---------------------------------|--------|--------|--------|
-| New v0.2 ALS-LM vs. v0.1 ALS-LM |     74 |      2 |     24 |
-| New v0.2 ALS-LM vs. GPT-2       |     73 |      3 |     24 |
+| Comparison                     | Wins | Losses | Ties |
+|--------------------------------|------|--------|------|
+| New v0.2 ALS-LM vs. v0.1 ALS-LM |    7 |     11 |   82 |
+| New v0.2 ALS-LM vs. GPT-2       |   77 |      2 |   21 |
 
 ---
-*Report generated by scripts/retrain_tokenizer.py on 2026-02-22T14:08:59.491615+00:00*
+*Report generated by scripts/retrain_tokenizer.py on 2026-02-23T14:31:49.359212+00:00*
