@@ -445,17 +445,6 @@ def step6_validation_report(
         print(f"  [DRY RUN] Would generate three-way report with {len(terms)} terms")
         return
 
-    # Load corpus text for metrics
-    with open(corpus_path, "r", encoding="utf-8") as f:
-        train_text = f.read()
-
-    val_text = ""
-    if val_path.exists():
-        with open(val_path, "r", encoding="utf-8") as f:
-            val_text = f.read()
-
-    full_text = train_text + val_text
-
     # Helper to encode with GPT-2 tiktoken
     def gpt2_encode(text: str) -> list[int]:
         return gpt2_enc.encode(text, allowed_special={"<|endoftext|>"})
@@ -464,19 +453,17 @@ def step6_validation_report(
         ids = gpt2_enc.encode(term, allowed_special={"<|endoftext|>"})
         return [gpt2_enc.decode([i]) for i in ids]
 
-    # Per-term analysis
+    # Per-term analysis (tiny, no memory concern)
     print("  Computing per-term tokenization...")
     term_results = []
     for t in terms:
         term = t["term"]
         category = t.get("category", "unknown")
 
-        # New tokenizer
         new_enc = new_tok.encode(term)
         new_tokens = new_enc.tokens
         new_count = len(new_tokens)
 
-        # Old tokenizer (if available)
         if old_tok:
             old_enc = old_tok.encode(term)
             old_tokens = old_enc.tokens
@@ -485,7 +472,6 @@ def step6_validation_report(
             old_tokens = []
             old_count = 0
 
-        # GPT-2
         gpt2_tokens = gpt2_encode_term(term)
         gpt2_count = len(gpt2_tokens)
 
@@ -500,69 +486,104 @@ def step6_validation_report(
             "gpt2_tokens": gpt2_tokens,
         })
 
-    # Corpus-level metrics
-    print("  Computing corpus-level metrics...")
+    # --- Corpus-level metrics (streamed document-by-document) ---
+    # Instead of loading the entire corpus into memory, we iterate over
+    # documents delimited by <|endoftext|> and accumulate running totals.
+    print("  Computing corpus-level metrics (streaming)...")
 
-    # New tokenizer metrics
-    new_train_enc = new_tok.encode(train_text)
-    new_train_tokens = len(new_train_enc.ids)
-    new_full_enc = new_tok.encode(full_text)
-    new_full_tokens = len(new_full_enc.ids)
+    def iter_documents(*paths):
+        """Yield documents from corpus files split on <|endoftext|>."""
+        for p in paths:
+            if not p.exists():
+                continue
+            buffer = []
+            with open(p, "r", encoding="utf-8") as f:
+                for line in f:
+                    # Split line on delimiter; a single line may contain
+                    # multiple <|endoftext|> markers.
+                    parts = line.split("<|endoftext|>")
+                    buffer.append(parts[0])
+                    for part in parts[1:]:
+                        doc = "".join(buffer).strip()
+                        if doc:
+                            yield doc
+                        buffer = [part]
+            # Flush remaining buffer
+            doc = "".join(buffer).strip()
+            if doc:
+                yield doc
 
-    words = full_text.split()
-    word_count = len(words)
-    char_count = len(full_text)
+    # Speed benchmark on a small sample (read first 100K chars only)
+    print("  Running speed benchmarks...")
+    with open(corpus_path, "r", encoding="utf-8") as f:
+        sample_text = f.read(100_000)
 
-    new_fertility = new_full_tokens / word_count if word_count > 0 else 0
-    new_compression = char_count / new_full_tokens if new_full_tokens > 0 else 0
-
-    # Speed benchmark (encode a representative sample)
-    sample_text = full_text[:100000]  # First 100K chars
     start = time.time()
     for _ in range(3):
         new_tok.encode(sample_text)
     new_speed = len(new_tok.encode(sample_text).ids) * 3 / (time.time() - start)
 
-    # Old tokenizer metrics
     if old_tok:
-        old_full_enc = old_tok.encode(full_text)
-        old_full_tokens = len(old_full_enc.ids)
-        old_fertility = old_full_tokens / word_count if word_count > 0 else 0
-        old_compression = char_count / old_full_tokens if old_full_tokens > 0 else 0
-
         start = time.time()
         for _ in range(3):
             old_tok.encode(sample_text)
         old_speed = len(old_tok.encode(sample_text).ids) * 3 / (time.time() - start)
     else:
-        old_full_tokens = 0
-        old_fertility = 0
-        old_compression = 0
         old_speed = 0
-
-    # GPT-2 metrics
-    gpt2_full_ids = gpt2_encode(full_text)
-    gpt2_full_tokens = len(gpt2_full_ids)
-    gpt2_fertility = gpt2_full_tokens / word_count if word_count > 0 else 0
-    gpt2_compression = char_count / gpt2_full_tokens if gpt2_full_tokens > 0 else 0
 
     start = time.time()
     for _ in range(3):
         gpt2_encode(sample_text)
     gpt2_speed = len(gpt2_encode(sample_text)) * 3 / (time.time() - start)
 
-    # Document length distribution (split on <|endoftext|>, measure tokens per doc)
-    print("  Computing document length distribution...")
-    documents = full_text.split("<|endoftext|>")
-    documents = [d.strip() for d in documents if d.strip()]
+    del sample_text  # free early
 
-    new_doc_lengths = [len(new_tok.encode(d).ids) for d in documents]
-    gpt2_doc_lengths = [len(gpt2_encode(d)) for d in documents]
+    # Stream through documents, accumulating counts
+    new_full_tokens = 0
+    old_full_tokens = 0
+    gpt2_full_tokens = 0
+    word_count = 0
+    char_count = 0
+    num_documents = 0
+    new_doc_lengths = []
+    old_doc_lengths = []
+    gpt2_doc_lengths = []
+
+    for doc in iter_documents(corpus_path, val_path):
+        num_documents += 1
+        char_count += len(doc)
+        word_count += len(doc.split())
+
+        new_n = len(new_tok.encode(doc).ids)
+        new_full_tokens += new_n
+        new_doc_lengths.append(new_n)
+
+        gpt2_n = len(gpt2_encode(doc))
+        gpt2_full_tokens += gpt2_n
+        gpt2_doc_lengths.append(gpt2_n)
+
+        if old_tok:
+            old_n = len(old_tok.encode(doc).ids)
+            old_full_tokens += old_n
+            old_doc_lengths.append(old_n)
+
+        if num_documents % 5000 == 0:
+            print(f"    Processed {num_documents} documents...")
+
+    print(f"    Processed {num_documents} documents total")
+
+    new_fertility = new_full_tokens / word_count if word_count > 0 else 0
+    new_compression = char_count / new_full_tokens if new_full_tokens > 0 else 0
 
     if old_tok:
-        old_doc_lengths = [len(old_tok.encode(d).ids) for d in documents]
+        old_fertility = old_full_tokens / word_count if word_count > 0 else 0
+        old_compression = char_count / old_full_tokens if old_full_tokens > 0 else 0
     else:
-        old_doc_lengths = []
+        old_fertility = 0
+        old_compression = 0
+
+    gpt2_fertility = gpt2_full_tokens / word_count if word_count > 0 else 0
+    gpt2_compression = char_count / gpt2_full_tokens if gpt2_full_tokens > 0 else 0
 
     def pct_within(lengths, threshold):
         if not lengths:
@@ -581,7 +602,7 @@ def step6_validation_report(
             "corpus_size_mb": round(char_count / (1024 * 1024), 2),
             "corpus_words": word_count,
             "corpus_chars": char_count,
-            "num_documents": len(documents),
+            "num_documents": num_documents,
             "num_terms": len(terms),
         },
         "tokenizers": {
@@ -664,14 +685,14 @@ def _generate_validation_md(report: dict) -> list[str]:
         "Key metrics comparing tokenizer efficiency across the full corpus."
     )
     lines.append("")
-    lines.append(f"| {'Metric':<35} | {'v0.1 ALS':>12} | {'New ALS':>12} | {'GPT-2':>12} |")
-    lines.append(f"|{'-' * 37}|{'-' * 14}|{'-' * 14}|{'-' * 14}|")
-    lines.append(f"| {'Vocabulary size':<35} | {old['vocab_size']:>12,} | {new['vocab_size']:>12,} | {gpt2['vocab_size']:>12,} |")
-    lines.append(f"| {'Total corpus tokens':<35} | {old['total_corpus_tokens']:>12,} | {new['total_corpus_tokens']:>12,} | {gpt2['total_corpus_tokens']:>12,} |")
-    lines.append(f"| {'Fertility (tokens/word)':<35} | {old['fertility']:>12.4f} | {new['fertility']:>12.4f} | {gpt2['fertility']:>12.4f} |")
-    lines.append(f"| {'Compression (chars/token)':<35} | {old['compression_ratio']:>12.4f} | {new['compression_ratio']:>12.4f} | {gpt2['compression_ratio']:>12.4f} |")
-    lines.append(f"| {'Encoding speed (tokens/sec)':<35} | {old['encoding_speed_tps']:>12,} | {new['encoding_speed_tps']:>12,} | {gpt2['encoding_speed_tps']:>12,} |")
-    lines.append(f"| {'Docs within 1024 tokens (%)':<35} | {old['pct_docs_within_1024']:>11.1f}% | {new['pct_docs_within_1024']:>11.1f}% | {gpt2['pct_docs_within_1024']:>11.1f}% |")
+    lines.append(f"| {'Metric':<35} | {'v0.1 ALS-LM':>15} | {'New v0.2 ALS-LM':>16} | {'GPT-2':>14} |")
+    lines.append(f"|{'-' * 37}|{'-' * 17}|{'-' * 18}|{'-' * 16}|")
+    lines.append(f"| {'Vocabulary size':<35} | {old['vocab_size']:>15,} | {new['vocab_size']:>16,} | {gpt2['vocab_size']:>14,} |")
+    lines.append(f"| {'Total corpus tokens':<35} | {old['total_corpus_tokens']:>15,} | {new['total_corpus_tokens']:>16,} | {gpt2['total_corpus_tokens']:>14,} |")
+    lines.append(f"| {'Fertility (tokens/word)':<35} | {old['fertility']:>15.4f} | {new['fertility']:>16.4f} | {gpt2['fertility']:>14.4f} |")
+    lines.append(f"| {'Compression (chars/token)':<35} | {old['compression_ratio']:>15.4f} | {new['compression_ratio']:>16.4f} | {gpt2['compression_ratio']:>14.4f} |")
+    lines.append(f"| {'Encoding speed (tokens/sec)':<35} | {old['encoding_speed_tps']:>15,} | {new['encoding_speed_tps']:>16,} | {gpt2['encoding_speed_tps']:>14,} |")
+    lines.append(f"| {'Docs within 1024 tokens (%)':<35} | {old['pct_docs_within_1024']:>14.1f}% | {new['pct_docs_within_1024']:>15.1f}% | {gpt2['pct_docs_within_1024']:>13.1f}% |")
     lines.append("")
 
     # Per-category term analysis
@@ -697,8 +718,8 @@ def _generate_validation_md(report: dict) -> list[str]:
         lines.append(f"Terms in this category: {len(cat_terms)}")
         lines.append("")
 
-        lines.append(f"| {'Term':<35} | {'v0.1':>5} | {'New':>5} | {'GPT-2':>5} | {'New tokens':<50} |")
-        lines.append(f"|{'-' * 37}|{'-' * 7}|{'-' * 7}|{'-' * 7}|{'-' * 52}|")
+        lines.append(f"| {'Term':<35} | {'v0.1 ALS-LM':>11} | {'New v0.2 ALS-LM':>15} | {'GPT-2':>5} | {'New v0.2 ALS-LM tokens':<50} |")
+        lines.append(f"|{'-' * 37}|{'-' * 13}|{'-' * 17}|{'-' * 7}|{'-' * 52}|")
 
         # Sort by new subtoken count descending
         cat_terms_sorted = sorted(cat_terms, key=lambda x: x["new_subtokens"])
@@ -708,8 +729,8 @@ def _generate_validation_md(report: dict) -> list[str]:
                 new_tokens_str += " ..."
             lines.append(
                 f"| {r['term']:<35} | "
-                f"{r['old_subtokens']:>5} | "
-                f"{r['new_subtokens']:>5} | "
+                f"{r['old_subtokens']:>11} | "
+                f"{r['new_subtokens']:>15} | "
                 f"{r['gpt2_subtokens']:>5} | "
                 f"{new_tokens_str:<50} |"
             )
@@ -739,16 +760,16 @@ def _generate_validation_md(report: dict) -> list[str]:
         "Aggregate comparison across all evaluated terms."
     )
     lines.append("")
-    lines.append(f"| {'Metric':<35} | {'v0.1 ALS':>12} | {'New ALS':>12} | {'GPT-2':>12} |")
-    lines.append(f"|{'-' * 37}|{'-' * 14}|{'-' * 14}|{'-' * 14}|")
-    lines.append(f"| {'Average subtokens per term':<35} | {old_avg:>12.2f} | {new_avg:>12.2f} | {gpt2_avg:>12.2f} |")
-    lines.append(f"| {'Single-token terms':<35} | {old_single:>12} | {new_single:>12} | {gpt2_single:>12} |")
+    lines.append(f"| {'Metric':<35} | {'v0.1 ALS-LM':>15} | {'New v0.2 ALS-LM':>16} | {'GPT-2':>14} |")
+    lines.append(f"|{'-' * 37}|{'-' * 17}|{'-' * 18}|{'-' * 16}|")
+    lines.append(f"| {'Average subtokens per term':<35} | {old_avg:>15.2f} | {new_avg:>16.2f} | {gpt2_avg:>14.2f} |")
+    lines.append(f"| {'Single-token terms':<35} | {old_single:>15} | {new_single:>16} | {gpt2_single:>14} |")
     lines.append("")
 
     lines.append(f"| {'Comparison':<35} | {'Wins':>6} | {'Losses':>6} | {'Ties':>6} |")
     lines.append(f"|{'-' * 37}|{'-' * 8}|{'-' * 8}|{'-' * 8}|")
-    lines.append(f"| {'New ALS vs v0.1 ALS':<35} | {new_vs_old_wins:>6} | {new_vs_old_losses:>6} | {new_vs_old_ties:>6} |")
-    lines.append(f"| {'New ALS vs GPT-2':<35} | {new_vs_gpt2_wins:>6} | {new_vs_gpt2_losses:>6} | {new_vs_gpt2_ties:>6} |")
+    lines.append(f"| {'New v0.2 ALS-LM vs v0.1 ALS-LM':<35} | {new_vs_old_wins:>6} | {new_vs_old_losses:>6} | {new_vs_old_ties:>6} |")
+    lines.append(f"| {'New v0.2 ALS-LM vs GPT-2':<35} | {new_vs_gpt2_wins:>6} | {new_vs_gpt2_losses:>6} | {new_vs_gpt2_ties:>6} |")
     lines.append("")
 
     lines.append("---")
@@ -845,26 +866,39 @@ def step8_retokenize_corpus(
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # Helper to encode a corpus file in chunks and write binary output.
+    # Reads the file in manageable pieces (default 10 MB) to avoid loading
+    # the entire 600+ MB corpus into memory at once.
+    def encode_file_chunked(input_path: Path, output_path: Path, chunk_size: int = 10 * 1024 * 1024) -> int:
+        """Encode a text file to binary token IDs in chunks.
+
+        Returns the total number of tokens written.
+        """
+        total_tokens = 0
+        with open(input_path, "r", encoding="utf-8") as fin, \
+             open(output_path, "wb") as fout:
+            while True:
+                chunk = fin.read(chunk_size)
+                if not chunk:
+                    break
+                encoded = tok.encode(chunk)
+                ids = np.array(encoded.ids, dtype=dtype)
+                ids.tofile(fout)
+                total_tokens += len(ids)
+        return total_tokens
+
     # Encode train.txt
     print(f"\n  Encoding training data: {train_txt}")
-    with open(train_txt, "r", encoding="utf-8") as f:
-        train_text = f.read()
-    train_encoded = tok.encode(train_text)
-    train_ids = np.array(train_encoded.ids, dtype=dtype)
     train_bin_path = output_dir / "train.bin"
-    train_ids.tofile(str(train_bin_path))
-    print(f"    Tokens: {len(train_ids):,}")
+    train_token_count = encode_file_chunked(train_txt, train_bin_path)
+    print(f"    Tokens: {train_token_count:,}")
     print(f"    File size: {train_bin_path.stat().st_size:,} bytes")
 
     # Encode val.txt
     print(f"\n  Encoding validation data: {val_txt}")
-    with open(val_txt, "r", encoding="utf-8") as f:
-        val_text = f.read()
-    val_encoded = tok.encode(val_text)
-    val_ids = np.array(val_encoded.ids, dtype=dtype)
     val_bin_path = output_dir / "val.bin"
-    val_ids.tofile(str(val_bin_path))
-    print(f"    Tokens: {len(val_ids):,}")
+    val_token_count = encode_file_chunked(val_txt, val_bin_path)
+    print(f"    Tokens: {val_token_count:,}")
     print(f"    File size: {val_bin_path.stat().st_size:,} bytes")
 
     # Build meta.pkl
