@@ -53,6 +53,13 @@ import sys
 import time
 from datetime import datetime, timezone
 
+# Ensure the project root is on sys.path so that `from model.model import ...`
+# resolves correctly when DeepSpeed launches this script via
+# `python model/train.py --local_rank=0 ...`.
+_project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+
 import numpy as np
 import torch
 
@@ -388,8 +395,10 @@ def save_checkpoint(
         model_engine.save_checkpoint(run_dir, tag=tag, client_state=client_state)
 
         # 2. Extract fp32 state dict from ZeRO checkpoint
+        # Pass run_dir (which contains the 'latest' file) with an explicit tag
+        # so the utility can locate the step_N/ subdirectory correctly.
         ds_ckpt_path = os.path.join(run_dir, tag)
-        state_dict = get_fp32_state_dict_from_zero_checkpoint(ds_ckpt_path)
+        state_dict = get_fp32_state_dict_from_zero_checkpoint(run_dir, tag=tag)
 
         # 3. Save raw .pt file for export
         pt_checkpoint = {
