@@ -61,6 +61,7 @@ from typing import Optional
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.utils.checkpoint import checkpoint as torch_checkpoint
 
 
 @dataclass
@@ -86,6 +87,12 @@ class GPTConfig:
         bias: Whether to include bias terms in Linear layers and LayerNorms.
             GPT-2 uses bias=True. Setting to False saves a small number of
             parameters and is sometimes preferred for modern models.
+        use_gradient_checkpointing: Whether to enable gradient checkpointing
+            in transformer blocks. When True, activations are recomputed during
+            the backward pass instead of stored, reducing memory usage by
+            ~30-40% at the cost of ~20-30% slower training. Only active during
+            training (eval mode skips checkpointing automatically). Defaults
+            to False to preserve existing behavior.
     """
 
     block_size: int = 1024
@@ -95,6 +102,7 @@ class GPTConfig:
     n_embd: int = 768
     dropout: float = 0.0
     bias: bool = True
+    use_gradient_checkpointing: bool = False
 
 
 # Named configurations for the ALS-LM project.
@@ -253,11 +261,19 @@ class Block(nn.Module):
         self.attn = CausalSelfAttention(config)
         self.ln_2 = nn.LayerNorm(config.n_embd, bias=config.bias)
         self.mlp = MLP(config)
+        self.use_gradient_checkpointing = config.use_gradient_checkpointing
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # Pre-LN: normalize before each sublayer, add residual after
-        x = x + self.attn(self.ln_1(x))
-        x = x + self.mlp(self.ln_2(x))
+        # Pre-LN: normalize before each sublayer, add residual after.
+        # When gradient checkpointing is enabled (and model is training),
+        # activations are recomputed during backward instead of stored,
+        # trading ~20-30% compute for ~30-40% memory savings.
+        if self.use_gradient_checkpointing and self.training:
+            x = x + torch_checkpoint(self.attn, self.ln_1(x), use_reentrant=False)
+            x = x + torch_checkpoint(self.mlp, self.ln_2(x), use_reentrant=False)
+        else:
+            x = x + self.attn(self.ln_1(x))
+            x = x + self.mlp(self.ln_2(x))
         return x
 
 
@@ -409,6 +425,20 @@ class GPT(nn.Module):
         if non_embedding:
             n_params -= self.transformer.wpe.weight.numel()
         return n_params
+
+    def enable_gradient_checkpointing(self) -> None:
+        """Enable gradient checkpointing on all transformer blocks.
+
+        This trades compute for memory by recomputing activations during the
+        backward pass instead of storing them. Reduces memory usage by ~30-40%
+        at the cost of ~20-30% slower training. Essential for the 500M config
+        on a 12GB GPU.
+
+        Only affects training; checkpointing is skipped during eval mode
+        automatically (Block.forward checks self.training).
+        """
+        for block in self.transformer.h:
+            block.use_gradient_checkpointing = True
 
     @classmethod
     def from_config(

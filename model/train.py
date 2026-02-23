@@ -188,6 +188,11 @@ def parse_args():
         help="Validate config and print training plan without training",
     )
     parser.add_argument(
+        "--gradient-checkpointing",
+        action="store_true",
+        help="Enable gradient checkpointing to reduce GPU memory (trades compute for memory)",
+    )
+    parser.add_argument(
         "--local_rank",
         type=int,
         default=-1,
@@ -593,6 +598,7 @@ def write_config_header(log_file, args, model_config_dict, ds_config, vocab_size
             "log_interval": args.log_interval,
             "data_dir": args.data_dir,
             "tokenizer_path": args.tokenizer_path,
+            "gradient_checkpointing": args.gradient_checkpointing,
         },
         "data_info": {
             "vocab_size": vocab_size,
@@ -699,6 +705,7 @@ def print_dry_run(args, model_config, vocab_size, train_tokens, val_tokens, ds_c
     print(f"    Warmup steps:    {args.warmup_steps}")
     print(f"    Eval interval:   {args.eval_interval}")
     print(f"    Seed:            {args.seed}")
+    print(f"    Gradient checkpointing: {args.gradient_checkpointing}")
 
     print(f"\n  Data Info")
     print(f"    Data directory:  {args.data_dir}")
@@ -789,6 +796,11 @@ def main():
     model_config = model.config
     param_count = model.get_num_params()
     print(f"  Model: {args.config} ({param_count:,} parameters)")
+
+    # Enable gradient checkpointing if requested (must happen before DeepSpeed wraps the model)
+    if args.gradient_checkpointing:
+        model.enable_gradient_checkpointing()
+        print(f"  Gradient checkpointing enabled on {len(list(model.transformer.h))} blocks")
 
     # Serialize model config for checkpoint metadata
     model_config_dict = {
