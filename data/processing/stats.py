@@ -24,6 +24,8 @@ def generate_stats(
     val_docs: list[dict],
     rejected_path: Path,
     output_path: Path,
+    train_path: Path | None = None,
+    val_path: Path | None = None,
 ) -> None:
     """Generate comprehensive corpus statistics and write to a Markdown file.
 
@@ -37,6 +39,10 @@ def generate_stats(
         val_docs: List of validation document dicts.
         rejected_path: Path to the JSONL rejection log file.
         output_path: Path to write the stats Markdown file.
+        train_path: Explicit path to train.txt. If None, defaults to
+            output_path.parent / "processed" / "train.txt".
+        val_path: Explicit path to val.txt. If None, defaults to
+            output_path.parent / "processed" / "val.txt".
     """
     all_docs = train_docs + val_docs
     total_docs = len(all_docs)
@@ -61,8 +67,16 @@ def generate_stats(
     estimated_tokens = total_chars // 4
 
     # Train/val file sizes
-    train_path = output_path.parent / "processed" / "train.txt"
-    val_path = output_path.parent / "processed" / "val.txt"
+    if train_path is None:
+        train_path = output_path.parent / "processed" / "train.txt"
+    if val_path is None:
+        val_path = output_path.parent / "processed" / "val.txt"
+
+    if not train_path.exists():
+        logger.warning("train.txt not found at %s -- file size will report 0", train_path)
+    if not val_path.exists():
+        logger.warning("val.txt not found at %s -- file size will report 0", val_path)
+
     train_size = train_path.stat().st_size if train_path.exists() else 0
     val_size = val_path.stat().st_size if val_path.exists() else 0
     total_size = train_size + val_size
