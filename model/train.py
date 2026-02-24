@@ -77,6 +77,9 @@ import torch
 import deepspeed
 from deepspeed.utils.zero_to_fp32 import get_fp32_state_dict_from_zero_checkpoint
 
+# TensorBoard for real-time metrics visualization
+from torch.utils.tensorboard import SummaryWriter
+
 # Tokenizer for sample generation
 from tokenizers import Tokenizer
 
@@ -890,6 +893,12 @@ def print_dry_run(args, model_config, vocab_size, train_tokens, val_tokens, ds_c
     print(f"    Total tokens:    {total_tokens:,}")
     print(f"    Est. epochs:     {epochs_approx:.1f}")
 
+    tb_cfg = ds_config.get("tensorboard", {})
+    print(f"\n  Logging")
+    print(f"    JSONL log:       logs/training_log.jsonl")
+    print(f"    TensorBoard:     {tb_cfg.get('output_path', 'N/A')} (enabled={tb_cfg.get('enabled', False)})")
+    print(f"    Sample prompts:  {len(SAMPLE_PROMPTS)} x {len(SAMPLE_TEMPERATURES)} temperatures")
+
     print("\n" + "=" * 60)
     print("  Dry run complete. Remove --dry-run to start training.")
     print("=" * 60 + "\n")
@@ -977,6 +986,12 @@ def print_config_summary(args, model_config, param_count, vocab_size,
     print(f"\n  {BOLD}Device{RESET}")
     print(f"    GPU:          {gpu_name}")
     print(f"    VRAM:         {gpu_mem:,} MB")
+
+    tb_enabled = ds_config.get("tensorboard", {}).get("enabled", False)
+    print(f"\n  {BOLD}Logging{RESET}")
+    print(f"    JSONL:        logs/training_log.jsonl")
+    print(f"    TensorBoard:  logs/tensorboard/ (enabled={tb_enabled})")
+    print(f"    Samples:      {len(SAMPLE_PROMPTS)} prompts x {len(SAMPLE_TEMPERATURES)} temperatures per validation")
 
     print(f"\n{BOLD}{'=' * 64}{RESET}\n")
 
@@ -1123,6 +1138,13 @@ def main():
     device = model_engine.device
     print(f"  Device: {device}")
 
+    # ---- TensorBoard writer for custom metrics ------------------------------
+    # Separate directory from DeepSpeed auto-logging (logs/tensorboard/als_lm_training/)
+    # to avoid event file conflicts (RESEARCH.md Pitfall 3)
+    os.makedirs("logs/tensorboard/custom", exist_ok=True)
+    tb_writer = SummaryWriter(log_dir="logs/tensorboard/custom")
+    print(f"  TensorBoard: logs/tensorboard/")
+
     # ---- GPU memory monitor ------------------------------------------------
     gpu_handle = init_gpu_monitor(args.local_rank)
 
@@ -1222,6 +1244,7 @@ def main():
         if math.isnan(current_loss) or math.isinf(current_loss):
             print(f"\n{RED}FATAL: NaN/Inf loss at step {step}. Stopping immediately.{RESET}")
             log_file.close()
+            tb_writer.close()
             sys.exit(1)
 
         if step == start_step + 100 and not loss_warned and current_loss >= initial_loss:
@@ -1315,6 +1338,18 @@ def main():
                 loss_scale, grad_norm,
             )
 
+            # TensorBoard custom metrics (step-aligned with JSONL log)
+            try:
+                perplexity = min(math.exp(current_loss), 1e5)
+            except OverflowError:
+                perplexity = 1e5
+            tb_writer.add_scalar("Metrics/train_perplexity", perplexity, step)
+            tb_writer.add_scalar("Metrics/gradient_norm", grad_norm, step)
+            tb_writer.add_scalar("Metrics/loss_scale", loss_scale, step)
+            tb_writer.add_scalar("Schedule/learning_rate", current_lr, step)
+            tb_writer.add_scalar("Schedule/epoch", epoch_tracker.epoch, step)
+            tb_writer.add_scalar("Progress/tokens_per_sec", tokens_per_sec, step)
+
         # Validate + checkpoint + generate sample every eval_interval steps (and at final step)
         if step > 0 and (step % eval_interval == 0 or step == max_steps - 1):
             losses = estimate_loss(
@@ -1371,6 +1406,14 @@ def main():
                 epoch_tracker.epoch_progress(step),
             )
 
+            # TensorBoard validation metrics
+            tb_writer.add_scalar("Validation/val_loss", losses["val"], step)
+            tb_writer.add_scalar("Validation/val_perplexity", val_ppl, step)
+            tb_writer.add_scalar("Validation/train_loss", losses["train"], step)
+            tb_writer.add_scalar("Validation/train_perplexity", train_ppl, step)
+            tb_writer.add_scalar("Validation/generalization_gap", gap, step)
+            tb_writer.add_scalar("Validation/gap_ratio", gap_ratio, step)
+
             # Update best checkpoint tracking
             is_best = update_best_checkpoint(run_dir, step, losses["val"])
             if is_best:
@@ -1403,6 +1446,7 @@ def main():
     # ---- Training complete -------------------------------------------------
     elapsed = time.time() - training_start_time
     log_file.close()
+    tb_writer.close()
 
     # Read best from file in case we didn't find one during training
     best_step_file = os.path.join(run_dir, "best_step.txt")

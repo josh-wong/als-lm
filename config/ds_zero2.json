@@ -45,5 +45,10 @@
         "partition_activations": false,
         "contiguous_memory_optimization": false,
         "cpu_checkpointing": false
+    },
+    "tensorboard": {
+        "enabled": true,
+        "output_path": "logs/tensorboard/",
+        "job_name": "als_lm_training"
     }
 }
