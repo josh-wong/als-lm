@@ -101,8 +101,18 @@ CONFIG_DEFAULTS = {
     "500M": {"lr": 3e-4, "batch_size": 4, "grad_accum": 8, "warmup": 500, "max_steps": 50000},
 }
 
-# Fixed prompt for sample text generation at validation intervals
-SAMPLE_PROMPT = "Amyotrophic lateral sclerosis is"
+# Fixed prompts for sample text generation at validation intervals
+# Covers 5 domains: clinical-declarative, clinical-question, molecular,
+# treatment, and epidemiological (per CONTEXT.md diversity requirement)
+SAMPLE_PROMPTS = [
+    "Amyotrophic lateral sclerosis is",                          # Clinical - declarative
+    "What are the early symptoms of ALS?",                       # Clinical - question
+    "The SOD1 gene mutation in ALS leads to",                    # Molecular - declarative
+    "Riluzole works by",                                         # Treatment - declarative
+    "The incidence of ALS worldwide is approximately",           # Epidemiological - declarative
+]
+
+SAMPLE_TEMPERATURES = [0.0, 0.7]  # Greedy + sampled decoding
 
 
 # ---------------------------------------------------------------------------
@@ -406,7 +416,7 @@ def estimate_loss(model_engine, eval_iters, batch_size, block_size, device, data
 # Sample text generation
 # ---------------------------------------------------------------------------
 @torch.no_grad()
-def generate_sample(model, tokenizer, prompt, max_new_tokens=64, temperature=0.8, device="cuda"):
+def generate_sample(model, tokenizer, prompt, max_new_tokens=128, temperature=0.8, device="cuda"):
     """Generate sample text from a fixed prompt for qualitative evaluation.
 
     Uses the unwrapped model (model_engine.module) in eval mode to avoid
@@ -1329,25 +1339,30 @@ def main():
             print(f"    Val loss:         {losses['val']:.4f}  (ppl: {val_ppl:.2f})")
             print(f"    Gen. gap:         {gap:.4f}  (ratio: {gap_ratio:.4f})")
 
-            # Sample text generation
-            sample_text = ""
+            # Multi-prompt sample generation (5 prompts x 2 temperatures = 10 samples)
             samples = []
             if tokenizer is not None:
                 try:
-                    sample_text = generate_sample(
-                        model_engine.module,
-                        tokenizer,
-                        SAMPLE_PROMPT,
-                        max_new_tokens=64,
-                        temperature=0.8,
-                        device=device,
-                    )
-                    samples = [{"prompt": SAMPLE_PROMPT, "temperature": 0.8, "text": sample_text}]
-                    print(f"    1 sample generated")
+                    for prompt in SAMPLE_PROMPTS:
+                        for temp in SAMPLE_TEMPERATURES:
+                            text = generate_sample(
+                                model_engine.module,
+                                tokenizer,
+                                prompt,
+                                max_new_tokens=128,
+                                temperature=temp,
+                                device=device,
+                            )
+                            samples.append({
+                                "prompt": prompt,
+                                "temperature": temp,
+                                "text": text,
+                            })
+                    print(f"    {len(samples)} samples generated ({len(SAMPLE_PROMPTS)} prompts x {len(SAMPLE_TEMPERATURES)} temperatures)")
                 except Exception as e:
                     print(f"    WARNING: Sample generation failed: {e}")
-                    sample_text = f"[generation failed: {e}]"
-                    samples = [{"prompt": SAMPLE_PROMPT, "temperature": 0.8, "text": sample_text}]
+                    if not samples:
+                        samples = [{"prompt": SAMPLE_PROMPTS[0], "temperature": 0.0, "text": f"[generation failed: {e}]"}]
 
             # Log validation
             log_validation(
