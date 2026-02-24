@@ -28,7 +28,7 @@ tiktoken==0.12.0
 # See setup.sh for correct installation sequence.
 # Do NOT add torch here -- pip install -r does not support per-package index URLs.
 deepspeed==0.18.6
-ninja>=1.11
+ninja==1.13.0
 
 # Export pipeline (v0.2.0)
 transformers==5.2.0
@@ -37,10 +37,10 @@ safetensors==0.7.0
 # Export (Phase 4.4)
 # NOTE: gguf must be installed from lib/llama.cpp/gguf-py/ (not PyPI) to match
 # the converter script version. Run: pip install lib/llama.cpp/gguf-py/
-sentencepiece>=0.2.0
+sentencepiece==0.2.1
 
 # GPU monitoring (v0.2.0)
-nvidia-ml-py>=12.0
+nvidia-ml-py==13.590.48
 
 # System monitoring (Phase 4.5)
-psutil
+psutil==7.2.2
