@@ -49,3 +49,7 @@ reports/
 # Training artifacts (Phase 4.3)
 logs/
 checkpoints/
+
+# Export artifacts (Phase 4.4)
+export/output/
+lib/
