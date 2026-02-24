@@ -41,8 +41,7 @@ SOURCE_CAPS = {
 # for tokenizer training. Bookshelf and CDC use source_category="educational"
 # so they naturally map to the existing educational directory.
 SOURCE_DIR_MAP = {
-    "research_papers": "pubmed",
-    "biomedical_research": "pubmed_abstracts",
+    "biomedical_research": "pubmed",
     "clinical_trials": "clinical_trials",
     "regulatory": "fda",
     "educational": "educational",
