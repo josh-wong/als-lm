@@ -485,9 +485,10 @@ def clean_document(
     6. PII re-scrubbing (patient narratives only)
     7. Unicode normalization (ftfy + NFC)
     8. Whitespace normalization
-    9. Medical abbreviation normalization
-    10. Embed document title as header
-    11. Minimum length check
+    9. English language safety net (warn if non-English detected)
+    10. Medical abbreviation normalization
+    11. Embed document title as header
+    12. Minimum length check
 
     Args:
         doc: Raw document dict with Phase 1 JSON schema fields.
@@ -514,8 +515,8 @@ def clean_document(
 
     # Step 2: Strip non-content sections for scientific papers
     is_scientific = (
-        source_category == "research_papers"
-        or source == "pubmed"
+        source_category in ("research_papers", "biomedical_research")
+        or source in ("pubmed", "pubmed_abstracts")
     )
     if is_scientific:
         text = _strip_non_content_sections(text)
@@ -549,13 +550,29 @@ def clean_document(
     # Step 8: Whitespace normalization
     text = _normalize_whitespace(text)
 
-    # Step 9: Medical abbreviation normalization
+    # Step 9: English language safety net
+    # PubMed queries already filter for English, but this catches edge cases
+    # from other sources. Checks that common English stop words appear in
+    # the first 200 words as a lightweight heuristic.
+    words_sample = text.split()[:200]
+    if words_sample:
+        words_lower = {w.lower() for w in words_sample}
+        english_indicators = {"the", "and", "of", "in"}
+        matches = words_lower & english_indicators
+        if len(matches) < 1:
+            logger.warning(
+                "Document %s may not be English (no common stop words "
+                "in first 200 words). Keeping for manual review.",
+                doc_id,
+            )
+
+    # Step 10: Medical abbreviation normalization
     text = normalize_abbreviations(text)
 
-    # Step 10: Embed document title as header
+    # Step 11: Embed document title as header
     text = _embed_title(text, title)
 
-    # Step 11: Minimum length check
+    # Step 12: Minimum length check
     word_count = len(text.split())
     if word_count < MIN_WORD_COUNT:
         if rejected_path:

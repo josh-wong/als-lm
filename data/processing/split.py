@@ -36,8 +36,13 @@ SOURCE_CAPS = {
 }
 
 # Map source_category to output directory names
+# Note: biomedical_research (PubMed abstracts) is intentionally uncapped --
+# abstracts are core biomedical content that provides vocabulary breadth
+# for tokenizer training. Bookshelf and CDC use source_category="educational"
+# so they naturally map to the existing educational directory.
 SOURCE_DIR_MAP = {
     "research_papers": "pubmed",
+    "biomedical_research": "pubmed_abstracts",
     "clinical_trials": "clinical_trials",
     "regulatory": "fda",
     "educational": "educational",
@@ -308,7 +313,17 @@ def write_per_document_files(
 
     for doc in documents:
         source_category = doc.get("source_category", "unknown")
-        source_dir_name = SOURCE_DIR_MAP.get(source_category, source_category)
+        source_dir_name = SOURCE_DIR_MAP.get(source_category)
+        if source_dir_name is None:
+            # Unmapped category: fall back to source field as directory name
+            source_dir_name = doc.get("source", source_category)
+            logger.warning(
+                "Unmapped source_category '%s' for document '%s', "
+                "using '%s' as output directory",
+                source_category,
+                doc.get("id", "unknown"),
+                source_dir_name,
+            )
         doc_dir = output_dir / source_dir_name
         doc_dir.mkdir(parents=True, exist_ok=True)
 

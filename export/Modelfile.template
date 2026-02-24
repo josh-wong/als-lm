@@ -1,0 +1,6 @@
+FROM {{GGUF_PATH}}
+
+PARAMETER num_ctx 1024
+
+SYSTEM """{{DISCLAIMER}}"""
+

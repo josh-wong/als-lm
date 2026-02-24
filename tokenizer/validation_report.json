@@ -1,0 +1,1902 @@
+{
+  "metadata": {
+    "date": "2026-02-23T14:31:49.359212+00:00",
+    "corpus_file": "data/processed/train.txt",
+    "corpus_size_mb": 673.48,
+    "corpus_words": 101303590,
+    "corpus_chars": 706191475,
+    "num_documents": 35088,
+    "num_terms": 100
+  },
+  "tokenizers": {
+    "old_v01": {
+      "name": "ALS v0.1",
+      "path": "tokenizer/v0.2.1/als_tokenizer.json",
+      "vocab_size": 32768,
+      "total_corpus_tokens": 153485846,
+      "fertility": 1.5151,
+      "compression_ratio": 4.601,
+      "encoding_speed_tps": 598759,
+      "pct_docs_within_1024": 54.5
+    },
+    "new_production": {
+      "name": "ALS Production",
+      "path": "tokenizer/als_tokenizer.json",
+      "vocab_size": 50257,
+      "total_corpus_tokens": 142833967,
+      "fertility": 1.41,
+      "compression_ratio": 4.9441,
+      "encoding_speed_tps": 549938,
+      "pct_docs_within_1024": 54.6
+    },
+    "gpt2": {
+      "name": "GPT-2",
+      "vocab_size": 50257,
+      "total_corpus_tokens": 162592689,
+      "fertility": 1.605,
+      "compression_ratio": 4.3433,
+      "encoding_speed_tps": 3503665,
+      "pct_docs_within_1024": 54.2
+    }
+  },
+  "term_results": [
+    {
+      "term": "ALS",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "ALS"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "ALS"
+      ],
+      "gpt2_subtokens": 1,
+      "gpt2_tokens": [
+        "ALS"
+      ]
+    },
+    {
+      "term": "FVC",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "FVC"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "FVC"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "F",
+        "VC"
+      ]
+    },
+    {
+      "term": "ALSFRS-R",
+      "category": "abbreviation",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "ALSFRS",
+        "-",
+        "R"
+      ],
+      "new_subtokens": 3,
+      "new_tokens": [
+        "ALSFRS",
+        "-",
+        "R"
+      ],
+      "gpt2_subtokens": 5,
+      "gpt2_tokens": [
+        "AL",
+        "SF",
+        "RS",
+        "-",
+        "R"
+      ]
+    },
+    {
+      "term": "FTD",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "FTD"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "FTD"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "FT",
+        "D"
+      ]
+    },
+    {
+      "term": "RNA",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "RNA"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "RNA"
+      ],
+      "gpt2_subtokens": 1,
+      "gpt2_tokens": [
+        "RNA"
+      ]
+    },
+    {
+      "term": "FDA",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "FDA"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "FDA"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "F",
+        "DA"
+      ]
+    },
+    {
+      "term": "CSF",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "CSF"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "CSF"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "CS",
+        "F"
+      ]
+    },
+    {
+      "term": "NfL",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "NfL"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "NfL"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "N",
+        "f",
+        "L"
+      ]
+    },
+    {
+      "term": "AMPA",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "AMPA"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "AMPA"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "AM",
+        "PA"
+      ]
+    },
+    {
+      "term": "UMN",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "UMN"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "UMN"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "UM",
+        "N"
+      ]
+    },
+    {
+      "term": "LMN",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "LMN"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "LMN"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "LM",
+        "N"
+      ]
+    },
+    {
+      "term": "PLS",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "PLS"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "PLS"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "PL",
+        "S"
+      ]
+    },
+    {
+      "term": "PMA",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "PMA"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "PMA"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "P",
+        "MA"
+      ]
+    },
+    {
+      "term": "NMDA",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "NMDA"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "NMDA"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "NM",
+        "DA"
+      ]
+    },
+    {
+      "term": "ASO",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "ASO"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "ASO"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "AS",
+        "O"
+      ]
+    },
+    {
+      "term": "VALOR",
+      "category": "abbreviation",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "V",
+        "AL",
+        "OR"
+      ],
+      "new_subtokens": 3,
+      "new_tokens": [
+        "V",
+        "AL",
+        "OR"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "VAL",
+        "OR"
+      ]
+    },
+    {
+      "term": "PBA",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "PBA"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "PBA"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "P",
+        "BA"
+      ]
+    },
+    {
+      "term": "GGGGCC",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "GGGGCC"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "GGGGCC"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "GGGG",
+        "CC"
+      ]
+    },
+    {
+      "term": "CAG",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "CAG"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "CAG"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "C",
+        "AG"
+      ]
+    },
+    {
+      "term": "iPSC",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "iPSC"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "iPSC"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "i",
+        "PS",
+        "C"
+      ]
+    },
+    {
+      "term": "ALS-FTD",
+      "category": "abbreviation",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "ALS",
+        "-",
+        "FTD"
+      ],
+      "new_subtokens": 3,
+      "new_tokens": [
+        "ALS",
+        "-",
+        "FTD"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "ALS",
+        "-",
+        "FT",
+        "D"
+      ]
+    },
+    {
+      "term": "CENTAUR",
+      "category": "abbreviation",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "C",
+        "ENTAUR"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "CE",
+        "NTAUR"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "CENT",
+        "A",
+        "UR"
+      ]
+    },
+    {
+      "term": "EMG",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "EMG"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "EMG"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "EM",
+        "G"
+      ]
+    },
+    {
+      "term": "MND",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "MND"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "MND"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "M",
+        "ND"
+      ]
+    },
+    {
+      "term": "PBP",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "PBP"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "PBP"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "P",
+        "BP"
+      ]
+    },
+    {
+      "term": "NIV",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "NIV"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "NIV"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "N",
+        "IV"
+      ]
+    },
+    {
+      "term": "BiPAP",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "BiPAP"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "BiP",
+        "AP"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "Bi",
+        "P",
+        "AP"
+      ]
+    },
+    {
+      "term": "PEG",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "PEG"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "PEG"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "P",
+        "EG"
+      ]
+    },
+    {
+      "term": "DTI",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "DTI"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "DTI"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "DT",
+        "I"
+      ]
+    },
+    {
+      "term": "PET",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "PET"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "PET"
+      ],
+      "gpt2_subtokens": 1,
+      "gpt2_tokens": [
+        "PET"
+      ]
+    },
+    {
+      "term": "AAV",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "AAV"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "AAV"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "AA",
+        "V"
+      ]
+    },
+    {
+      "term": "MSC",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "MSC"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "MSC"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "MS",
+        "C"
+      ]
+    },
+    {
+      "term": "SBMA",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "SBMA"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "SBMA"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "SB",
+        "MA"
+      ]
+    },
+    {
+      "term": "HSP",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "HSP"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "HSP"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "H",
+        "SP"
+      ]
+    },
+    {
+      "term": "sALS",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "sALS"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "sALS"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "s",
+        "ALS"
+      ]
+    },
+    {
+      "term": "fALS",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "fALS"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "fALS"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "f",
+        "ALS"
+      ]
+    },
+    {
+      "term": "bvFTD",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "bvFTD"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "bvFTD"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "b",
+        "v",
+        "FT",
+        "D"
+      ]
+    },
+    {
+      "term": "AAC",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "AAC"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "AAC"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "A",
+        "AC"
+      ]
+    },
+    {
+      "term": "SNIP",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "SNIP"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "SN",
+        "IP"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "SN",
+        "IP"
+      ]
+    },
+    {
+      "term": "SVC",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "SVC"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "SVC"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "S",
+        "VC"
+      ]
+    },
+    {
+      "term": "pNfH",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "pNfH"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "pNfH"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "p",
+        "N",
+        "f",
+        "H"
+      ]
+    },
+    {
+      "term": "RNAi",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "RNAi"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "RNAi"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "RNA",
+        "i"
+      ]
+    },
+    {
+      "term": "criteria",
+      "category": "clinical",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "criteria"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "cri",
+        "teria"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "crit",
+        "eria"
+      ]
+    },
+    {
+      "term": "dysfunction",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "dys",
+        "function"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "dysfunction"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "d",
+        "ys",
+        "function"
+      ]
+    },
+    {
+      "term": "degeneration",
+      "category": "clinical",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "degeneration"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "degeneration"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "deg",
+        "ener",
+        "ation"
+      ]
+    },
+    {
+      "term": "mutation",
+      "category": "clinical",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "mutation"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "mutation"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "m",
+        "utation"
+      ]
+    },
+    {
+      "term": "denervation",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "den",
+        "ervation"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "den",
+        "ervation"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "den",
+        "ervation"
+      ]
+    },
+    {
+      "term": "diagnosis",
+      "category": "clinical",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "diagnosis"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "diagnosis"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "diagn",
+        "osis"
+      ]
+    },
+    {
+      "term": "sclerosis",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "s",
+        "clerosis"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "s",
+        "clerosis"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "s",
+        "clerosis"
+      ]
+    },
+    {
+      "term": "excitotoxicity",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "excit",
+        "otoxicity"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "ex",
+        "citotoxicity"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "exc",
+        "it",
+        "ot",
+        "oxicity"
+      ]
+    },
+    {
+      "term": "bulbar onset",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "bulbar",
+        "Ġonset"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "bulbar",
+        "Ġonset"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "bul",
+        "bar",
+        " onset"
+      ]
+    },
+    {
+      "term": "combination",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "comb",
+        "ination"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "com",
+        "bination"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "comb",
+        "ination"
+      ]
+    },
+    {
+      "term": "El Escorial criteria",
+      "category": "clinical",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "El",
+        "ĠEscorial",
+        "Ġcriteria"
+      ],
+      "new_subtokens": 3,
+      "new_tokens": [
+        "El",
+        "ĠEscorial",
+        "Ġcriteria"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "El",
+        " Esc",
+        "orial",
+        " criteria"
+      ]
+    },
+    {
+      "term": "communication",
+      "category": "clinical",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "communication"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "communication"
+      ],
+      "gpt2_subtokens": 1,
+      "gpt2_tokens": [
+        "communication"
+      ]
+    },
+    {
+      "term": "capacity",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "c",
+        "apacity"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "capacity"
+      ],
+      "gpt2_subtokens": 1,
+      "gpt2_tokens": [
+        "capacity"
+      ]
+    },
+    {
+      "term": "quality",
+      "category": "clinical",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "quality"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "quality"
+      ],
+      "gpt2_subtokens": 1,
+      "gpt2_tokens": [
+        "quality"
+      ]
+    },
+    {
+      "term": "ventilation",
+      "category": "clinical",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "ventilation"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "v",
+        "entilation"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "vent",
+        "ilation"
+      ]
+    },
+    {
+      "term": "neuroinflammation",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "neuro",
+        "inflammation"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "neuroinflammation"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "ne",
+        "uro",
+        "inflamm",
+        "ation"
+      ]
+    },
+    {
+      "term": "prognosis",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "pro",
+        "gnosis"
+      ],
+      "new_subtokens": 3,
+      "new_tokens": [
+        "pro",
+        "gn",
+        "osis"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "pro",
+        "gn",
+        "osis"
+      ]
+    },
+    {
+      "term": "atrophy",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "at",
+        "rophy"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "atrophy"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "atro",
+        "phy"
+      ]
+    },
+    {
+      "term": "limb onset",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "limb",
+        "Ġonset"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "limb",
+        "Ġonset"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "lim",
+        "b",
+        " onset"
+      ]
+    },
+    {
+      "term": "proteostasis",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "prote",
+        "ostasis"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "prote",
+        "ostasis"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "pro",
+        "te",
+        "ost",
+        "asis"
+      ]
+    },
+    {
+      "term": "aggregation",
+      "category": "clinical",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "aggregation"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "aggregation"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "agg",
+        "regation"
+      ]
+    },
+    {
+      "term": "microglia",
+      "category": "clinical",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "microglia"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "microglia"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "micro",
+        "gl",
+        "ia"
+      ]
+    },
+    {
+      "term": "interaction",
+      "category": "clinical",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "interaction"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "interaction"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "inter",
+        "action"
+      ]
+    },
+    {
+      "term": "Awaji criteria",
+      "category": "clinical",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "A",
+        "waji",
+        "Ġcriteria"
+      ],
+      "new_subtokens": 4,
+      "new_tokens": [
+        "A",
+        "wa",
+        "ji",
+        "Ġcriteria"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "Aw",
+        "aji",
+        " criteria"
+      ]
+    },
+    {
+      "term": "conduction",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "cond",
+        "uction"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "con",
+        "duction"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "cond",
+        "uction"
+      ]
+    },
+    {
+      "term": "gastrostomy",
+      "category": "clinical",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "gastrostomy"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "gastro",
+        "stomy"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "g",
+        "ast",
+        "rost",
+        "omy"
+      ]
+    },
+    {
+      "term": "respiratory failure",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "respiratory",
+        "Ġfailure"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "respiratory",
+        "Ġfailure"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "res",
+        "pir",
+        "atory",
+        " failure"
+      ]
+    },
+    {
+      "term": "non-invasive ventilation",
+      "category": "clinical",
+      "old_subtokens": 4,
+      "old_tokens": [
+        "non",
+        "-",
+        "invasive",
+        "Ġventilation"
+      ],
+      "new_subtokens": 4,
+      "new_tokens": [
+        "non",
+        "-",
+        "invasive",
+        "Ġventilation"
+      ],
+      "gpt2_subtokens": 5,
+      "gpt2_tokens": [
+        "non",
+        "-",
+        "in",
+        "vasive",
+        " ventilation"
+      ]
+    },
+    {
+      "term": "fasciculation",
+      "category": "clinical",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "f",
+        "ascic",
+        "ulation"
+      ],
+      "new_subtokens": 3,
+      "new_tokens": [
+        "fas",
+        "cic",
+        "ulation"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "f",
+        "asc",
+        "ic",
+        "ulation"
+      ]
+    },
+    {
+      "term": "dementia",
+      "category": "clinical",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "dementia"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "dementia"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "d",
+        "ement",
+        "ia"
+      ]
+    },
+    {
+      "term": "sensitivity",
+      "category": "clinical",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "sensitivity"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "sensitivity"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "s",
+        "ensitivity"
+      ]
+    },
+    {
+      "term": "spasticity",
+      "category": "clinical",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "spasticity"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "sp",
+        "asticity"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "sp",
+        "astic",
+        "ity"
+      ]
+    },
+    {
+      "term": "production",
+      "category": "clinical",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "production"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "production"
+      ],
+      "gpt2_subtokens": 1,
+      "gpt2_tokens": [
+        "production"
+      ]
+    },
+    {
+      "term": "asthenia",
+      "category": "clinical",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "asthenia"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "asthenia"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "ast",
+        "hen",
+        "ia"
+      ]
+    },
+    {
+      "term": "examination",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "ex",
+        "amination"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "examination"
+      ],
+      "gpt2_subtokens": 1,
+      "gpt2_tokens": [
+        "examination"
+      ]
+    },
+    {
+      "term": "via",
+      "category": "clinical",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "via"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "via"
+      ],
+      "gpt2_subtokens": 1,
+      "gpt2_tokens": [
+        "via"
+      ]
+    },
+    {
+      "term": "autophagy",
+      "category": "clinical",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "autophagy"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "autophagy"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "aut",
+        "oph",
+        "agy"
+      ]
+    },
+    {
+      "term": "concentration",
+      "category": "clinical",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "concentration"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "concentration"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "con",
+        "cent",
+        "ration"
+      ]
+    },
+    {
+      "term": "hypothesis",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "hyp",
+        "othesis"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "hyp",
+        "othesis"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "hyp",
+        "ot",
+        "hesis"
+      ]
+    },
+    {
+      "term": "tolerability",
+      "category": "clinical",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "tolerability"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "toler",
+        "ability"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "t",
+        "oler",
+        "ability"
+      ]
+    },
+    {
+      "term": "utility",
+      "category": "clinical",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "utility"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "utility"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "ut",
+        "ility"
+      ]
+    },
+    {
+      "term": "tomography",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "t",
+        "omography"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "tom",
+        "ography"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "tom",
+        "ography"
+      ]
+    },
+    {
+      "term": "dysphagia",
+      "category": "clinical",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "dysphagia"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "dys",
+        "phagia"
+      ],
+      "gpt2_subtokens": 5,
+      "gpt2_tokens": [
+        "d",
+        "ys",
+        "ph",
+        "ag",
+        "ia"
+      ]
+    },
+    {
+      "term": "hyperreflexia",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "hyper",
+        "reflexia"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "hyper",
+        "reflexia"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "hyper",
+        "ref",
+        "lex",
+        "ia"
+      ]
+    },
+    {
+      "term": "clonus",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "cl",
+        "onus"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "cl",
+        "onus"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "cl",
+        "on",
+        "us"
+      ]
+    },
+    {
+      "term": "sialorrhea",
+      "category": "clinical",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "sialorrhea"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "sial",
+        "orrhea"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "s",
+        "ial",
+        "orr",
+        "hea"
+      ]
+    },
+    {
+      "term": "Babinski sign",
+      "category": "clinical",
+      "old_subtokens": 4,
+      "old_tokens": [
+        "B",
+        "ab",
+        "inski",
+        "Ġsign"
+      ],
+      "new_subtokens": 4,
+      "new_tokens": [
+        "B",
+        "ab",
+        "inski",
+        "Ġsign"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "B",
+        "ab",
+        "inski",
+        " sign"
+      ]
+    },
+    {
+      "term": "diaphragmatic pacing",
+      "category": "clinical",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "d",
+        "iaphragmatic",
+        "Ġpacing"
+      ],
+      "new_subtokens": 3,
+      "new_tokens": [
+        "dia",
+        "phragmatic",
+        "Ġpacing"
+      ],
+      "gpt2_subtokens": 5,
+      "gpt2_tokens": [
+        "di",
+        "aph",
+        "rag",
+        "matic",
+        " pacing"
+      ]
+    },
+    {
+      "term": "percutaneous endoscopic gastrostomy",
+      "category": "clinical",
+      "old_subtokens": 4,
+      "old_tokens": [
+        "per",
+        "cutaneous",
+        "Ġendoscopic",
+        "Ġgastrostomy"
+      ],
+      "new_subtokens": 4,
+      "new_tokens": [
+        "per",
+        "cutaneous",
+        "Ġendoscopic",
+        "Ġgastrostomy"
+      ],
+      "gpt2_subtokens": 8,
+      "gpt2_tokens": [
+        "per",
+        "cut",
+        "aneous",
+        " end",
+        "oscopic",
+        " gast",
+        "rost",
+        "omy"
+      ]
+    },
+    {
+      "term": "stability",
+      "category": "clinical",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "stability"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "stability"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "st",
+        "ability"
+      ]
+    },
+    {
+      "term": "instability",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "in",
+        "stability"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "in",
+        "stability"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "inst",
+        "ability"
+      ]
+    },
+    {
+      "term": "reduction",
+      "category": "clinical",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "reduction"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "reduction"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "red",
+        "uction"
+      ]
+    },
+    {
+      "term": "distribution",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "dis",
+        "tribution"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "distribution"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "dist",
+        "ribution"
+      ]
+    },
+    {
+      "term": "modification",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "mod",
+        "ification"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "modification"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "mod",
+        "ification"
+      ]
+    },
+    {
+      "term": "susceptibility",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "sus",
+        "ceptibility"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "sus",
+        "ceptibility"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "s",
+        "us",
+        "cept",
+        "ibility"
+      ]
+    },
+    {
+      "term": "ataxia",
+      "category": "clinical",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "ataxia"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "ataxia"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "at",
+        "ax",
+        "ia"
+      ]
+    },
+    {
+      "term": "formation",
+      "category": "clinical",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "formation"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "formation"
+      ],
+      "gpt2_subtokens": 1,
+      "gpt2_tokens": [
+        "formation"
+      ]
+    },
+    {
+      "term": "mislocalization",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "mis",
+        "localization"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "mis",
+        "localization"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "m",
+        "isl",
+        "ocal",
+        "ization"
+      ]
+    }
+  ]
+}

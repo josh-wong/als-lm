@@ -34,6 +34,7 @@ data/scrapers/
 data/sources.json
 data/sources.md
 data/collection.log
+data/collection_report.txt
 
 # Corpus processing outputs
 data/processed/
@@ -41,3 +42,14 @@ data/stats.md
 
 # Tokenized data (Phase 3 - binary files, regenerable from corpus + tokenizer)
 data/tokenized/
+
+# Environment validation reports (Phase 4.1)
+reports/
+
+# Training artifacts (Phase 4.3)
+logs/
+checkpoints/
+
+# Export artifacts (Phase 4.4)
+export/output/
+lib/

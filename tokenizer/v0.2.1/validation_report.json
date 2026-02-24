@@ -1,0 +1,2092 @@
+{
+  "metadata": {
+    "date": "2026-02-22T14:08:59.491615+00:00",
+    "corpus_file": "data/processed/train.txt",
+    "corpus_size_mb": 35.93,
+    "corpus_words": 5382896,
+    "corpus_chars": 37680058,
+    "num_documents": 19163,
+    "num_terms": 100
+  },
+  "tokenizers": {
+    "old_v01": {
+      "name": "ALS v0.1",
+      "path": "tokenizer/v0.2/als_tokenizer.json",
+      "vocab_size": 3379,
+      "total_corpus_tokens": 12023535,
+      "fertility": 2.2337,
+      "compression_ratio": 3.1339,
+      "encoding_speed_tps": 66882,
+      "pct_docs_within_1024": 93.4
+    },
+    "new_production": {
+      "name": "ALS Production",
+      "path": "tokenizer/als_tokenizer.json",
+      "vocab_size": 32768,
+      "total_corpus_tokens": 7185473,
+      "fertility": 1.3349,
+      "compression_ratio": 5.2439,
+      "encoding_speed_tps": 64124,
+      "pct_docs_within_1024": 96.8
+    },
+    "gpt2": {
+      "name": "GPT-2",
+      "vocab_size": 50257,
+      "total_corpus_tokens": 8194652,
+      "fertility": 1.5224,
+      "compression_ratio": 4.5981,
+      "encoding_speed_tps": 3040217,
+      "pct_docs_within_1024": 96.3
+    }
+  },
+  "term_results": [
+    {
+      "term": "ALS",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "ALS"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "ALS"
+      ],
+      "gpt2_subtokens": 1,
+      "gpt2_tokens": [
+        "ALS"
+      ]
+    },
+    {
+      "term": "motor neuron disease",
+      "category": "disease",
+      "old_subtokens": 4,
+      "old_tokens": [
+        "m",
+        "otor",
+        "Ġneuron",
+        "Ġdisease"
+      ],
+      "new_subtokens": 3,
+      "new_tokens": [
+        "motor",
+        "Ġneuron",
+        "Ġdisease"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "m",
+        "otor",
+        " neuron",
+        " disease"
+      ]
+    },
+    {
+      "term": "SOD1",
+      "category": "gene",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "SOD",
+        "1"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "SOD",
+        "1"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "S",
+        "OD",
+        "1"
+      ]
+    },
+    {
+      "term": "TDP-43",
+      "category": "gene",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "TDP",
+        "-",
+        "43"
+      ],
+      "new_subtokens": 3,
+      "new_tokens": [
+        "TDP",
+        "-",
+        "43"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "T",
+        "DP",
+        "-",
+        "43"
+      ]
+    },
+    {
+      "term": "criteria",
+      "category": "clinical",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "c",
+        "rit",
+        "eria"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "criteria"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "crit",
+        "eria"
+      ]
+    },
+    {
+      "term": "dysfunction",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "dys",
+        "function"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "dys",
+        "function"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "d",
+        "ys",
+        "function"
+      ]
+    },
+    {
+      "term": "degeneration",
+      "category": "clinical",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "de",
+        "gener",
+        "ation"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "degeneration"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "deg",
+        "ener",
+        "ation"
+      ]
+    },
+    {
+      "term": "C9orf72",
+      "category": "gene",
+      "old_subtokens": 4,
+      "old_tokens": [
+        "C",
+        "9",
+        "orf",
+        "72"
+      ],
+      "new_subtokens": 4,
+      "new_tokens": [
+        "C",
+        "9",
+        "orf",
+        "72"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "C",
+        "9",
+        "orf",
+        "72"
+      ]
+    },
+    {
+      "term": "FVC",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "FVC"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "FVC"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "F",
+        "VC"
+      ]
+    },
+    {
+      "term": "ALSFRS-R",
+      "category": "abbreviation",
+      "old_subtokens": 4,
+      "old_tokens": [
+        "ALS",
+        "FRS",
+        "-",
+        "R"
+      ],
+      "new_subtokens": 3,
+      "new_tokens": [
+        "ALSFRS",
+        "-",
+        "R"
+      ],
+      "gpt2_subtokens": 5,
+      "gpt2_tokens": [
+        "AL",
+        "SF",
+        "RS",
+        "-",
+        "R"
+      ]
+    },
+    {
+      "term": "FTD",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "FTD"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "FTD"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "FT",
+        "D"
+      ]
+    },
+    {
+      "term": "mutation",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "mut",
+        "ation"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "mutation"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "m",
+        "utation"
+      ]
+    },
+    {
+      "term": "RNA",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "RNA"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "RNA"
+      ],
+      "gpt2_subtokens": 1,
+      "gpt2_tokens": [
+        "RNA"
+      ]
+    },
+    {
+      "term": "denervation",
+      "category": "clinical",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "d",
+        "ener",
+        "vation"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "den",
+        "ervation"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "den",
+        "ervation"
+      ]
+    },
+    {
+      "term": "diagnosis",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "diagn",
+        "osis"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "diagnosis"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "diagn",
+        "osis"
+      ]
+    },
+    {
+      "term": "Phase",
+      "category": "drug",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "P",
+        "h",
+        "ase"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "Phase"
+      ],
+      "gpt2_subtokens": 1,
+      "gpt2_tokens": [
+        "Phase"
+      ]
+    },
+    {
+      "term": "sclerosis",
+      "category": "clinical",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "sclerosis"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "s",
+        "clerosis"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "s",
+        "clerosis"
+      ]
+    },
+    {
+      "term": "amyotrophic lateral sclerosis",
+      "category": "disease",
+      "old_subtokens": 5,
+      "old_tokens": [
+        "am",
+        "y",
+        "otrophic",
+        "Ġlateral",
+        "Ġsclerosis"
+      ],
+      "new_subtokens": 3,
+      "new_tokens": [
+        "amyotrophic",
+        "Ġlateral",
+        "Ġsclerosis"
+      ],
+      "gpt2_subtokens": 5,
+      "gpt2_tokens": [
+        "amy",
+        "ot",
+        "rophic",
+        " lateral",
+        " sclerosis"
+      ]
+    },
+    {
+      "term": "primary lateral sclerosis",
+      "category": "disease",
+      "old_subtokens": 5,
+      "old_tokens": [
+        "p",
+        "rim",
+        "ary",
+        "Ġlateral",
+        "Ġsclerosis"
+      ],
+      "new_subtokens": 3,
+      "new_tokens": [
+        "primary",
+        "Ġlateral",
+        "Ġsclerosis"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "primary",
+        " lateral",
+        " sclerosis"
+      ]
+    },
+    {
+      "term": "riluzole",
+      "category": "drug",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "r",
+        "iluzole"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "riluzole"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "ril",
+        "uz",
+        "ole"
+      ]
+    },
+    {
+      "term": "decline",
+      "category": "drug",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "de",
+        "cl",
+        "ine"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "de",
+        "cline"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "decl",
+        "ine"
+      ]
+    },
+    {
+      "term": "excitotoxicity",
+      "category": "clinical",
+      "old_subtokens": 5,
+      "old_tokens": [
+        "e",
+        "x",
+        "c",
+        "it",
+        "otoxicity"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "excit",
+        "otoxicity"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "exc",
+        "it",
+        "ot",
+        "oxicity"
+      ]
+    },
+    {
+      "term": "tofersen",
+      "category": "drug",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "t",
+        "ofersen"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "tofersen"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "to",
+        "f",
+        "ersen"
+      ]
+    },
+    {
+      "term": "bulbar onset",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "bulbar",
+        "Ġonset"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "bulbar",
+        "Ġonset"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "bul",
+        "bar",
+        " onset"
+      ]
+    },
+    {
+      "term": "edaravone",
+      "category": "drug",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "ed",
+        "aravone"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "edaravone"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "edar",
+        "av",
+        "one"
+      ]
+    },
+    {
+      "term": "one",
+      "category": "drug",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "one"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "one"
+      ],
+      "gpt2_subtokens": 1,
+      "gpt2_tokens": [
+        "one"
+      ]
+    },
+    {
+      "term": "combination",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "com",
+        "bination"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "comb",
+        "ination"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "comb",
+        "ination"
+      ]
+    },
+    {
+      "term": "El Escorial criteria",
+      "category": "clinical",
+      "old_subtokens": 4,
+      "old_tokens": [
+        "E",
+        "l",
+        "ĠEscorial",
+        "Ġcriteria"
+      ],
+      "new_subtokens": 3,
+      "new_tokens": [
+        "El",
+        "ĠEscorial",
+        "Ġcriteria"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "El",
+        " Esc",
+        "orial",
+        " criteria"
+      ]
+    },
+    {
+      "term": "FUS",
+      "category": "gene",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "F",
+        "US"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "FUS"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "F",
+        "US"
+      ]
+    },
+    {
+      "term": "communication",
+      "category": "clinical",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "com",
+        "m",
+        "unication"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "communication"
+      ],
+      "gpt2_subtokens": 1,
+      "gpt2_tokens": [
+        "communication"
+      ]
+    },
+    {
+      "term": "capacity",
+      "category": "clinical",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "cap",
+        "ac",
+        "ity"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "c",
+        "apacity"
+      ],
+      "gpt2_subtokens": 1,
+      "gpt2_tokens": [
+        "capacity"
+      ]
+    },
+    {
+      "term": "quality",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "qu",
+        "ality"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "quality"
+      ],
+      "gpt2_subtokens": 1,
+      "gpt2_tokens": [
+        "quality"
+      ]
+    },
+    {
+      "term": "ATXN2",
+      "category": "gene",
+      "old_subtokens": 4,
+      "old_tokens": [
+        "A",
+        "TX",
+        "N",
+        "2"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "ATXN",
+        "2"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "AT",
+        "X",
+        "N",
+        "2"
+      ]
+    },
+    {
+      "term": "ventilation",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "ventil",
+        "ation"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "ventilation"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "vent",
+        "ilation"
+      ]
+    },
+    {
+      "term": "neuroinflammation",
+      "category": "clinical",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "n",
+        "euro",
+        "inflammation"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "neuro",
+        "inflammation"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "ne",
+        "uro",
+        "inflamm",
+        "ation"
+      ]
+    },
+    {
+      "term": "prognosis",
+      "category": "clinical",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "pro",
+        "gn",
+        "osis"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "pro",
+        "gnosis"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "pro",
+        "gn",
+        "osis"
+      ]
+    },
+    {
+      "term": "atrophy",
+      "category": "clinical",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "at",
+        "roph",
+        "y"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "at",
+        "rophy"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "atro",
+        "phy"
+      ]
+    },
+    {
+      "term": "FDA",
+      "category": "abbreviation",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "F",
+        "DA"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "FDA"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "F",
+        "DA"
+      ]
+    },
+    {
+      "term": "AMX0035",
+      "category": "drug",
+      "old_subtokens": 4,
+      "old_tokens": [
+        "A",
+        "M",
+        "X",
+        "0035"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "AMX",
+        "0035"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "AM",
+        "X",
+        "00",
+        "35"
+      ]
+    },
+    {
+      "term": "CSF",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "CSF"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "CSF"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "CS",
+        "F"
+      ]
+    },
+    {
+      "term": "NfL",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "NfL"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "NfL"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "N",
+        "f",
+        "L"
+      ]
+    },
+    {
+      "term": "AMPA",
+      "category": "abbreviation",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "A",
+        "M",
+        "PA"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "AMPA"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "AM",
+        "PA"
+      ]
+    },
+    {
+      "term": "limb onset",
+      "category": "clinical",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "l",
+        "imb",
+        "Ġonset"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "limb",
+        "Ġonset"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "lim",
+        "b",
+        " onset"
+      ]
+    },
+    {
+      "term": "proteostasis",
+      "category": "clinical",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "pro",
+        "te",
+        "ostasis"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "prote",
+        "ostasis"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "pro",
+        "te",
+        "ost",
+        "asis"
+      ]
+    },
+    {
+      "term": "aggregation",
+      "category": "clinical",
+      "old_subtokens": 4,
+      "old_tokens": [
+        "ag",
+        "g",
+        "reg",
+        "ation"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "aggregation"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "agg",
+        "regation"
+      ]
+    },
+    {
+      "term": "microglia",
+      "category": "clinical",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "m",
+        "ic",
+        "roglia"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "microglia"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "micro",
+        "gl",
+        "ia"
+      ]
+    },
+    {
+      "term": "interaction",
+      "category": "clinical",
+      "old_subtokens": 4,
+      "old_tokens": [
+        "in",
+        "t",
+        "era",
+        "ction"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "interaction"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "inter",
+        "action"
+      ]
+    },
+    {
+      "term": "Awaji criteria",
+      "category": "clinical",
+      "old_subtokens": 4,
+      "old_tokens": [
+        "A",
+        "waj",
+        "i",
+        "Ġcriteria"
+      ],
+      "new_subtokens": 3,
+      "new_tokens": [
+        "A",
+        "waji",
+        "Ġcriteria"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "Aw",
+        "aji",
+        " criteria"
+      ]
+    },
+    {
+      "term": "conduction",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "con",
+        "duction"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "cond",
+        "uction"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "cond",
+        "uction"
+      ]
+    },
+    {
+      "term": "gastrostomy",
+      "category": "clinical",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "g",
+        "astro",
+        "stomy"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "gastrostomy"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "g",
+        "ast",
+        "rost",
+        "omy"
+      ]
+    },
+    {
+      "term": "respiratory failure",
+      "category": "clinical",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "re",
+        "spiratory",
+        "Ġfailure"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "respiratory",
+        "Ġfailure"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "res",
+        "pir",
+        "atory",
+        " failure"
+      ]
+    },
+    {
+      "term": "non-invasive ventilation",
+      "category": "clinical",
+      "old_subtokens": 5,
+      "old_tokens": [
+        "n",
+        "on",
+        "-",
+        "invasive",
+        "Ġventilation"
+      ],
+      "new_subtokens": 4,
+      "new_tokens": [
+        "non",
+        "-",
+        "invasive",
+        "Ġventilation"
+      ],
+      "gpt2_subtokens": 5,
+      "gpt2_tokens": [
+        "non",
+        "-",
+        "in",
+        "vasive",
+        " ventilation"
+      ]
+    },
+    {
+      "term": "UMN",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "UMN"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "UMN"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "UM",
+        "N"
+      ]
+    },
+    {
+      "term": "LMN",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "LMN"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "LMN"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "LM",
+        "N"
+      ]
+    },
+    {
+      "term": "fasciculation",
+      "category": "clinical",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "f",
+        "ascic",
+        "ulation"
+      ],
+      "new_subtokens": 3,
+      "new_tokens": [
+        "f",
+        "ascic",
+        "ulation"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "f",
+        "asc",
+        "ic",
+        "ulation"
+      ]
+    },
+    {
+      "term": "dementia",
+      "category": "clinical",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "de",
+        "ment",
+        "ia"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "dementia"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "d",
+        "ement",
+        "ia"
+      ]
+    },
+    {
+      "term": "sensitivity",
+      "category": "clinical",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "s",
+        "ens",
+        "itivity"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "sensitivity"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "s",
+        "ensitivity"
+      ]
+    },
+    {
+      "term": "release",
+      "category": "drug",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "re",
+        "lease"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "release"
+      ],
+      "gpt2_subtokens": 1,
+      "gpt2_tokens": [
+        "release"
+      ]
+    },
+    {
+      "term": "PLS",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "PLS"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "PLS"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "PL",
+        "S"
+      ]
+    },
+    {
+      "term": "PMA",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "PMA"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "PMA"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "P",
+        "MA"
+      ]
+    },
+    {
+      "term": "progressive muscular atrophy",
+      "category": "disease",
+      "old_subtokens": 5,
+      "old_tokens": [
+        "p",
+        "rog",
+        "ressive",
+        "Ġmuscular",
+        "Ġatrophy"
+      ],
+      "new_subtokens": 3,
+      "new_tokens": [
+        "progressive",
+        "Ġmuscular",
+        "Ġatrophy"
+      ],
+      "gpt2_subtokens": 5,
+      "gpt2_tokens": [
+        "pro",
+        "gressive",
+        " muscular",
+        " atro",
+        "phy"
+      ]
+    },
+    {
+      "term": "spasticity",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "sp",
+        "asticity"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "spasticity"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "sp",
+        "astic",
+        "ity"
+      ]
+    },
+    {
+      "term": "production",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "pro",
+        "duction"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "production"
+      ],
+      "gpt2_subtokens": 1,
+      "gpt2_tokens": [
+        "production"
+      ]
+    },
+    {
+      "term": "sodium phenylbutyrate",
+      "category": "drug",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "s",
+        "odium",
+        "Ġphenylbutyrate"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "sodium",
+        "Ġphenylbutyrate"
+      ],
+      "gpt2_subtokens": 7,
+      "gpt2_tokens": [
+        "s",
+        "odium",
+        " phen",
+        "yl",
+        "but",
+        "yr",
+        "ate"
+      ]
+    },
+    {
+      "term": "taurursodiol",
+      "category": "drug",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "t",
+        "aurursodiol"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "taurursodiol"
+      ],
+      "gpt2_subtokens": 5,
+      "gpt2_tokens": [
+        "t",
+        "aur",
+        "urs",
+        "od",
+        "iol"
+      ]
+    },
+    {
+      "term": "dismutase",
+      "category": "drug",
+      "old_subtokens": 4,
+      "old_tokens": [
+        "d",
+        "ism",
+        "ut",
+        "ase"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "d",
+        "ismutase"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "d",
+        "ism",
+        "ut",
+        "ase"
+      ]
+    },
+    {
+      "term": "asthenia",
+      "category": "clinical",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "as",
+        "th",
+        "enia"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "asthenia"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "ast",
+        "hen",
+        "ia"
+      ]
+    },
+    {
+      "term": "examination",
+      "category": "clinical",
+      "old_subtokens": 4,
+      "old_tokens": [
+        "e",
+        "x",
+        "am",
+        "ination"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "ex",
+        "amination"
+      ],
+      "gpt2_subtokens": 1,
+      "gpt2_tokens": [
+        "examination"
+      ]
+    },
+    {
+      "term": "via",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "v",
+        "ia"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "via"
+      ],
+      "gpt2_subtokens": 1,
+      "gpt2_tokens": [
+        "via"
+      ]
+    },
+    {
+      "term": "autophagy",
+      "category": "clinical",
+      "old_subtokens": 4,
+      "old_tokens": [
+        "a",
+        "ut",
+        "ophag",
+        "y"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "autophagy"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "aut",
+        "oph",
+        "agy"
+      ]
+    },
+    {
+      "term": "SOD1-ALS",
+      "category": "gene",
+      "old_subtokens": 4,
+      "old_tokens": [
+        "SOD",
+        "1",
+        "-",
+        "ALS"
+      ],
+      "new_subtokens": 4,
+      "new_tokens": [
+        "SOD",
+        "1",
+        "-",
+        "ALS"
+      ],
+      "gpt2_subtokens": 5,
+      "gpt2_tokens": [
+        "S",
+        "OD",
+        "1",
+        "-",
+        "ALS"
+      ]
+    },
+    {
+      "term": "NMDA",
+      "category": "abbreviation",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "N",
+        "MDA"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "NMDA"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "NM",
+        "DA"
+      ]
+    },
+    {
+      "term": "concentration",
+      "category": "clinical",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "con",
+        "cent",
+        "ration"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "concentration"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "con",
+        "cent",
+        "ration"
+      ]
+    },
+    {
+      "term": "hypothesis",
+      "category": "clinical",
+      "old_subtokens": 4,
+      "old_tokens": [
+        "h",
+        "yp",
+        "othes",
+        "is"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "hyp",
+        "othesis"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "hyp",
+        "ot",
+        "hesis"
+      ]
+    },
+    {
+      "term": "tolerability",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "t",
+        "olerability"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "tolerability"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "t",
+        "oler",
+        "ability"
+      ]
+    },
+    {
+      "term": "baseline",
+      "category": "drug",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "b",
+        "ase",
+        "line"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "baseline"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "bas",
+        "eline"
+      ]
+    },
+    {
+      "term": "GluR2",
+      "category": "gene",
+      "old_subtokens": 4,
+      "old_tokens": [
+        "G",
+        "lu",
+        "R",
+        "2"
+      ],
+      "new_subtokens": 3,
+      "new_tokens": [
+        "Glu",
+        "R",
+        "2"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "G",
+        "lu",
+        "R",
+        "2"
+      ]
+    },
+    {
+      "term": "BIIB078",
+      "category": "gene",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "B",
+        "IIB",
+        "078"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "BIIB",
+        "078"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "BI",
+        "IB",
+        "07",
+        "8"
+      ]
+    },
+    {
+      "term": "utility",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "ut",
+        "ility"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "utility"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "ut",
+        "ility"
+      ]
+    },
+    {
+      "term": "tomography",
+      "category": "clinical",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "t",
+        "om",
+        "ography"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "t",
+        "omography"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "tom",
+        "ography"
+      ]
+    },
+    {
+      "term": "ASO",
+      "category": "abbreviation",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "ASO"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "ASO"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "AS",
+        "O"
+      ]
+    },
+    {
+      "term": "VALOR",
+      "category": "abbreviation",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "VAL",
+        "OR"
+      ],
+      "new_subtokens": 3,
+      "new_tokens": [
+        "V",
+        "AL",
+        "OR"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "VAL",
+        "OR"
+      ]
+    },
+    {
+      "term": "dysphagia",
+      "category": "clinical",
+      "old_subtokens": 1,
+      "old_tokens": [
+        "dysphagia"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "dysphagia"
+      ],
+      "gpt2_subtokens": 5,
+      "gpt2_tokens": [
+        "d",
+        "ys",
+        "ph",
+        "ag",
+        "ia"
+      ]
+    },
+    {
+      "term": "hyperreflexia",
+      "category": "clinical",
+      "old_subtokens": 4,
+      "old_tokens": [
+        "h",
+        "yp",
+        "errefle",
+        "xia"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "hyper",
+        "reflexia"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "hyper",
+        "ref",
+        "lex",
+        "ia"
+      ]
+    },
+    {
+      "term": "clonus",
+      "category": "clinical",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "cl",
+        "on",
+        "us"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "cl",
+        "onus"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "cl",
+        "on",
+        "us"
+      ]
+    },
+    {
+      "term": "sialorrhea",
+      "category": "clinical",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "s",
+        "ial",
+        "orrhea"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "sialorrhea"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "s",
+        "ial",
+        "orr",
+        "hea"
+      ]
+    },
+    {
+      "term": "Babinski sign",
+      "category": "clinical",
+      "old_subtokens": 4,
+      "old_tokens": [
+        "B",
+        "abins",
+        "ki",
+        "Ġsign"
+      ],
+      "new_subtokens": 4,
+      "new_tokens": [
+        "B",
+        "ab",
+        "inski",
+        "Ġsign"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "B",
+        "ab",
+        "inski",
+        " sign"
+      ]
+    },
+    {
+      "term": "diaphragmatic pacing",
+      "category": "clinical",
+      "old_subtokens": 4,
+      "old_tokens": [
+        "d",
+        "iaph",
+        "ragmatic",
+        "Ġpacing"
+      ],
+      "new_subtokens": 3,
+      "new_tokens": [
+        "d",
+        "iaphragmatic",
+        "Ġpacing"
+      ],
+      "gpt2_subtokens": 5,
+      "gpt2_tokens": [
+        "di",
+        "aph",
+        "rag",
+        "matic",
+        " pacing"
+      ]
+    },
+    {
+      "term": "percutaneous endoscopic gastrostomy",
+      "category": "clinical",
+      "old_subtokens": 4,
+      "old_tokens": [
+        "per",
+        "cutaneous",
+        "Ġendoscopic",
+        "Ġgastrostomy"
+      ],
+      "new_subtokens": 4,
+      "new_tokens": [
+        "per",
+        "cutaneous",
+        "Ġendoscopic",
+        "Ġgastrostomy"
+      ],
+      "gpt2_subtokens": 8,
+      "gpt2_tokens": [
+        "per",
+        "cut",
+        "aneous",
+        " end",
+        "oscopic",
+        " gast",
+        "rost",
+        "omy"
+      ]
+    },
+    {
+      "term": "stability",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "st",
+        "ability"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "stability"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "st",
+        "ability"
+      ]
+    },
+    {
+      "term": "instability",
+      "category": "clinical",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "in",
+        "st",
+        "ability"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "in",
+        "stability"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "inst",
+        "ability"
+      ]
+    },
+    {
+      "term": "reduction",
+      "category": "clinical",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "red",
+        "u",
+        "ction"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "reduction"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "red",
+        "uction"
+      ]
+    },
+    {
+      "term": "distribution",
+      "category": "clinical",
+      "old_subtokens": 4,
+      "old_tokens": [
+        "d",
+        "is",
+        "trib",
+        "ution"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "dis",
+        "tribution"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "dist",
+        "ribution"
+      ]
+    },
+    {
+      "term": "modification",
+      "category": "clinical",
+      "old_subtokens": 4,
+      "old_tokens": [
+        "m",
+        "od",
+        "ific",
+        "ation"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "mod",
+        "ification"
+      ],
+      "gpt2_subtokens": 2,
+      "gpt2_tokens": [
+        "mod",
+        "ification"
+      ]
+    },
+    {
+      "term": "susceptibility",
+      "category": "clinical",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "s",
+        "us",
+        "ceptibility"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "sus",
+        "ceptibility"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "s",
+        "us",
+        "cept",
+        "ibility"
+      ]
+    },
+    {
+      "term": "ataxia",
+      "category": "clinical",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "at",
+        "ax",
+        "ia"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "ataxia"
+      ],
+      "gpt2_subtokens": 3,
+      "gpt2_tokens": [
+        "at",
+        "ax",
+        "ia"
+      ]
+    },
+    {
+      "term": "formation",
+      "category": "clinical",
+      "old_subtokens": 2,
+      "old_tokens": [
+        "for",
+        "mation"
+      ],
+      "new_subtokens": 1,
+      "new_tokens": [
+        "formation"
+      ],
+      "gpt2_subtokens": 1,
+      "gpt2_tokens": [
+        "formation"
+      ]
+    },
+    {
+      "term": "mislocalization",
+      "category": "clinical",
+      "old_subtokens": 4,
+      "old_tokens": [
+        "m",
+        "is",
+        "localiz",
+        "ation"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "mis",
+        "localization"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "m",
+        "isl",
+        "ocal",
+        "ization"
+      ]
+    },
+    {
+      "term": "spinocerebellar ataxia",
+      "category": "disease",
+      "old_subtokens": 5,
+      "old_tokens": [
+        "sp",
+        "inoce",
+        "rebell",
+        "ar",
+        "Ġataxia"
+      ],
+      "new_subtokens": 3,
+      "new_tokens": [
+        "sp",
+        "inocerebellar",
+        "Ġataxia"
+      ],
+      "gpt2_subtokens": 9,
+      "gpt2_tokens": [
+        "sp",
+        "ino",
+        "ce",
+        "re",
+        "bell",
+        "ar",
+        " at",
+        "ax",
+        "ia"
+      ]
+    },
+    {
+      "term": "baclofen",
+      "category": "drug",
+      "old_subtokens": 3,
+      "old_tokens": [
+        "b",
+        "acl",
+        "ofen"
+      ],
+      "new_subtokens": 2,
+      "new_tokens": [
+        "b",
+        "aclofen"
+      ],
+      "gpt2_subtokens": 4,
+      "gpt2_tokens": [
+        "b",
+        "acl",
+        "of",
+        "en"
+      ]
+    }
+  ]
+}

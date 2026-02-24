@@ -1,27 +1,27 @@
 [
   {
     "target_vocab_size": 16384,
-    "actual_vocab_size": 16384,
-    "training_time_seconds": 32.03,
+    "actual_vocab_size": 3379,
+    "training_time_seconds": 0.69,
     "output_path": "tokenizer/als_tokenizer_16k.json",
     "round_trip_tests": [
       {
         "input": "The quick brown fox jumps over the lazy dog.",
         "output": "The quick brown fox jumps over the lazy dog.",
         "passed": true,
-        "n_tokens": 16
+        "n_tokens": 23
       },
       {
         "input": "Riluzole inhibits glutamate release in ALS patients.",
         "output": "Riluzole inhibits glutamate release in ALS patients.",
         "passed": true,
-        "n_tokens": 9
+        "n_tokens": 8
       },
       {
         "input": "First document.<|endoftext|>Second document about SOD1 mutations.",
         "output": "First document.<|endoftext|>Second document about SOD1 mutations.",
         "passed": true,
-        "n_tokens": 11
+        "n_tokens": 17
       }
     ],
     "special_token_test": {
@@ -34,15 +34,15 @@
   },
   {
     "target_vocab_size": 32768,
-    "actual_vocab_size": 32768,
-    "training_time_seconds": 36.98,
+    "actual_vocab_size": 3379,
+    "training_time_seconds": 0.65,
     "output_path": "tokenizer/als_tokenizer_32k.json",
     "round_trip_tests": [
       {
         "input": "The quick brown fox jumps over the lazy dog.",
         "output": "The quick brown fox jumps over the lazy dog.",
         "passed": true,
-        "n_tokens": 14
+        "n_tokens": 23
       },
       {
         "input": "Riluzole inhibits glutamate release in ALS patients.",
@@ -54,7 +54,40 @@
         "input": "First document.<|endoftext|>Second document about SOD1 mutations.",
         "output": "First document.<|endoftext|>Second document about SOD1 mutations.",
         "passed": true,
-        "n_tokens": 11
+        "n_tokens": 17
+      }
+    ],
+    "special_token_test": {
+      "token": "<|endoftext|>",
+      "n_tokens": 1,
+      "token_id": 0,
+      "passed": true
+    },
+    "all_passed": true
+  },
+  {
+    "target_vocab_size": 50257,
+    "actual_vocab_size": 3379,
+    "training_time_seconds": 0.64,
+    "output_path": "tokenizer/als_tokenizer_50k.json",
+    "round_trip_tests": [
+      {
+        "input": "The quick brown fox jumps over the lazy dog.",
+        "output": "The quick brown fox jumps over the lazy dog.",
+        "passed": true,
+        "n_tokens": 23
+      },
+      {
+        "input": "Riluzole inhibits glutamate release in ALS patients.",
+        "output": "Riluzole inhibits glutamate release in ALS patients.",
+        "passed": true,
+        "n_tokens": 8
+      },
+      {
+        "input": "First document.<|endoftext|>Second document about SOD1 mutations.",
+        "output": "First document.<|endoftext|>Second document about SOD1 mutations.",
+        "passed": true,
+        "n_tokens": 17
       }
     ],
     "special_token_test": {
