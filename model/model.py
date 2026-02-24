@@ -133,7 +133,7 @@ MODEL_CONFIGS: dict[str, GPTConfig] = {
         n_layer=24,
         n_head=16,
         n_embd=1280,
-        dropout=0.0,
+        dropout=0.1,
         bias=True,
     ),
 }
