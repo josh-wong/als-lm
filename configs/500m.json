@@ -72,6 +72,13 @@
     "max_steps": 50000,
     "block_size": 1024
   },
+  "benchmark_results": {
+    "peak_gpu_gb": 6.37,
+    "tokens_per_sec": 1627,
+    "cpu_ram_gb": 30.3,
+    "vram_utilization": 0.53
+  },
   "generated_by": "benchmark/readiness_gate.py",
-  "generated_at": "2026-02-24T12:11:07.652810+00:00"
+  "generated_at": "2026-02-24T12:58:25+00:00",
+  "reviewed_at": "2026-02-24T21:00:00+00:00"
 }
