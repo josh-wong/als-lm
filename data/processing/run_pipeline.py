@@ -196,7 +196,14 @@ def run_pipeline(
     logger.info("=" * 60)
 
     try:
-        generate_stats(train_docs, val_docs, rejected_path, stats_path)
+        generate_stats(
+            train_docs,
+            val_docs,
+            rejected_path,
+            stats_path,
+            train_path=output_dir / "train.txt",
+            val_path=output_dir / "val.txt",
+        )
     except Exception as e:
         logger.error("Statistics generation failed: %s", e)
         raise
