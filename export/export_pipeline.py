@@ -180,6 +180,16 @@ def stage_hf_convert(
             }
         print(f"  config.json verified: model_type = gpt2")
 
+        # Ensure n_ctx is present for llama.cpp's GPT2Model converter.
+        # HuggingFace GPT2Config stores this as "n_positions", but the
+        # llama.cpp converter reads "n_ctx" directly from hparams.
+        if "n_ctx" not in hf_config and "n_positions" in hf_config:
+            hf_config["n_ctx"] = hf_config["n_positions"]
+            with open(config_path, "w") as f:
+                json.dump(hf_config, f, indent=2)
+                f.write("\n")
+            print(f"  Added n_ctx={hf_config['n_ctx']} to config.json for llama.cpp compatibility")
+
         # Load original model for logit validation
         print("\nValidating logits...")
         ckpt = torch.load(
@@ -272,7 +282,8 @@ def _compute_tokenizer_hash() -> str:
 
     The hash is SHA-256 of ``str(encoded_tokens)`` where ``encoded_tokens``
     is the tokenizer's encoding of a specific test string used by llama.cpp's
-    ``get_vocab_base_pre()`` function.
+    ``get_vocab_base_pre()`` function. The test string must match the exact
+    string from the llama.cpp source code.
 
     Returns:
         The SHA-256 hex digest string.
@@ -281,9 +292,9 @@ def _compute_tokenizer_hash() -> str:
 
     tokenizer = AutoTokenizer.from_pretrained(str(TOKENIZER_HF_DIR))
 
-    # This is the test string used by llama.cpp's get_vocab_base_pre()
-    # to compute the pre-tokenizer hash. It must match exactly.
-    chktxt = "\n\n\n\n\nHello World\n\n\n\n\n"
+    # This is the exact test string from llama.cpp's get_vocab_base_pre().
+    # It MUST match character-for-character or the hash will differ.
+    chktxt = '\n \n\n \n\n\n \t \t\t \t\n  \n   \n    \n     \n\U0001f680 (normal) \U0001f636\u200d\U0001f32b\ufe0f (multiple emojis concatenated) \u2705 \U0001f999\U0001f999 3 33 333 3333 33333 333333 3333333 33333333 3.3 3..3 3...3 \u1780\u17b6\u1793\u17cb\u178f\u17c2\u1796\u17b7\u179f\u17c1\u179f\u17a2\u17b6\u1785\U0001f601 ?\u6211\u60f3\u5728apple\u5de5\u4f5c1314151\u5929\uff5e ------======= \u043d\u0435\u0449\u043e \u043d\u0430 \u0411\u044a\u043b\u0433\u0430\u0440\u0441\u043a\u0438 \'\'\'\'\'\'```````""""......!!!!!!?????? I\'ve been \'told he\'s there, \'RE you sure? \'M not sure I\'ll make it, \'D you like some tea? We\'Ve a\'lL'
 
     chktok = tokenizer.encode(chktxt)
     chkhsh = hashlib.sha256(str(chktok).encode()).hexdigest()
@@ -294,10 +305,15 @@ def _compute_tokenizer_hash() -> str:
 def _patch_converter_script(converter_path: Path, token_hash: str) -> Path:
     """Create a patched copy of convert_hf_to_gguf.py with the custom hash.
 
-    Reads the conversion script source, finds the hash-to-name dictionary
-    in ``get_vocab_base_pre()``, inserts a mapping for the ALS tokenizer's
-    hash to the ``"gpt2"`` pre-tokenizer type, and writes a temporary
-    modified copy.
+    Reads the conversion script source, finds the ``if res is None:`` guard in
+    ``get_vocab_base_pre()`` that raises ``NotImplementedError`` for
+    unrecognized pre-tokenizer hashes, and inserts an ``if chkhsh ==`` block
+    just before it so the ALS tokenizer's hash maps to the ``"gpt2"``
+    pre-tokenizer type.
+
+    The llama.cpp converter uses a series of independent ``if`` statements
+    (not ``if/elif/else``), so the injected block must also be an ``if``
+    statement to match the surrounding code style.
 
     Args:
         converter_path: Path to the original ``convert_hf_to_gguf.py``.
@@ -309,68 +325,28 @@ def _patch_converter_script(converter_path: Path, token_hash: str) -> Path:
     with open(converter_path) as f:
         source = f.read()
 
-    # The llama.cpp converter has a function get_vocab_base_pre() that
-    # computes a hash and checks it against known hashes. We need to insert
-    # our hash before the "else" / NotImplementedError block.
-    #
-    # Strategy: Find the last recognized hash check (an 'if chkhsh == "...'
-    # or 'elif chkhsh == "...' block) and insert our hash as another elif
-    # before the else/raise block.
-
-    # Pattern: find the block that raises NotImplementedError for unrecognized hash
-    # and insert our hash mapping just before it.
-    patch_line = (
-        f'        if chkhsh == "{token_hash}":\n'
-        f'            res = "gpt2"\n'
-    )
-
-    # Try to insert before the NotImplementedError raise
-    # Look for the pattern where unrecognized hashes trigger an error
-    not_impl_pattern = r'(\s+raise NotImplementedError.*pre-tokenizer.*)'
-    match = re.search(not_impl_pattern, source, re.IGNORECASE)
+    # Strategy: Find the "if res is None:" guard inside get_vocab_base_pre()
+    # that triggers the NotImplementedError for unrecognized hashes, and
+    # insert our hash check just before it. The converter uses a flat series
+    # of "if chkhsh ==" blocks (not elif), so our injection must also be "if".
+    res_none_pattern = r'\n(\s+)if res is None:'
+    match = re.search(res_none_pattern, source)
 
     if match:
-        # Insert our hash check before the raise
-        insert_pos = match.start()
-        # Find the start of the line containing the raise
-        line_start = source.rfind('\n', 0, insert_pos) + 1
-        # Get the indentation of the raise line
-        raise_line = source[line_start:match.end()]
-        indent = len(raise_line) - len(raise_line.lstrip())
-        indent_str = ' ' * indent
-
-        # Build our elif block
+        indent_str = match.group(1)
         our_block = (
-            f'{indent_str}elif chkhsh == "{token_hash}":\n'
+            f'{indent_str}if chkhsh == "{token_hash}":\n'
             f'{indent_str}    res = "gpt2"\n'
         )
-
-        # Check if there's an 'else:' before the raise
-        # If so, insert before the else
-        else_pattern = r'\n(\s+)else:\s*\n'
-        else_match = re.search(else_pattern, source[:insert_pos])
-        if else_match:
-            # Find the last else before the raise
-            last_else_pos = None
-            for m in re.finditer(else_pattern, source[:insert_pos]):
-                last_else_pos = m.start()
-            if last_else_pos is not None:
-                source = (
-                    source[:last_else_pos + 1]
-                    + our_block
-                    + source[last_else_pos + 1:]
-                )
-            else:
-                source = source[:line_start] + our_block + source[line_start:]
-        else:
-            source = source[:line_start] + our_block + source[line_start:]
+        # Insert just before the "if res is None:" line
+        insert_pos = match.start() + 1  # +1 to skip the leading \n
+        source = source[:insert_pos] + our_block + '\n' + source[insert_pos:]
+        print(f"  Inserted hash check before 'if res is None:' guard")
     else:
-        # Fallback: try a simpler approach - find get_vocab_base_pre function
-        # and add our hash at the beginning of the hash checks
+        # Fallback: insert at the start of the hash checks with early return
         gvbp_pattern = r'def get_vocab_base_pre\(self.*?\).*?:'
         gvbp_match = re.search(gvbp_pattern, source)
         if gvbp_match:
-            # Find the first 'if chkhsh ==' line after the function definition
             first_check = re.search(
                 r'(\s+)if chkhsh == "',
                 source[gvbp_match.end():]
@@ -384,6 +360,7 @@ def _patch_converter_script(converter_path: Path, token_hash: str) -> Path:
                     f'{indent_str}    return res\n'
                 )
                 source = source[:abs_pos] + our_block + source[abs_pos:]
+                print(f"  Inserted hash check at start of hash checks (fallback)")
             else:
                 print("  WARNING: Could not find hash check pattern in converter")
         else:
@@ -571,9 +548,9 @@ def _verify_gguf_tokenizer(gguf_path: Path) -> dict:
 
     # Check tokenizer vocab size from GGUF metadata
     vocab_size_field = reader.fields.get("tokenizer.ggml.tokens")
+    gguf_vocab_size = None
     if vocab_size_field is not None:
-        # Token list data is in parts; get the count
-        gguf_vocab_size = len(vocab_size_field.parts) - vocab_size_field.types_count
+        gguf_vocab_size = len(vocab_size_field.data)
         print(f"  GGUF tokenizer tokens count: {gguf_vocab_size}")
     else:
         print("  WARNING: Could not find tokenizer.ggml.tokens in metadata")

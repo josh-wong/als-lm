@@ -34,5 +34,10 @@ ninja>=1.11
 transformers==5.2.0
 safetensors==0.7.0
 
+# Export (Phase 4.4)
+# NOTE: gguf must be installed from lib/llama.cpp/gguf-py/ (not PyPI) to match
+# the converter script version. Run: pip install lib/llama.cpp/gguf-py/
+sentencepiece>=0.2.0
+
 # GPU monitoring (v0.2.0)
 nvidia-ml-py>=12.0
