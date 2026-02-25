@@ -53,3 +53,6 @@ checkpoints/
 # Export artifacts (Phase 4.4)
 export/output/
 lib/
+
+# Evaluation results (Phase 7.2 - generated artifacts, regenerable from checkpoint + benchmark)
+eval/results/
