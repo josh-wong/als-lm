@@ -680,6 +680,116 @@ def cleanup_checkpoints(run_dir, keep_last=3):
 
 
 # ---------------------------------------------------------------------------
+# Emergency shutdown (NaN/Inf loss detection)
+# ---------------------------------------------------------------------------
+def emergency_shutdown(
+    model_engine, step, loss_value, run_dir, log_file, tb_writer,
+    loss_history, grad_norm_history, loss_scale_history,
+    epoch_tracker, training_start_time, args, gpu_handle, optimizer,
+):
+    """Save emergency checkpoint, write diagnostics, print banner, and exit.
+
+    Called when NaN or Inf is detected in the loss BEFORE backward pass,
+    preserving clean optimizer state. Exits with code 2 (distinct from
+    general errors which use code 1).
+    """
+    # Step A: Save emergency DeepSpeed checkpoint (non-atomic, diagnostics only)
+    emergency_dir = os.path.join(run_dir, f"emergency_step_{step}")
+    try:
+        model_engine.save_checkpoint(
+            run_dir, tag=f"emergency_step_{step}",
+            client_state={"step": step, "loss_value": str(loss_value)},
+        )
+        print(f"  Emergency checkpoint saved: {emergency_dir}")
+    except Exception as e:
+        print(f"  {YELLOW}WARNING: Emergency checkpoint save failed: {e}{RESET}")
+        print(f"  (Model state may contain NaN -- continuing with diagnostics)")
+
+    # Step B: Write emergency_diagnostics.json alongside the emergency checkpoint
+    diagnostics = {
+        "type": "emergency",
+        "step": step,
+        "epoch": epoch_tracker.epoch,
+        "epoch_progress": epoch_tracker.epoch_progress(step),
+        "loss_value": str(loss_value),
+        "wall_clock_sec": time.time() - training_start_time,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "loss_history": [float(v) for v in loss_history],
+        "grad_norm_history": [float(v) for v in grad_norm_history],
+        "loss_scale_history": [float(v) for v in loss_scale_history],
+        "current_lr": optimizer.param_groups[0]["lr"],
+        "gpu_memory_mb": get_gpu_memory_mb(gpu_handle),
+        "gpu_total_mb": get_gpu_total_memory_mb(gpu_handle),
+        "training_config": {
+            "config_name": args.config,
+            "max_steps": args.max_steps if hasattr(args, "max_steps") else None,
+            "batch_size": args.batch_size,
+            "grad_accum": args.grad_accum,
+            "lr": args.lr,
+            "seed": args.seed,
+            "eval_interval": args.eval_interval,
+            "checkpoint_interval": args.checkpoint_interval,
+        },
+    }
+    diagnostics_path = os.path.join(run_dir, f"emergency_diagnostics_step_{step}.json")
+    try:
+        with open(diagnostics_path, "w") as f:
+            json.dump(diagnostics, f, indent=2)
+    except Exception as e:
+        print(f"  {YELLOW}WARNING: Failed to write diagnostics: {e}{RESET}")
+        diagnostics_path = "(write failed)"
+
+    # Step C: Log emergency event to JSONL
+    try:
+        entry = {
+            "type": "emergency",
+            "step": step,
+            "epoch": epoch_tracker.epoch,
+            "loss_value": str(loss_value),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        log_file.write(json.dumps(entry) + "\n")
+        log_file.flush()
+    except Exception:
+        pass  # Best effort -- file may already be in bad state
+
+    # Step D: Find last good regular checkpoint
+    last_good = None
+    last_good_path = None
+    try:
+        for dir_entry in sorted(os.listdir(run_dir), reverse=True):
+            if (
+                dir_entry.startswith("step_")
+                and not dir_entry.startswith("emergency_")
+                and os.path.isdir(os.path.join(run_dir, dir_entry))
+            ):
+                last_good = dir_entry
+                last_good_path = os.path.join(run_dir, dir_entry)
+                break
+    except OSError:
+        pass
+
+    # Step E: Print bold multi-line emergency banner
+    print(f"\n{RED}{BOLD}{'=' * 60}")
+    print(f"  EMERGENCY SHUTDOWN: NaN/Inf loss detected")
+    print(f"{'=' * 60}{RESET}")
+    print(f"  {RED}Step:              {step}{RESET}")
+    print(f"  {RED}Loss value:        {loss_value}{RESET}")
+    print(f"  {RED}Emergency ckpt:    {emergency_dir}{RESET}")
+    print(f"  {RED}Last good ckpt:    {last_good_path if last_good else 'None'}{RESET}")
+    print(f"  {RED}Diagnostics:       {diagnostics_path}{RESET}")
+    resume_path = last_good_path if last_good else run_dir
+    print(f"\n  {BOLD}To resume from last good checkpoint:{RESET}")
+    print(f"  deepspeed model/train.py --deepspeed --deepspeed_config config/ds_zero2.json --config {args.config} --resume {resume_path}")
+    print(f"\n{RED}{BOLD}{'=' * 60}{RESET}\n")
+
+    # Step F: Close resources and exit
+    log_file.close()
+    tb_writer.close()
+    sys.exit(2)
+
+
+# ---------------------------------------------------------------------------
 # Resume support
 # ---------------------------------------------------------------------------
 def try_resume(model_engine, args, run_dir):
@@ -1237,8 +1347,10 @@ def main():
     eval_interval = args.eval_interval
 
     # Anomaly detection state
-    loss_history = deque(maxlen=50)
+    loss_history = deque(maxlen=100)
     step_times = deque(maxlen=50)
+    grad_norm_history = deque(maxlen=100)    # For emergency diagnostics
+    loss_scale_history = deque(maxlen=100)   # For emergency diagnostics
     GRAD_NORM_WARN_THRESHOLD = 10.0
     LOSS_SPIKE_FACTOR = 2.0
 
@@ -1270,6 +1382,21 @@ def main():
         x, y = get_batch("train", batch_size, block_size, device, args.data_dir)
         logits, loss = model_engine(x, targets=y)
 
+        # Read loss BEFORE backward to preserve clean optimizer state on NaN
+        current_loss = loss.item()
+
+        # NaN/Inf emergency shutdown (MUST be before backward pass)
+        if math.isnan(current_loss) or math.isinf(current_loss):
+            emergency_shutdown(
+                model_engine=model_engine, step=step, loss_value=current_loss,
+                run_dir=run_dir, log_file=log_file, tb_writer=tb_writer,
+                loss_history=loss_history, grad_norm_history=grad_norm_history,
+                loss_scale_history=loss_scale_history, epoch_tracker=epoch_tracker,
+                training_start_time=training_start_time, args=args,
+                gpu_handle=gpu_handle, optimizer=optimizer,
+            )
+            # emergency_shutdown calls sys.exit(2), never returns
+
         # Backward pass (DeepSpeed handles loss scaling for fp16)
         model_engine.backward(loss)
 
@@ -1278,7 +1405,6 @@ def main():
 
         t1 = time.time()
         dt = t1 - t0
-        current_loss = loss.item()
 
         # Read DeepSpeed internal metrics (valid after step())
         try:
@@ -1295,13 +1421,6 @@ def main():
         if initial_loss is None:
             initial_loss = current_loss
 
-        # Loss sanity checks
-        if math.isnan(current_loss) or math.isinf(current_loss):
-            print(f"\n{RED}FATAL: NaN/Inf loss at step {step}. Stopping immediately.{RESET}")
-            log_file.close()
-            tb_writer.close()
-            sys.exit(1)
-
         if step == start_step + 100 and not loss_warned and current_loss >= initial_loss:
             print(
                 f"\n  {YELLOW}WARNING: Loss has not decreased after 100 steps "
@@ -1314,6 +1433,8 @@ def main():
         # Update anomaly detection deques
         loss_history.append(current_loss)
         step_times.append(dt)
+        grad_norm_history.append(grad_norm)
+        loss_scale_history.append(loss_scale)
 
         # Epoch boundary banner
         if epoch_crossed:
