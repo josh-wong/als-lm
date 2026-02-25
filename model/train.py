@@ -641,12 +641,14 @@ def save_best_checkpoint_atomic(model_engine, run_dir, step, val_loss,
         raise
 
 
-def cleanup_checkpoints(run_dir, keep_last=3):
+def cleanup_checkpoints(run_dir, keep_last=3, log_file=None):
     """Retain last N regular checkpoints + best/ + emergency, delete the rest.
 
     Only deletes regular step_XXXX/ DeepSpeed directories. Skips best/,
     emergency_*, and .tmp_* directories. Regular checkpoints no longer
     have .pt files (only best/ gets a .pt export).
+
+    If log_file is provided, logs individual checkpoint_delete events to JSONL.
     """
     # Find all regular checkpoint step directories (skip best, emergency, tmp)
     steps = []
@@ -677,6 +679,11 @@ def cleanup_checkpoints(run_dir, keep_last=3):
             if os.path.isdir(ds_dir):
                 shutil.rmtree(ds_dir)
                 print(f"  Deleted checkpoint: {ds_dir}")
+                if log_file is not None:
+                    log_checkpoint_event(log_file, "checkpoint_delete", step_num, {
+                        "path": f"step_{step_num}",
+                        "reason": "retention_policy",
+                    })
 
 
 # ---------------------------------------------------------------------------
@@ -741,15 +748,10 @@ def emergency_shutdown(
 
     # Step C: Log emergency event to JSONL
     try:
-        entry = {
-            "type": "emergency",
-            "step": step,
+        log_checkpoint_event(log_file, "emergency", step, {
             "epoch": epoch_tracker.epoch,
             "loss_value": str(loss_value),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        }
-        log_file.write(json.dumps(entry) + "\n")
-        log_file.flush()
+        })
     except Exception:
         pass  # Best effort -- file may already be in bad state
 
@@ -970,6 +972,21 @@ def log_resume(log_file, step):
     log_file.flush()
 
 
+def log_checkpoint_event(log_file, event_type, step, details):
+    """Log checkpoint-related events to JSONL.
+
+    event_type: 'checkpoint_save', 'checkpoint_delete', 'best_update', 'emergency'
+    """
+    entry = {
+        "type": event_type,
+        "step": step,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        **details,
+    }
+    log_file.write(json.dumps(entry) + "\n")
+    log_file.flush()
+
+
 # ---------------------------------------------------------------------------
 # DeepSpeed config resolution
 # ---------------------------------------------------------------------------
@@ -1160,8 +1177,11 @@ def print_training_summary(
     total_tokens_processed,
     run_dir,
     epoch_tracker=None,
+    total_checkpoints_saved=0,
+    total_best_updates=0,
+    total_bytes_written=0,
 ):
-    """Print the end-of-run training summary."""
+    """Print the end-of-run training summary with checkpoint statistics."""
     time_str = format_time(elapsed_time)
     avg_throughput = total_tokens_processed / elapsed_time if elapsed_time > 0 else 0
 
@@ -1192,6 +1212,11 @@ def print_training_summary(
     print(f"  Avg throughput:     {avg_throughput:,.0f} tokens/sec")
     print(f"  Best checkpoint:    {best_ckpt_path}")
     print(f"  Checkpoint dir:     {run_dir}")
+    print(f"\n  {BOLD}Checkpoint Statistics:{RESET}")
+    print(f"    Total checkpoints saved:  {total_checkpoints_saved}")
+    print(f"    Best checkpoint updates:  {total_best_updates}")
+    print(f"    Total disk written:       {total_bytes_written / 1024 / 1024 / 1024:.2f} GB")
+    print(f"    Best checkpoint:          step {best_val_step} (val loss: {best_val_loss:.4f})")
     print(f"{BOLD}{'=' * 64}{RESET}\n")
 
 
@@ -1365,6 +1390,11 @@ def main():
     last_val_loss = float("inf")
     last_val_step = -1
     checkpoint_interval = args.checkpoint_interval
+
+    # Checkpoint statistics counters
+    total_checkpoints_saved = 0
+    total_best_updates = 0
+    total_bytes_written = 0
 
     training_start_time = time.time()
 
@@ -1609,6 +1639,14 @@ def main():
                         for fn in fnames
                     )
                     print(f"    Best checkpoint saved: {best_dir} ({best_size / 1024 / 1024:.1f} MB, {best_save_duration:.1f}s)")
+                    total_best_updates += 1
+                    total_bytes_written += best_size
+                    log_checkpoint_event(log_file, "best_update", step, {
+                        "val_loss": val_loss,
+                        "path": "best",
+                        "size_mb": round(best_size / 1024 / 1024, 1),
+                        "save_duration_sec": round(best_save_duration, 1),
+                    })
                 except Exception as e:
                     print(f"    {YELLOW}WARNING: Best checkpoint save failed: {e}{RESET}")
 
@@ -1656,12 +1694,20 @@ def main():
                     if d.startswith("step_") and os.path.isdir(os.path.join(run_dir, d))
                 ])
                 print(f"  Checkpoint saved: step_{step} ({ds_size / 1024 / 1024:.1f} MB, {save_duration:.1f}s) | retained: {retained} | best: step {best_val_step}")
+                total_checkpoints_saved += 1
+                total_bytes_written += ds_size
+                log_checkpoint_event(log_file, "checkpoint_save", step, {
+                    "path": f"step_{step}",
+                    "size_mb": round(ds_size / 1024 / 1024, 1),
+                    "save_duration_sec": round(save_duration, 1),
+                    "retained_count": retained,
+                })
             except Exception as e:
                 print(f"  {YELLOW}WARNING: Checkpoint save failed at step {step}: {e}{RESET}")
                 print(f"  Training will continue without this checkpoint.")
 
             # Cleanup old checkpoints
-            cleanup_checkpoints(run_dir, keep_last=3)
+            cleanup_checkpoints(run_dir, keep_last=3, log_file=log_file)
 
     # ---- Training complete -------------------------------------------------
     elapsed = time.time() - training_start_time
@@ -1690,6 +1736,9 @@ def main():
         total_tokens_processed=total_tokens_processed,
         run_dir=run_dir,
         epoch_tracker=epoch_tracker,
+        total_checkpoints_saved=total_checkpoints_saved,
+        total_best_updates=total_best_updates,
+        total_bytes_written=total_bytes_written,
     )
 
 
