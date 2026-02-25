@@ -250,7 +250,13 @@ def parse_args():
         "--eval-interval",
         type=int,
         default=500,
-        help="Steps between validation / checkpoint (default: 500)",
+        help="Steps between validation (default: 500)",
+    )
+    parser.add_argument(
+        "--checkpoint-interval",
+        type=int,
+        default=1000,
+        help="Steps between checkpoint saves (default: 1000)",
     )
     parser.add_argument(
         "--eval-iters",
@@ -512,80 +518,145 @@ def get_gpu_total_memory_mb(handle):
 
 
 # ---------------------------------------------------------------------------
-# Checkpoint saving
+# Checkpoint saving (atomic pattern: temp-dir-then-rename)
 # ---------------------------------------------------------------------------
-def save_checkpoint(
-    model_engine, model_config_dict, step, train_loss, val_loss, lr, run_dir, config_name
-):
-    """Save both DeepSpeed directory checkpoint and raw .pt file.
+def save_checkpoint_atomic(model_engine, run_dir, step, client_state, checkpoint_meta, config_name):
+    """Save a regular DeepSpeed checkpoint atomically (no .pt export).
 
-    Wraps the entire save process in try/except so that a failed checkpoint
-    does not stop training (per CONTEXT.md locked decision).
+    Writes to a temporary directory, then atomically renames to the final
+    path. If interrupted mid-write, only the temp directory is affected;
+    existing checkpoints remain intact.
+
+    Returns the save duration in seconds.
     """
     tag = f"step_{step}"
+    final_dir = os.path.join(run_dir, tag)
+    temp_run_dir = os.path.join(run_dir, f".tmp_run_step_{step}")
 
+    # Clean up any leftover temp dir from a previous failed save
+    if os.path.exists(temp_run_dir):
+        shutil.rmtree(temp_run_dir)
+
+    t0 = time.time()
     try:
-        # 1. Save DeepSpeed directory checkpoint (optimizer states, sharded model)
-        client_state = {"step": step, "train_loss": train_loss, "val_loss": val_loss, "lr": lr}
-        model_engine.save_checkpoint(run_dir, tag=tag, client_state=client_state)
+        os.makedirs(temp_run_dir, exist_ok=True)
 
-        # 2. Extract fp32 state dict from ZeRO checkpoint
-        # Pass run_dir (which contains the 'latest' file) with an explicit tag
-        # so the utility can locate the step_N/ subdirectory correctly.
-        ds_ckpt_path = os.path.join(run_dir, tag)
-        state_dict = get_fp32_state_dict_from_zero_checkpoint(run_dir, tag=tag)
+        # 1. DeepSpeed saves to temp run directory (creates temp_run_dir/tag/)
+        model_engine.save_checkpoint(temp_run_dir, tag=tag, client_state=client_state)
 
-        # 3. Save raw .pt file for export
+        # 2. Write enriched checkpoint_meta.json into the DeepSpeed tag subdir
+        meta_path = os.path.join(temp_run_dir, tag, "checkpoint_meta.json")
+        with open(meta_path, "w") as f:
+            json.dump(checkpoint_meta, f, indent=2)
+
+        # 3. Atomic rename: remove old final dir if it exists, then rename
+        if os.path.exists(final_dir):
+            shutil.rmtree(final_dir)
+        os.rename(os.path.join(temp_run_dir, tag), final_dir)
+
+        # 4. Update run_dir/latest file to point to the new tag
+        latest_path = os.path.join(run_dir, "latest")
+        with open(latest_path, "w") as f:
+            f.write(tag)
+
+        # 5. Clean up the temp run directory shell
+        shutil.rmtree(temp_run_dir, ignore_errors=True)
+
+        save_duration = time.time() - t0
+        return save_duration
+
+    except Exception:
+        # Clean up temp on failure; existing checkpoints untouched
+        if os.path.exists(temp_run_dir):
+            shutil.rmtree(temp_run_dir, ignore_errors=True)
+        raise
+
+
+def save_best_checkpoint_atomic(model_engine, run_dir, step, val_loss,
+                                model_config_dict, config_name, epoch,
+                                wall_clock_elapsed):
+    """Save the best checkpoint to best/ with atomic rename and .pt export.
+
+    The best checkpoint includes both the DeepSpeed directory (for resume)
+    and a raw .pt file (for export). Only the best checkpoint gets a .pt
+    export to save ~2 GB per regular checkpoint.
+
+    Returns the save duration in seconds.
+    """
+    best_dir = os.path.join(run_dir, "best")
+    temp_best_run = os.path.join(run_dir, ".tmp_best")
+    tag = f"step_{step}"
+
+    # Clean up any leftover temp dir
+    if os.path.exists(temp_best_run):
+        shutil.rmtree(temp_best_run)
+
+    t0 = time.time()
+    try:
+        os.makedirs(temp_best_run, exist_ok=True)
+
+        # 1. DeepSpeed saves to temp directory
+        client_state = {"step": step, "val_loss": val_loss}
+        model_engine.save_checkpoint(temp_best_run, tag=tag, client_state=client_state)
+
+        # 2. Extract fp32 state dict and save as best.pt (only for best)
+        state_dict = get_fp32_state_dict_from_zero_checkpoint(temp_best_run, tag=tag)
         pt_checkpoint = {
             "model": state_dict,
             "config": model_config_dict,
             "step": step,
-            "train_loss": train_loss,
             "val_loss": val_loss,
         }
-        pt_path = os.path.join(run_dir, f"{tag}.pt")
-        torch.save(pt_checkpoint, pt_path)
+        torch.save(pt_checkpoint, os.path.join(temp_best_run, tag, "best.pt"))
 
-        # 4. Save checkpoint_meta.json
+        # 3. Write enriched checkpoint_meta.json with is_best=True
         meta = {
             "step": step,
-            "train_loss": train_loss,
             "val_loss": val_loss,
-            "lr": lr,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "is_best": True,
+            "epoch": epoch,
+            "wall_clock_elapsed": wall_clock_elapsed,
             "config_name": config_name,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
-        meta_path = os.path.join(ds_ckpt_path, "checkpoint_meta.json")
+        meta_path = os.path.join(temp_best_run, tag, "checkpoint_meta.json")
         with open(meta_path, "w") as f:
             json.dump(meta, f, indent=2)
 
-        # 5. Print checkpoint info
-        ds_size = sum(
-            os.path.getsize(os.path.join(dp, fn))
-            for dp, _, fnames in os.walk(ds_ckpt_path)
-            for fn in fnames
-        )
-        pt_size = os.path.getsize(pt_path)
-        print(f"\n  Checkpoint saved: {ds_ckpt_path}")
-        print(f"    DeepSpeed dir: {ds_size / 1024 / 1024:.1f} MB")
-        print(f"    Raw .pt file:  {pt_size / 1024 / 1024:.1f} MB")
+        # 4. Atomic replace: remove old best/, rename new tag dir to best/
+        if os.path.exists(best_dir):
+            shutil.rmtree(best_dir)
+        os.rename(os.path.join(temp_best_run, tag), best_dir)
 
-    except Exception as e:
-        print(f"\n  WARNING: Checkpoint save failed at step {step}: {e}")
-        print("  Training will continue without this checkpoint.")
+        # 5. Clean up temp shell
+        shutil.rmtree(temp_best_run, ignore_errors=True)
+
+        save_duration = time.time() - t0
+        return save_duration
+
+    except Exception:
+        # Clean up temp on failure
+        if os.path.exists(temp_best_run):
+            shutil.rmtree(temp_best_run, ignore_errors=True)
+        raise
 
 
 def cleanup_checkpoints(run_dir, keep_last=3):
-    """Retain last N checkpoints + best (lowest val loss), delete the rest.
+    """Retain last N regular checkpoints + best/ + emergency, delete the rest.
 
-    Deletes both the DeepSpeed directory (step_N/) and the .pt file
-    (step_N.pt) for expired checkpoints.
+    Only deletes regular step_XXXX/ DeepSpeed directories. Skips best/,
+    emergency_*, and .tmp_* directories. Regular checkpoints no longer
+    have .pt files (only best/ gets a .pt export).
     """
-    # Find all checkpoint step directories
+    # Find all regular checkpoint step directories (skip best, emergency, tmp)
     steps = []
     for entry in os.listdir(run_dir):
         entry_path = os.path.join(run_dir, entry)
-        if os.path.isdir(entry_path) and entry.startswith("step_"):
+        if not os.path.isdir(entry_path):
+            continue
+        if entry.startswith("best") or entry.startswith("emergency_") or entry.startswith(".tmp"):
+            continue
+        if entry.startswith("step_"):
             try:
                 step_num = int(entry.split("_")[1])
                 steps.append(step_num)
@@ -596,57 +667,16 @@ def cleanup_checkpoints(run_dir, keep_last=3):
     if len(steps) <= keep_last:
         return  # Nothing to clean up
 
-    # Read best step from tracking file
-    best_step_file = os.path.join(run_dir, "best_step.txt")
-    best_step = None
-    if os.path.isfile(best_step_file):
-        try:
-            with open(best_step_file) as f:
-                best_step = int(f.read().strip())
-        except (ValueError, OSError):
-            pass
-
-    # Determine which steps to keep: last N + best
+    # Keep last N regular checkpoints (best/ is separate and always kept)
     keep_set = set(steps[-keep_last:])
-    if best_step is not None:
-        keep_set.add(best_step)
 
-    # Delete expired checkpoints
+    # Delete expired regular checkpoints (DeepSpeed directories only)
     for step_num in steps:
         if step_num not in keep_set:
-            # Delete DeepSpeed directory
             ds_dir = os.path.join(run_dir, f"step_{step_num}")
             if os.path.isdir(ds_dir):
                 shutil.rmtree(ds_dir)
                 print(f"  Deleted checkpoint: {ds_dir}")
-
-            # Delete .pt file
-            pt_file = os.path.join(run_dir, f"step_{step_num}.pt")
-            if os.path.isfile(pt_file):
-                os.remove(pt_file)
-                print(f"  Deleted checkpoint: {pt_file}")
-
-
-def update_best_checkpoint(run_dir, step, val_loss):
-    """Track the best checkpoint (lowest val loss) in a persistent file."""
-    best_step_file = os.path.join(run_dir, "best_step.txt")
-    best_loss_file = os.path.join(run_dir, "best_loss.txt")
-
-    current_best_loss = float("inf")
-    if os.path.isfile(best_loss_file):
-        try:
-            with open(best_loss_file) as f:
-                current_best_loss = float(f.read().strip())
-        except (ValueError, OSError):
-            pass
-
-    if val_loss < current_best_loss:
-        with open(best_step_file, "w") as f:
-            f.write(str(step))
-        with open(best_loss_file, "w") as f:
-            f.write(str(val_loss))
-        return True  # New best
-    return False
 
 
 # ---------------------------------------------------------------------------
@@ -894,6 +924,7 @@ def print_dry_run(args, model_config, vocab_size, train_tokens, val_tokens, ds_c
     print(f"    Learning rate:   {args.lr:.1e}")
     print(f"    Warmup steps:    {args.warmup_steps}")
     print(f"    Eval interval:   {args.eval_interval}")
+    print(f"    Checkpoint:      every {args.checkpoint_interval} steps")
     print(f"    Seed:            {args.seed}")
     print(f"    Gradient checkpointing: {args.gradient_checkpointing}")
 
@@ -979,8 +1010,8 @@ def print_config_summary(args, model_config, param_count, vocab_size,
     print(f"    Learning rate:   {args.lr:.1e}")
     print(f"    Warmup steps:    {args.warmup_steps}")
     print(f"    Eval interval:   {args.eval_interval}")
+    print(f"    Checkpoint:      every {args.checkpoint_interval} steps")
     print(f"    Log interval:    {args.log_interval}")
-    print(f"    Checkpoint:      every {args.eval_interval} steps")
     print(f"    Seed:            {args.seed}")
 
     zero_stage = ds_config.get("zero_optimization", {}).get("stage", "N/A")
@@ -1031,10 +1062,8 @@ def print_training_summary(
 
     epochs_completed = epoch_tracker.epoch if epoch_tracker else 0
 
-    # Find best checkpoint path
-    best_ckpt_path = os.path.join(run_dir, f"step_{best_val_step}.pt")
-    if not os.path.isfile(best_ckpt_path):
-        best_ckpt_path = os.path.join(run_dir, f"step_{best_val_step}")
+    # Best checkpoint is always in the fixed best/ directory
+    best_ckpt_path = os.path.join(run_dir, "best")
 
     best_epoch = best_val_step // epoch_tracker.steps_per_epoch if epoch_tracker and epoch_tracker.steps_per_epoch > 0 else 0
 
@@ -1165,6 +1194,14 @@ def main():
     run_dir = os.path.join("checkpoints", f"{args.config}_{timestamp}")
     os.makedirs(run_dir, exist_ok=True)
     print(f"  Checkpoint dir: {run_dir}")
+
+    # Clean up any orphaned temp directories from previous interrupted saves
+    for entry in os.listdir(run_dir):
+        if entry.startswith(".tmp_"):
+            tmp_path = os.path.join(run_dir, entry)
+            if os.path.isdir(tmp_path):
+                print(f"  {YELLOW}WARNING: Cleaned up orphaned temp directory from previous interrupted save: {tmp_path}{RESET}")
+                shutil.rmtree(tmp_path, ignore_errors=True)
 
     # ---- Resume support ----------------------------------------------------
     start_step = try_resume(model_engine, args, run_dir)
@@ -1461,16 +1498,15 @@ def main():
     log_file.close()
     tb_writer.close()
 
-    # Read best from file in case we didn't find one during training
-    best_step_file = os.path.join(run_dir, "best_step.txt")
-    best_loss_file = os.path.join(run_dir, "best_loss.txt")
-    if os.path.isfile(best_step_file) and os.path.isfile(best_loss_file):
+    # Read best from best/checkpoint_meta.json in case we need to recover
+    best_meta_path = os.path.join(run_dir, "best", "checkpoint_meta.json")
+    if os.path.isfile(best_meta_path):
         try:
-            with open(best_step_file) as f:
-                best_val_step = int(f.read().strip())
-            with open(best_loss_file) as f:
-                best_val_loss = float(f.read().strip())
-        except (ValueError, OSError):
+            with open(best_meta_path) as f:
+                best_meta = json.load(f)
+            best_val_step = best_meta.get("step", best_val_step)
+            best_val_loss = best_meta.get("val_loss", best_val_loss)
+        except (json.JSONDecodeError, OSError):
             pass
 
     print_training_summary(
