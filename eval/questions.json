@@ -2588,20 +2588,20 @@
   {
     "id": "TEMP-011",
     "category": "temporal_accuracy",
-    "difficulty": "easy",
-    "question": "When was the SOD1 gene first linked to familial ALS?",
-    "prompt_template": "State the year that mutations in the SOD1 gene were first identified as a cause of familial ALS.",
-    "verified_answer": "The SOD1 (superoxide dismutase 1) gene was first linked to familial ALS in 1993 by Rosen et al., published in Nature. This was the first gene identified as a cause of ALS and represented a breakthrough in understanding the molecular basis of the disease. The discovery of 11 different missense mutations in SOD1 in 13 familial ALS families launched decades of research into SOD1-mediated motor neuron degeneration and led to the development of SOD1 transgenic mouse models.",
+    "difficulty": "medium",
+    "question": "When were the first ALS-linked genes identified in chronological order?",
+    "prompt_template": "List the major ALS genes in the order they were discovered, with approximate dates.",
+    "verified_answer": "The major ALS genes were identified in the following chronological order: SOD1 was discovered in 1993 (Rosen et al.), establishing the first genetic link. TARDBP (encoding TDP-43) mutations were identified in 2008 (Sreedharan et al., Kabashi et al.). FUS mutations were discovered in 2009 (Kwiatkowski et al., Vance et al.). OPTN was linked to ALS in 2010 (Maruyama et al.). The C9orf72 repeat expansion was identified in 2011 (DeJesus-Hernandez et al., Renton et al.), becoming the most common genetic cause. TBK1 was identified in 2015 (Cirulli et al.). NEK1 was linked through Project MinE in 2016.",
     "key_facts": [
-      "1993 rosen et al",
-      "first als gene identified",
-      "published in nature",
-      "11 missense mutations in 13 families"
+      "sod1 1993",
+      "tardbp 2008 and fus 2009",
+      "c9orf72 2011",
+      "tbk1 2015 and nek1 2016"
     ],
     "source": {
-      "type": "pubmed",
-      "id": "PMC288931",
-      "corpus_ref": "sod1 1993 rosen familial als first gene"
+      "type": "review",
+      "id": "als genetics timeline review",
+      "corpus_ref": "als gene discovery timeline sod1 tardbp fus c9orf72"
     },
     "is_trap": false
   },
