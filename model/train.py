@@ -16,18 +16,24 @@ Key features:
 
 - **Startup validation:** Checks train.bin, val.bin, meta.pkl exist and
   validates vocab_size matches the canonical tokenizer before training.
+- **Epoch tracking:** EpochTracker class converts step counts into epoch
+  numbers, epoch progress, and detects epoch boundary crossings.
 - **Dual checkpoints:** Saves both DeepSpeed directory checkpoints (for
   resume) and raw .pt files (for export) at each checkpoint interval.
 - **Checkpoint retention:** Keeps last 3 checkpoints + best (lowest val
   loss), deleting both formats for expired checkpoints.
-- **Console + JSON logging:** Human-readable table to stdout every 10 steps,
-  JSON lines to a timestamped log file.
-- **Validation + sample generation:** Every 250 steps, estimates train/val
+- **Console + JSON logging:** Colored one-liner console output every 10
+  steps with ETA, JSON lines to a fixed log file at logs/training_log.jsonl.
+- **Enriched JSONL metrics:** epoch, perplexity, loss_scale, grad_norm,
+  generalization gap, and gap ratio logged for post-training analysis.
+- **Anomaly detection:** Loss spikes and high gradient norms trigger
+  yellow console warnings for real-time monitoring.
+- **Validation + sample generation:** Every 500 steps, estimates train/val
   loss and generates sample text from a fixed ALS prompt.
 - **Loss sanity checks:** Stops immediately on NaN/Inf; warns if loss hasn't
   decreased after 100 steps.
 - **Resume support:** Auto-detects existing checkpoints or accepts explicit
-  ``--resume`` path.
+  ``--resume`` path. Appends to existing JSONL log with a resume marker.
 - **Dry-run mode:** ``--dry-run`` validates config and prints training plan
   without GPU time.
 
@@ -35,6 +41,9 @@ Usage::
 
     # Tiny model (pipeline validation)
     deepspeed model/train.py --deepspeed --deepspeed_config config/ds_zero2.json --config tiny
+
+    # Full training with epoch count
+    deepspeed model/train.py --deepspeed --deepspeed_config config/ds_zero2.json --config 500M --max-epochs 3
 
     # Dry run (no training)
     deepspeed model/train.py --deepspeed --deepspeed_config config/ds_zero2.json --config tiny --dry-run
@@ -51,6 +60,7 @@ import pickle
 import shutil
 import sys
 import time
+from collections import deque
 from datetime import datetime, timezone
 
 # Ensure the project root is on sys.path so that `from model.model import ...`
@@ -66,6 +76,9 @@ import torch
 # DeepSpeed imports
 import deepspeed
 from deepspeed.utils.zero_to_fp32 import get_fp32_state_dict_from_zero_checkpoint
+
+# TensorBoard for real-time metrics visualization
+from torch.utils.tensorboard import SummaryWriter
 
 # Tokenizer for sample generation
 from tokenizers import Tokenizer
@@ -91,8 +104,77 @@ CONFIG_DEFAULTS = {
     "500M": {"lr": 3e-4, "batch_size": 4, "grad_accum": 8, "warmup": 500, "max_steps": 50000},
 }
 
-# Fixed prompt for sample text generation at validation intervals
-SAMPLE_PROMPT = "Amyotrophic lateral sclerosis is"
+# Fixed prompts for sample text generation at validation intervals
+# Covers 5 domains: clinical-declarative, clinical-question, molecular,
+# treatment, and epidemiological (per CONTEXT.md diversity requirement)
+SAMPLE_PROMPTS = [
+    "Amyotrophic lateral sclerosis is",                          # Clinical - declarative
+    "What are the early symptoms of ALS?",                       # Clinical - question
+    "The SOD1 gene mutation in ALS leads to",                    # Molecular - declarative
+    "Riluzole works by",                                         # Treatment - declarative
+    "The incidence of ALS worldwide is approximately",           # Epidemiological - declarative
+]
+
+SAMPLE_TEMPERATURES = [0.0, 0.7]  # Greedy + sampled decoding
+
+
+# ---------------------------------------------------------------------------
+# Epoch tracking
+# ---------------------------------------------------------------------------
+class EpochTracker:
+    """Tracks epoch boundaries and per-epoch metrics during training."""
+
+    def __init__(self, train_tokens: int, tokens_per_step: int):
+        self.train_tokens = train_tokens
+        self.tokens_per_step = tokens_per_step
+        self.steps_per_epoch = train_tokens // tokens_per_step
+        self.current_epoch = 0
+        self.epoch_losses = []
+        self._total_epochs = 0
+
+    def update(self, step: int, loss: float) -> bool:
+        """Update tracker. Returns True if epoch boundary crossed."""
+        new_epoch = step // self.steps_per_epoch if self.steps_per_epoch > 0 else 0
+        self.epoch_losses.append(loss)
+        if new_epoch > self.current_epoch:
+            self.current_epoch = new_epoch
+            self.epoch_losses = []
+            return True
+        return False
+
+    @property
+    def epoch(self) -> int:
+        return self.current_epoch
+
+    def epoch_progress(self, step: int) -> float:
+        if self.steps_per_epoch == 0:
+            return 0.0
+        return (step % self.steps_per_epoch) / self.steps_per_epoch
+
+    @property
+    def avg_epoch_loss(self) -> float:
+        if not self.epoch_losses:
+            return 0.0
+        return sum(self.epoch_losses) / len(self.epoch_losses)
+
+    @property
+    def total_epochs(self) -> int:
+        """Total epochs based on max_steps (set after init)."""
+        return self._total_epochs
+
+    @total_epochs.setter
+    def total_epochs(self, value: int):
+        self._total_epochs = value
+
+
+# ---------------------------------------------------------------------------
+# ANSI color codes for console output
+# ---------------------------------------------------------------------------
+GREEN = "\033[92m"
+YELLOW = "\033[93m"
+RED = "\033[91m"
+BOLD = "\033[1m"
+RESET = "\033[0m"
 
 
 # ---------------------------------------------------------------------------
@@ -141,6 +223,12 @@ def parse_args():
         help="Total training steps (default: per-config)",
     )
     parser.add_argument(
+        "--max-epochs",
+        type=int,
+        default=None,
+        help="Number of training epochs (overrides --max-steps when set)",
+    )
+    parser.add_argument(
         "--seed",
         type=int,
         default=42,
@@ -149,14 +237,14 @@ def parse_args():
     parser.add_argument(
         "--eval-interval",
         type=int,
-        default=250,
-        help="Steps between validation / checkpoint (default: 250)",
+        default=500,
+        help="Steps between validation / checkpoint (default: 500)",
     )
     parser.add_argument(
         "--eval-iters",
         type=int,
-        default=20,
-        help="Batches to average for validation loss (default: 20)",
+        default=200,
+        help="Batches to average for validation loss (default: 200)",
     )
     parser.add_argument(
         "--log-interval",
@@ -331,11 +419,12 @@ def estimate_loss(model_engine, eval_iters, batch_size, block_size, device, data
 # Sample text generation
 # ---------------------------------------------------------------------------
 @torch.no_grad()
-def generate_sample(model, tokenizer, prompt, max_new_tokens=64, temperature=0.8, device="cuda"):
+def generate_sample(model, tokenizer, prompt, max_new_tokens=128, temperature=0.8, device="cuda"):
     """Generate sample text from a fixed prompt for qualitative evaluation.
 
     Uses the unwrapped model (model_engine.module) in eval mode to avoid
-    DeepSpeed training overhead during generation.
+    DeepSpeed training overhead during generation. Supports both greedy
+    (temperature=0) and sampled decoding.
     """
     model.eval()
     input_ids = tokenizer.encode(prompt).ids
@@ -343,9 +432,17 @@ def generate_sample(model, tokenizer, prompt, max_new_tokens=64, temperature=0.8
     for _ in range(max_new_tokens):
         idx_cond = idx[:, -model.config.block_size :]
         logits, _ = model(idx_cond)
-        logits = logits[:, -1, :] / temperature
-        probs = torch.softmax(logits, dim=-1)
-        idx_next = torch.multinomial(probs, num_samples=1)
+        logits = logits[:, -1, :]
+
+        if temperature < 1e-8:
+            # Greedy decoding
+            idx_next = torch.argmax(logits, dim=-1, keepdim=True)
+        else:
+            # Sampled decoding
+            logits = logits / temperature
+            probs = torch.softmax(logits, dim=-1)
+            idx_next = torch.multinomial(probs, num_samples=1)
+
         idx = torch.cat([idx, idx_next], dim=1)
     model.train()
     return tokenizer.decode(idx[0].tolist())
@@ -377,6 +474,27 @@ def get_gpu_memory_mb(handle):
     try:
         info = pynvml.nvmlDeviceGetMemoryInfo(handle)
         return info.used // (1024 * 1024)
+    except Exception:
+        return 0
+
+
+def get_gpu_name(handle):
+    """Return the GPU name string, or 'Unknown' if unavailable."""
+    if handle is None:
+        return "Unknown"
+    try:
+        return pynvml.nvmlDeviceGetName(handle)
+    except Exception:
+        return "Unknown"
+
+
+def get_gpu_total_memory_mb(handle):
+    """Return total GPU memory in MB, or 0 if unavailable."""
+    if handle is None:
+        return 0
+    try:
+        info = pynvml.nvmlDeviceGetMemoryInfo(handle)
+        return info.total // (1024 * 1024)
     except Exception:
         return 0
 
@@ -566,15 +684,14 @@ def try_resume(model_engine, args, run_dir):
 # ---------------------------------------------------------------------------
 # Logging
 # ---------------------------------------------------------------------------
-def setup_logging(config_name):
-    """Create logs directory and open a JSON lines log file.
-
-    Returns the log file path and file handle.
-    """
+def setup_logging(is_resuming=False):
+    """Open the fixed JSONL log file, appending if it exists on resume."""
     os.makedirs("logs", exist_ok=True)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_path = f"logs/train_{timestamp}.jsonl"
-    log_file = open(log_path, "w")
+    log_path = "logs/training_log.jsonl"
+    if is_resuming and os.path.exists(log_path):
+        log_file = open(log_path, "a")
+    else:
+        log_file = open(log_path, "w")
     return log_path, log_file
 
 
@@ -592,6 +709,7 @@ def write_config_header(log_file, args, model_config_dict, ds_config, vocab_size
             "grad_accum": args.grad_accum,
             "warmup_steps": args.warmup_steps,
             "max_steps": args.max_steps,
+            "max_epochs": getattr(args, "max_epochs", None),
             "seed": args.seed,
             "eval_interval": args.eval_interval,
             "eval_iters": args.eval_iters,
@@ -610,30 +728,90 @@ def write_config_header(log_file, args, model_config_dict, ds_config, vocab_size
     log_file.flush()
 
 
-def log_step(log_file, step, loss, lr, tokens_per_sec, gpu_mem_mb, dt_sec):
-    """Write a training step entry to the JSON log file."""
+def log_step(log_file, step, loss, lr, tokens_per_sec, gpu_mem_mb, dt_sec,
+             epoch, epoch_progress, total_tokens, loss_scale, grad_norm):
+    """Write a training step entry to the JSONL log file."""
+    try:
+        perplexity = min(math.exp(loss), 1e5)
+    except OverflowError:
+        perplexity = 1e5
     entry = {
         "type": "step",
         "step": step,
-        "loss": loss,
+        "loss": round(loss, 6),
+        "perplexity": round(perplexity, 2),
         "lr": lr,
-        "tokens_per_sec": tokens_per_sec,
+        "tokens_per_sec": round(tokens_per_sec, 1),
         "gpu_mem_mb": gpu_mem_mb,
-        "dt_sec": dt_sec,
+        "dt_sec": round(dt_sec, 3),
+        "epoch": epoch,
+        "epoch_progress": round(epoch_progress, 4),
+        "total_tokens": total_tokens,
+        "loss_scale": loss_scale,
+        "grad_norm": round(grad_norm, 4) if grad_norm is not None else 0.0,
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     log_file.write(json.dumps(entry) + "\n")
     log_file.flush()
 
 
-def log_validation(log_file, step, train_loss, val_loss, sample_text):
-    """Write a validation entry to the JSON log file."""
+def log_validation(log_file, step, train_loss, val_loss, samples,
+                   epoch, epoch_progress):
+    """Write a validation entry to the JSONL log file."""
+    try:
+        train_ppl = min(math.exp(train_loss), 1e5)
+    except OverflowError:
+        train_ppl = 1e5
+    try:
+        val_ppl = min(math.exp(val_loss), 1e5)
+    except OverflowError:
+        val_ppl = 1e5
+    gap = val_loss - train_loss
+    gap_ratio = val_loss / train_loss if train_loss > 0 else float("inf")
+
     entry = {
         "type": "validation",
         "step": step,
-        "train_loss": train_loss,
-        "val_loss": val_loss,
-        "sample_text": sample_text,
+        "train_loss": round(train_loss, 6),
+        "val_loss": round(val_loss, 6),
+        "train_perplexity": round(train_ppl, 2),
+        "val_perplexity": round(val_ppl, 2),
+        "generalization_gap": round(gap, 6),
+        "gap_ratio": round(gap_ratio, 4),
+        "epoch": epoch,
+        "epoch_progress": round(epoch_progress, 4),
+        "samples": samples,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+    log_file.write(json.dumps(entry) + "\n")
+    log_file.flush()
+
+
+def log_epoch(log_file, epoch, steps_in_epoch, avg_train_loss, total_tokens, elapsed_sec):
+    """Write an epoch boundary entry to the JSONL log file."""
+    try:
+        avg_ppl = min(math.exp(avg_train_loss), 1e5)
+    except OverflowError:
+        avg_ppl = 1e5
+    entry = {
+        "type": "epoch",
+        "epoch": epoch,
+        "steps": steps_in_epoch,
+        "avg_train_loss": round(avg_train_loss, 6),
+        "avg_perplexity": round(avg_ppl, 2),
+        "total_tokens": total_tokens,
+        "elapsed_sec": round(elapsed_sec, 1),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+    log_file.write(json.dumps(entry) + "\n")
+    log_file.flush()
+
+
+def log_resume(log_file, step):
+    """Write a resume marker entry to the JSONL log file."""
+    entry = {
+        "type": "resume",
+        "step": step,
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     log_file.write(json.dumps(entry) + "\n")
@@ -715,14 +893,109 @@ def print_dry_run(args, model_config, vocab_size, train_tokens, val_tokens, ds_c
     print(f"    Total tokens:    {total_tokens:,}")
     print(f"    Est. epochs:     {epochs_approx:.1f}")
 
+    tb_cfg = ds_config.get("tensorboard", {})
+    print(f"\n  Logging")
+    print(f"    JSONL log:       logs/training_log.jsonl")
+    print(f"    TensorBoard:     {tb_cfg.get('output_path', 'N/A')} (enabled={tb_cfg.get('enabled', False)})")
+    print(f"    Sample prompts:  {len(SAMPLE_PROMPTS)} x {len(SAMPLE_TEMPERATURES)} temperatures")
+
     print("\n" + "=" * 60)
     print("  Dry run complete. Remove --dry-run to start training.")
     print("=" * 60 + "\n")
 
 
 # ---------------------------------------------------------------------------
-# Training summary
+# Console output helpers
 # ---------------------------------------------------------------------------
+def format_eta(remaining_seconds):
+    """Format remaining seconds as a human-readable ETA string."""
+    if remaining_seconds <= 0:
+        return "done"
+    minutes, seconds = divmod(int(remaining_seconds), 60)
+    hours, minutes = divmod(minutes, 60)
+    if hours > 0:
+        return f"{hours}h{minutes:02d}m"
+    elif minutes > 0:
+        return f"{minutes}m{seconds:02d}s"
+    else:
+        return f"{seconds}s"
+
+
+def format_time(elapsed_seconds):
+    """Format elapsed seconds as a human-readable time string."""
+    minutes, seconds = divmod(int(elapsed_seconds), 60)
+    hours, minutes = divmod(minutes, 60)
+    if hours > 0:
+        return f"{hours}h {minutes}m {seconds}s"
+    else:
+        return f"{minutes}m {seconds}s"
+
+
+def print_config_summary(args, model_config, param_count, vocab_size,
+                         train_tokens, val_tokens, ds_config,
+                         tokens_per_step, epoch_tracker, gpu_handle):
+    """Print a full config summary at training startup."""
+    effective_batch = args.batch_size * args.grad_accum
+
+    print(f"\n{BOLD}{'=' * 64}{RESET}")
+    print(f"{BOLD}  ALS-LM Training Configuration{RESET}")
+    print(f"{BOLD}{'=' * 64}{RESET}")
+
+    print(f"\n  {BOLD}Model{RESET}")
+    print(f"    Config:      {args.config}")
+    print(f"    Parameters:  {param_count:,}")
+    print(f"    Layers:      {model_config.n_layer}")
+    print(f"    Heads:       {model_config.n_head}")
+    print(f"    Embed dim:   {model_config.n_embd}")
+    print(f"    Block size:  {model_config.block_size}")
+    print(f"    Vocab size:  {vocab_size:,}")
+    print(f"    Dropout:     {model_config.dropout}")
+
+    print(f"\n  {BOLD}Data{RESET}")
+    print(f"    Train tokens:  {train_tokens:,}")
+    print(f"    Val tokens:    {val_tokens:,}")
+    print(f"    Data dir:      {args.data_dir}")
+
+    total_epochs = epoch_tracker.total_epochs if epoch_tracker else 0
+    steps_per_epoch = epoch_tracker.steps_per_epoch if epoch_tracker else 0
+    print(f"\n  {BOLD}Training{RESET}")
+    print(f"    Total steps:     {args.max_steps:,}")
+    print(f"    Epochs:          {total_epochs}")
+    print(f"    Steps/epoch:     {steps_per_epoch:,}")
+    print(f"    Effective batch: {effective_batch} (micro={args.batch_size} x accum={args.grad_accum})")
+    print(f"    Tokens/step:     {tokens_per_step:,}")
+    print(f"    Learning rate:   {args.lr:.1e}")
+    print(f"    Warmup steps:    {args.warmup_steps}")
+    print(f"    Eval interval:   {args.eval_interval}")
+    print(f"    Log interval:    {args.log_interval}")
+    print(f"    Checkpoint:      every {args.eval_interval} steps")
+    print(f"    Seed:            {args.seed}")
+
+    zero_stage = ds_config.get("zero_optimization", {}).get("stage", "N/A")
+    fp16_enabled = ds_config.get("fp16", {}).get("enabled", False)
+    offload_device = ds_config.get("zero_optimization", {}).get("offload_optimizer", {}).get("device", "none")
+    grad_clip = ds_config.get("gradient_clipping", "N/A")
+    print(f"\n  {BOLD}DeepSpeed{RESET}")
+    print(f"    ZeRO stage:   {zero_stage}")
+    print(f"    FP16:         {fp16_enabled}")
+    print(f"    CPU offload:  {offload_device}")
+    print(f"    Grad clip:    {grad_clip}")
+
+    gpu_name = get_gpu_name(gpu_handle)
+    gpu_mem = get_gpu_total_memory_mb(gpu_handle)
+    print(f"\n  {BOLD}Device{RESET}")
+    print(f"    GPU:          {gpu_name}")
+    print(f"    VRAM:         {gpu_mem:,} MB")
+
+    tb_enabled = ds_config.get("tensorboard", {}).get("enabled", False)
+    print(f"\n  {BOLD}Logging{RESET}")
+    print(f"    JSONL:        logs/training_log.jsonl")
+    print(f"    TensorBoard:  logs/tensorboard/ (enabled={tb_enabled})")
+    print(f"    Samples:      {len(SAMPLE_PROMPTS)} prompts x {len(SAMPLE_TEMPERATURES)} temperatures per validation")
+
+    print(f"\n{BOLD}{'=' * 64}{RESET}\n")
+
+
 def print_training_summary(
     config_name,
     total_steps,
@@ -733,29 +1006,42 @@ def print_training_summary(
     best_val_step,
     total_tokens_processed,
     run_dir,
+    epoch_tracker=None,
 ):
     """Print the end-of-run training summary."""
-    minutes, seconds = divmod(int(elapsed_time), 60)
-    hours, minutes = divmod(minutes, 60)
-    if hours > 0:
-        time_str = f"{hours}h {minutes}m {seconds}s"
-    else:
-        time_str = f"{minutes}m {seconds}s"
-
+    time_str = format_time(elapsed_time)
     avg_throughput = total_tokens_processed / elapsed_time if elapsed_time > 0 else 0
 
-    print("\n" + "=" * 50)
-    print("  Training Complete")
-    print("=" * 50)
-    print(f"  Config:           {config_name}")
-    print(f"  Total steps:      {total_steps:,}")
-    print(f"  Total time:       {time_str}")
-    print(f"  Final train loss: {final_train_loss:.4f}")
-    print(f"  Final val loss:   {final_val_loss:.4f}")
-    print(f"  Best val loss:    {best_val_loss:.4f} (step {best_val_step})")
-    print(f"  Avg throughput:   {avg_throughput:,.0f} tokens/sec")
-    print(f"  Checkpoint dir:   {run_dir}")
-    print("=" * 50 + "\n")
+    try:
+        final_ppl = min(math.exp(final_train_loss), 1e5)
+    except OverflowError:
+        final_ppl = 1e5
+
+    epochs_completed = epoch_tracker.epoch if epoch_tracker else 0
+
+    # Find best checkpoint path
+    best_ckpt_path = os.path.join(run_dir, f"step_{best_val_step}.pt")
+    if not os.path.isfile(best_ckpt_path):
+        best_ckpt_path = os.path.join(run_dir, f"step_{best_val_step}")
+
+    best_epoch = best_val_step // epoch_tracker.steps_per_epoch if epoch_tracker and epoch_tracker.steps_per_epoch > 0 else 0
+
+    print(f"\n{BOLD}{'=' * 64}{RESET}")
+    print(f"{BOLD}  Training Complete{RESET}")
+    print(f"{BOLD}{'=' * 64}{RESET}")
+    print(f"  Config:             {config_name}")
+    print(f"  Total steps:        {total_steps:,}")
+    print(f"  Total time:         {time_str}")
+    print(f"  Epochs completed:   {epochs_completed}")
+    print(f"  Final train loss:   {final_train_loss:.4f}")
+    print(f"  Final perplexity:   {final_ppl:.2f}")
+    print(f"  Final val loss:     {final_val_loss:.4f}")
+    print(f"  Best val loss:      {best_val_loss:.4f} (step {best_val_step}, epoch {best_epoch})")
+    print(f"  Total tokens:       {total_tokens_processed:,}")
+    print(f"  Avg throughput:     {avg_throughput:,.0f} tokens/sec")
+    print(f"  Best checkpoint:    {best_ckpt_path}")
+    print(f"  Checkpoint dir:     {run_dir}")
+    print(f"{BOLD}{'=' * 64}{RESET}\n")
 
 
 # ---------------------------------------------------------------------------
@@ -782,6 +1068,22 @@ def main():
     val_tokens = len(val_data)
     print(f"  Train tokens: {train_tokens:,}")
     print(f"  Val tokens:   {val_tokens:,}")
+
+    # ---- Compute tokens_per_step and handle --max-epochs -------------------
+    effective_batch = args.batch_size * args.grad_accum
+    block_size = MODEL_CONFIGS[args.config].block_size
+    tokens_per_step = effective_batch * block_size
+
+    if args.max_epochs is not None:
+        steps_per_epoch = train_tokens // tokens_per_step
+        args.max_steps = args.max_epochs * steps_per_epoch
+        print(f"\n  --max-epochs {args.max_epochs}:")
+        print(f"    steps_per_epoch = {train_tokens:,} // {tokens_per_step:,} = {steps_per_epoch:,}")
+        print(f"    max_steps = {args.max_epochs} * {steps_per_epoch:,} = {args.max_steps:,}")
+
+    # Instantiate EpochTracker
+    epoch_tracker = EpochTracker(train_tokens, tokens_per_step)
+    epoch_tracker.total_epochs = args.max_steps // epoch_tracker.steps_per_epoch if epoch_tracker.steps_per_epoch > 0 else 0
 
     # ---- Resolve DeepSpeed config ------------------------------------------
     ds_config_path = "config/ds_zero2.json"
@@ -836,15 +1138,15 @@ def main():
     device = model_engine.device
     print(f"  Device: {device}")
 
+    # ---- TensorBoard writer for custom metrics ------------------------------
+    # Separate directory from DeepSpeed auto-logging (logs/tensorboard/als_lm_training/)
+    # to avoid event file conflicts (RESEARCH.md Pitfall 3)
+    os.makedirs("logs/tensorboard/custom", exist_ok=True)
+    tb_writer = SummaryWriter(log_dir="logs/tensorboard/custom")
+    print(f"  TensorBoard: logs/tensorboard/")
+
     # ---- GPU memory monitor ------------------------------------------------
     gpu_handle = init_gpu_monitor(args.local_rank)
-
-    # ---- Logging setup -----------------------------------------------------
-    log_path, log_file = setup_logging(args.config)
-    write_config_header(
-        log_file, args, model_config_dict, ds_config, vocab_size, train_tokens, val_tokens
-    )
-    print(f"  Log file: {log_path}")
 
     # ---- Checkpoint directory setup ----------------------------------------
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -854,6 +1156,17 @@ def main():
 
     # ---- Resume support ----------------------------------------------------
     start_step = try_resume(model_engine, args, run_dir)
+    is_resuming = start_step > 0
+
+    # ---- Logging setup -----------------------------------------------------
+    log_path, log_file = setup_logging(is_resuming=is_resuming)
+    if is_resuming:
+        log_resume(log_file, start_step)
+    else:
+        write_config_header(
+            log_file, args, model_config_dict, ds_config, vocab_size, train_tokens, val_tokens
+        )
+    print(f"  Log file: {log_path}")
 
     # ---- Load tokenizer for sample generation ------------------------------
     tokenizer = None
@@ -870,8 +1183,12 @@ def main():
     log_interval = args.log_interval
     eval_interval = args.eval_interval
 
-    effective_batch = batch_size * args.grad_accum
-    tokens_per_step = effective_batch * block_size
+    # Anomaly detection state
+    loss_history = deque(maxlen=50)
+    grad_norm_history = deque(maxlen=50)
+    step_times = deque(maxlen=50)
+    GRAD_NORM_WARN_THRESHOLD = 10.0
+    LOSS_SPIKE_FACTOR = 2.0
 
     # Tracking variables
     initial_loss = None
@@ -883,10 +1200,13 @@ def main():
     loss_warned = False
 
     training_start_time = time.time()
-    print(f"\n{'=' * 60}")
-    print(f"  Starting training: {args.config} model, {max_steps:,} steps")
-    print(f"  Effective batch size: {effective_batch} (micro={batch_size} x accum={args.grad_accum})")
-    print(f"{'=' * 60}\n")
+
+    # Print full config summary at startup
+    print_config_summary(
+        args, model_config, param_count, vocab_size,
+        train_tokens, val_tokens, ds_config,
+        tokens_per_step, epoch_tracker, gpu_handle,
+    )
 
     for step in range(start_step, max_steps):
         t0 = time.time()
@@ -905,24 +1225,58 @@ def main():
         dt = t1 - t0
         current_loss = loss.item()
 
+        # Read DeepSpeed internal metrics (valid after step())
+        try:
+            loss_scale = model_engine.optimizer.cur_scale
+        except (AttributeError, RuntimeError):
+            loss_scale = 0.0
+        raw_grad_norm = model_engine.get_global_grad_norm()
+        grad_norm = float(raw_grad_norm) if raw_grad_norm is not None else 0.0
+
+        # Update epoch tracker
+        epoch_crossed = epoch_tracker.update(step, current_loss)
+
         # Track initial loss for sanity check
         if initial_loss is None:
             initial_loss = current_loss
 
         # Loss sanity checks
         if math.isnan(current_loss) or math.isinf(current_loss):
-            print(f"\nFATAL: NaN/Inf loss at step {step}. Stopping immediately.")
+            print(f"\n{RED}FATAL: NaN/Inf loss at step {step}. Stopping immediately.{RESET}")
             log_file.close()
+            tb_writer.close()
             sys.exit(1)
 
         if step == start_step + 100 and not loss_warned and current_loss >= initial_loss:
             print(
-                f"\n  WARNING: Loss has not decreased after 100 steps "
-                f"(initial: {initial_loss:.4f}, current: {current_loss:.4f})"
+                f"\n  {YELLOW}WARNING: Loss has not decreased after 100 steps "
+                f"(initial: {initial_loss:.4f}, current: {current_loss:.4f}){RESET}"
             )
             loss_warned = True
 
         total_tokens_processed += tokens_per_step
+
+        # Update anomaly detection deques
+        loss_history.append(current_loss)
+        grad_norm_history.append(grad_norm)
+        step_times.append(dt)
+
+        # Epoch boundary banner
+        if epoch_crossed:
+            elapsed = time.time() - training_start_time
+            avg_loss = epoch_tracker.avg_epoch_loss
+            prev_epoch = epoch_tracker.epoch  # Already incremented
+            print(f"\n  {BOLD}{'=' * 50}{RESET}")
+            print(f"  {BOLD}  Epoch {prev_epoch}/{epoch_tracker.total_epochs}{RESET}")
+            print(f"  {BOLD}{'=' * 50}{RESET}")
+            log_epoch(
+                log_file,
+                epoch=prev_epoch,
+                steps_in_epoch=epoch_tracker.steps_per_epoch,
+                avg_train_loss=avg_loss if avg_loss > 0 else current_loss,
+                total_tokens=total_tokens_processed,
+                elapsed_sec=elapsed,
+            )
 
         # Log every log_interval steps
         if step % log_interval == 0:
@@ -930,18 +1284,71 @@ def main():
             tokens_per_sec = tokens_per_step / dt if dt > 0 else 0
             gpu_mem = get_gpu_memory_mb(gpu_handle)
 
-            # Console output: fixed-width aligned columns
-            print(
-                f"  Step {step:>6}/{max_steps} | "
-                f"loss: {current_loss:.4f} | "
-                f"lr: {current_lr:.2e} | "
-                f"tok/s: {tokens_per_sec:>9,.0f} | "
-                f"GPU: {gpu_mem:>5,} MB | "
-                f"dt: {dt:.2f}s"
+            # Anomaly detection
+            loss_warning = False
+            grad_warning = False
+            if len(loss_history) >= 10:
+                avg_loss = sum(loss_history) / len(loss_history)
+                if current_loss > LOSS_SPIKE_FACTOR * avg_loss:
+                    loss_warning = True
+            if grad_norm > GRAD_NORM_WARN_THRESHOLD:
+                grad_warning = True
+
+            # Compute ETA (only show after 50+ steps for stability)
+            if len(step_times) >= 50:
+                avg_dt = sum(step_times) / len(step_times)
+                remaining_steps = max_steps - step
+                eta_seconds = remaining_steps * avg_dt
+                eta_str = format_eta(eta_seconds)
+            else:
+                eta_str = "..."
+
+            # Determine console color
+            pct = step / max_steps * 100
+            ep = epoch_tracker.epoch
+            total_ep = epoch_tracker.total_epochs
+
+            if loss_warning or grad_warning:
+                color = YELLOW
+            else:
+                color = GREEN
+
+            line = (
+                f"{color}"
+                f"  Step {step:>6}/{max_steps} "
+                f"| ep {ep}/{total_ep} "
+                f"| loss {current_loss:.4f} "
+                f"| lr {current_lr:.2e} "
+                f"| {tokens_per_sec:>7,.0f} tok/s "
+                f"| ETA {eta_str} "
+                f"| {pct:.1f}%"
+                f"{RESET}"
+            )
+            if loss_warning:
+                line += f" {YELLOW}[LOSS SPIKE]{RESET}"
+            if grad_warning:
+                line += f" {YELLOW}[HIGH GRAD]{RESET}"
+            print(line)
+
+            # JSONL log
+            log_step(
+                log_file, step, current_loss, current_lr, tokens_per_sec,
+                gpu_mem, dt, epoch_tracker.epoch,
+                epoch_tracker.epoch_progress(step), total_tokens_processed,
+                loss_scale, grad_norm,
             )
 
-            # JSON log
-            log_step(log_file, step, current_loss, current_lr, tokens_per_sec, gpu_mem, dt)
+            # TensorBoard custom metrics (step-aligned with JSONL log)
+            try:
+                perplexity = min(math.exp(current_loss), 1e5)
+            except OverflowError:
+                perplexity = 1e5
+            tb_writer.add_scalar("Metrics/train_perplexity", perplexity, step)
+            tb_writer.add_scalar("Metrics/gradient_norm", grad_norm, step)
+            tb_writer.add_scalar("Metrics/loss_scale", loss_scale, step)
+            tb_writer.add_scalar("Schedule/learning_rate", current_lr, step)
+            tb_writer.add_scalar("Schedule/epoch", epoch_tracker.epoch, step)
+            tb_writer.add_scalar("Progress/tokens_per_sec", tokens_per_sec, step)
 
         # Validate + checkpoint + generate sample every eval_interval steps (and at final step)
         if step > 0 and (step % eval_interval == 0 or step == max_steps - 1):
@@ -951,31 +1358,61 @@ def main():
             final_train_loss = losses["train"]
             final_val_loss = losses["val"]
 
-            print(f"\n  --- Validation at step {step} ---")
-            print(f"    Train loss: {losses['train']:.4f}")
-            print(f"    Val loss:   {losses['val']:.4f}")
+            try:
+                train_ppl = min(math.exp(losses["train"]), 1e5)
+            except OverflowError:
+                train_ppl = 1e5
+            try:
+                val_ppl = min(math.exp(losses["val"]), 1e5)
+            except OverflowError:
+                val_ppl = 1e5
+            gap = losses["val"] - losses["train"]
+            gap_ratio = losses["val"] / losses["train"] if losses["train"] > 0 else float("inf")
 
-            # Sample text generation
-            sample_text = ""
+            print(f"\n  --- Validation at step {step} (epoch {epoch_tracker.epoch}/{epoch_tracker.total_epochs}) ---")
+            print(f"    Train loss:       {losses['train']:.4f}  (ppl: {train_ppl:.2f})")
+            print(f"    Val loss:         {losses['val']:.4f}  (ppl: {val_ppl:.2f})")
+            print(f"    Gen. gap:         {gap:.4f}  (ratio: {gap_ratio:.4f})")
+
+            # Multi-prompt sample generation (5 prompts x 2 temperatures = 10 samples)
+            samples = []
             if tokenizer is not None:
                 try:
-                    sample_text = generate_sample(
-                        model_engine.module,
-                        tokenizer,
-                        SAMPLE_PROMPT,
-                        max_new_tokens=64,
-                        temperature=0.8,
-                        device=device,
-                    )
-                    print(f"\n  --- Sample generation ---")
-                    print(f"    Prompt: \"{SAMPLE_PROMPT}\"")
-                    print(f"    Output: \"{sample_text[:200]}\"")
+                    for prompt in SAMPLE_PROMPTS:
+                        for temp in SAMPLE_TEMPERATURES:
+                            text = generate_sample(
+                                model_engine.module,
+                                tokenizer,
+                                prompt,
+                                max_new_tokens=128,
+                                temperature=temp,
+                                device=device,
+                            )
+                            samples.append({
+                                "prompt": prompt,
+                                "temperature": temp,
+                                "text": text,
+                            })
+                    print(f"    {len(samples)} samples generated ({len(SAMPLE_PROMPTS)} prompts x {len(SAMPLE_TEMPERATURES)} temperatures)")
                 except Exception as e:
                     print(f"    WARNING: Sample generation failed: {e}")
-                    sample_text = f"[generation failed: {e}]"
+                    if not samples:
+                        samples = [{"prompt": SAMPLE_PROMPTS[0], "temperature": 0.0, "text": f"[generation failed: {e}]"}]
 
             # Log validation
-            log_validation(log_file, step, losses["train"], losses["val"], sample_text)
+            log_validation(
+                log_file, step, losses["train"], losses["val"],
+                samples, epoch_tracker.epoch,
+                epoch_tracker.epoch_progress(step),
+            )
+
+            # TensorBoard validation metrics
+            tb_writer.add_scalar("Validation/val_loss", losses["val"], step)
+            tb_writer.add_scalar("Validation/val_perplexity", val_ppl, step)
+            tb_writer.add_scalar("Validation/train_loss", losses["train"], step)
+            tb_writer.add_scalar("Validation/train_perplexity", train_ppl, step)
+            tb_writer.add_scalar("Validation/generalization_gap", gap, step)
+            tb_writer.add_scalar("Validation/gap_ratio", gap_ratio, step)
 
             # Update best checkpoint tracking
             is_best = update_best_checkpoint(run_dir, step, losses["val"])
@@ -1009,6 +1446,7 @@ def main():
     # ---- Training complete -------------------------------------------------
     elapsed = time.time() - training_start_time
     log_file.close()
+    tb_writer.close()
 
     # Read best from file in case we didn't find one during training
     best_step_file = os.path.join(run_dir, "best_step.txt")
@@ -1032,6 +1470,7 @@ def main():
         best_val_step=best_val_step,
         total_tokens_processed=total_tokens_processed,
         run_dir=run_dir,
+        epoch_tracker=epoch_tracker,
     )
 
 
