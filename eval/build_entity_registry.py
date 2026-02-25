@@ -92,15 +92,16 @@ PROTEIN_SEEDS = {
 }
 
 INSTITUTION_PATTERNS = [
-    # Each pattern captures the full institution name
-    r"\bUniversity of [\w\s\-]+(?:Medical (?:Center|School))?",
-    r"\b[\w\s\-]+ University(?:\s+(?:Medical (?:Center|School)|Hospital))?",
-    r"\b[\w\s\-]+ Institute(?:\s+(?:of|for) [\w\s\-]+)?",
-    r"\bNational Institute(?:s)? of [\w\s\-]+",
-    r"\b[\w\s\-]+ Hospital",
-    r"\b[\w\s\-]+ Medical Center",
-    r"\b[\w\s\-]+ Foundation(?:\s+(?:of|for) [\w\s\-]+)?",
-    r"\b[\w\s\-]+ Clinic(?:al Center)?",
+    # Each pattern captures the full institution name.
+    # Patterns require a leading capitalized word to avoid fragments.
+    r"\bUniversity of [A-Z][\w\s\-]{2,40}(?:Medical (?:Center|School))?",
+    r"\b[A-Z][\w\s\-]{2,30} University(?:\s+(?:Medical (?:Center|School)|Hospital))?",
+    r"\b[A-Z][\w\s\-]{2,30} Institute(?:\s+(?:of|for) [A-Z][\w\s\-]{2,30})?",
+    r"\bNational Institute(?:s)? of [A-Z][\w\s\-]{2,40}",
+    r"\b[A-Z][\w\s\-]{2,30} Hospital",
+    r"\b[A-Z][\w\s\-]{2,30} Medical Center",
+    r"\b[A-Z][\w\s\-]{2,30} Foundation(?:\s+(?:of|for) [A-Z][\w\s\-]{2,30})?",
+    r"\b[A-Z][\w\s\-]{2,30} Clinic(?:al Center)?",
 ]
 
 # Drug name suffixes for auto-detection (from extract_medical_terms.py)
@@ -111,27 +112,92 @@ DRUG_SUFFIXES = (
     "tinib", "zumab", "ximab", "umab", "stat",
 )
 
-# Common English words that happen to end in drug suffixes -- excluded
+# Common English words and scientific terms that happen to match drug suffixes
+# but are not drugs. Extensive list to reduce false positives.
 DRUG_SUFFIX_STOPWORDS = {
+    # -one words
     "the", "one", "done", "gone", "none", "bone", "zone", "tone", "alone",
     "stone", "phone", "ozone", "clone", "prone", "throne", "someone",
-    "everyone", "anyone", "hormone", "role", "whole", "pole", "hole",
-    "sole", "mole", "stole", "console", "sole", "parole", "casserole",
+    "everyone", "anyone", "hormone", "acetone", "ketone", "histone",
+    "milestone", "backbone", "osterone", "cortisone", "cyclone",
+    "component", "ezone",
+    # -ole words
+    "role", "whole", "pole", "hole", "sole", "mole", "stole", "console",
+    "parole", "casserole", "control", "protocol", "aerosol",
+    # -ine words
     "line", "mine", "fine", "wine", "pine", "vine", "dine", "nine",
     "shine", "combine", "define", "decline", "online", "baseline",
     "outline", "discipline", "examine", "determine", "imagine", "machine",
     "routine", "magazine", "marine", "medicine", "vaccine", "engine",
-    "genuine", "feminine", "masculine", "divine", "amine", "doctrine",
-    "famine", "jasmine", "trampoline", "gasoline",
+    "genuine", "feminine", "masculine", "divine", "doctrine",
+    "famine", "jasmine", "trampoline", "gasoline", "eine", "oline",
+    "seine", "sunshine", "pipeline", "guideline", "lifetime", "sometime",
+    "Palestine", "antine", "figurine", "landmine", "pristine", "ravine",
+    "canine", "bovine", "equine", "swine", "uterine", "intestine",
+    "hemoglobine", "creatinine",
+    # -ase words
     "phase", "base", "case", "release", "increase", "disease", "please",
-    "purchase", "decrease",
-    "april", "mobile", "smile", "while", "file", "profile", "tile",
-    "mile", "style", "meanwhile", "hostile", "missile", "futile",
+    "purchase", "decrease", "database", "erase", "chase",
+    # -ide words
     "provide", "inside", "outside", "beside", "guide", "pride", "wide",
     "slide", "hide", "side", "ride", "decide", "divide", "include",
-    "provide", "peptide", "nucleotide", "oxide", "dioxide", "chloride",
+    "peptide", "nucleotide", "oxide", "dioxide", "chloride",
     "fluoride", "sulfide", "bromide", "iodide", "hydroxide", "cyanide",
-    "amide",
+    "amide", "lipide", "worldwide", "override", "aside", "stride",
+    # -ile/-ile words
+    "april", "mobile", "smile", "while", "file", "profile", "tile",
+    "mile", "style", "meanwhile", "hostile", "missile", "futile",
+    "percentile", "quartile", "fertile", "volatile", "textile",
+    # -sol words
+    "aerosol",
+    # -stat words
+    "thermostat", "photostat",
+    # Biological terms that are not drugs
+    "cytokine", "chemokine", "lymphokine", "monokine", "adipokine",
+    "myokine", "exerkine", "interleukin",
+    "kinase", "phosphatase", "protease", "lipase", "nuclease",
+    "polymerase", "synthetase", "transferase", "oxidase", "reductase",
+    "dismutase", "ligase", "helicase", "endonuclease", "exonuclease",
+    "peptidase", "esterase", "isomerase", "hydrolase", "lyase",
+    "telomerase", "reverse",
+    "colchicine", "glycine", "alanine", "leucine", "isoleucine",
+    "valine", "proline", "serine", "threonine", "cysteine", "tyrosine",
+    "histidine", "tryptophan", "asparagine", "glutamine", "lysine",
+    "arginine", "methionine", "phenylalanine",
+    "adenine", "guanine", "thymine", "cytosine", "uracil",
+    "purine", "pyrimidine",
+    "creatine", "carnitine", "choline", "betaine",
+    "caffeine", "nicotine", "cocaine", "morphine", "codeine",
+    "dopamine", "serotonine", "epinephrine", "norepinephrine",
+    "acetylcholine", "glutamate", "aspartate",
+    "polyglutamine", "prion", "misfolding",
+    "benzothiazole", "thioflavin", "fluorescein",
+    "amine", "imine", "indole", "pyrrole",
+    # Scientific/biological terms caught by suffix matching
+    "murine", "saline", "synthase", "chaperone", "cytosol",
+    "dehydrogenase", "adenosine", "endocrine", "peroxidase",
+    "luciferase", "gtpase", "atpase", "catalase", "paracrine",
+    "lipofectamine", "deacetylase", "autocrine", "migraine",
+    "undergone", "refine", "overexpression", "coenzyme",
+    "calmoduline", "transaminase", "aminotransferase",
+    "glucuronidase", "galactosidase", "arginase", "nitrilase",
+    "ubiquitinase", "demethylase", "methyltransferase",
+    "acetyltransferase", "phospholipase", "thioredoxine",
+    "glucosidase", "mannosidase", "fucosidase", "sialidase",
+    "neuraminidase", "collagenase", "gelatinase", "elastase",
+    "cathepsine", "calpaine", "aldolase", "enolase",
+    "glutamate", "aspartate",
+    "serotonine", "melatonine", "taurine",
+    "cytochrome", "flavone", "isoflavone", "chalcone",
+    "lactone", "quinone", "semiquinone",
+    "terpenone", "sterone", "androne",
+    "glutathione", "caspase", "proteasome",
+    "exosome", "ribosome", "chromosome", "lysosome",
+    "endosome", "autophagosome", "phagosome", "peroxisome",
+    "mitochondrione", "nucleosome",
+    "acridine", "flavine", "riboflavine",
+    "supernatine", "crystalline",
+    "opaline", "tramadole",
 }
 
 # Gene name pattern (uppercase letters with numbers, optional orf notation)
@@ -226,20 +292,26 @@ def extract_drugs(word_counts: Counter) -> list[dict]:
                 "frequency": freq,
             })
 
-    # Auto-detect additional drugs by suffix matching
+    # Auto-detect additional drugs by suffix matching.
+    # Require minimum 6 chars and minimum frequency of 2 to reduce noise
+    # from random words that happen to end in drug suffixes.
     for word, count in word_counts.most_common():
         word_lower = word.lower()
         if word_lower in seen_lower:
             continue
         if word_lower in DRUG_SUFFIX_STOPWORDS:
             continue
-        if len(word) < 4:
+        if len(word) < 6:
+            continue
+        # Skip words with digits (likely identifiers, not drug names)
+        if any(c.isdigit() for c in word):
+            continue
+        # Skip ALL_CAPS words (abbreviations, not drug names)
+        if word.isupper():
             continue
 
         if any(word_lower.endswith(suffix) for suffix in DRUG_SUFFIXES):
-            # Exclude very common English words and scientific terms that
-            # happen to match suffixes
-            if count >= 1:
+            if count >= 2:
                 seen_lower.add(word_lower)
                 entities.append({
                     "canonical": word_lower,
@@ -287,21 +359,31 @@ def extract_genes(word_counts: Counter) -> list[dict]:
                 "frequency": freq,
             })
 
-    # Auto-detect additional gene-like tokens from corpus
+    # Auto-detect additional gene-like tokens from corpus.
+    # Gene names are typically 2-10 uppercase chars with at least one digit
+    # (e.g., BRCA1, TP53, IL6, APOE4). We require:
+    #   - Matches GENE_PATTERN (uppercase + digits)
+    #   - Has at least one digit (to distinguish from abbreviations)
+    #   - Length 2-10 characters (gene names are short)
+    #   - Not a common non-gene abbreviation
+    #   - Minimum frequency of 3 (filters out noise/typos)
     for word, count in word_counts.most_common():
         if word.lower() in seen_lower:
             continue
-        if len(word) < 2 or len(word) > 15:
+        if len(word) < 2 or len(word) > 10:
             continue
+        if count < 3:
+            break  # word_counts.most_common() is sorted desc, so stop early
 
-        # Match gene pattern: uppercase + numbers, may have orf notation
         if GENE_PATTERN.match(word):
-            # Additional filtering: must have at least one digit or be a
-            # known gene-like pattern (all-caps with 2-6 chars)
             has_digit = any(c.isdigit() for c in word)
-            short_allcaps = len(word) <= 6 and word.isalpha() and word.isupper()
+            has_letter = any(c.isalpha() for c in word)
 
-            # Exclude very common abbreviations that aren't genes
+            # Must have both letters and digits to look like a gene
+            if not (has_digit and has_letter):
+                continue
+
+            # Exclude common non-gene abbreviations and identifiers
             non_gene_abbrevs = {
                 "THE", "AND", "FOR", "ARE", "BUT", "NOT", "YOU", "ALL",
                 "CAN", "HER", "WAS", "ONE", "OUR", "OUT", "HAS", "HIS",
@@ -310,21 +392,25 @@ def extract_genes(word_counts: Counter) -> list[dict]:
                 "MAY", "RNA", "DNA", "BMI", "FDA", "USA", "MRI", "ICU",
                 "HIV", "WHO", "ALS", "FTD", "EMG", "FVC", "UMN", "LMN",
                 "MND", "PLS", "PMA", "PBP", "NIV", "PEG", "CSF", "DTI",
-                "PET", "ASO", "AAV", "RNAi", "MSC", "SBMA", "HSP", "PBA",
-                "AAC", "CNS", "BBB", "CSF", "EEG", "PCR", "SNP", "QOL",
+                "PET", "ASO", "AAV", "MSC", "SBMA", "HSP", "PBA",
+                "AAC", "CNS", "BBB", "EEG", "PCR", "SNP", "QOL",
                 "RCT", "IRB", "NIH", "DOI", "PDF", "URL", "PMC", "PPI",
-                "AUC", "ROC", "SEM", "IQR",
+                "AUC", "ROC", "SEM", "IQR", "SD1", "SD2", "IC50",
+                "EC50", "LD50", "ED50", "HR1", "HR2", "CI95",
             }
             if word in non_gene_abbrevs:
                 continue
 
-            if has_digit and count >= 1:
-                seen_lower.add(word.lower())
-                entities.append({
-                    "canonical": word,
-                    "aliases": [],
-                    "frequency": count,
-                })
+            # Exclude figure/table references (e.g., S1, S2, S3...)
+            if re.match(r"^[A-Z]\d+$", word) and len(word) <= 3:
+                continue
+
+            seen_lower.add(word.lower())
+            entities.append({
+                "canonical": word,
+                "aliases": [],
+                "frequency": count,
+            })
 
     return entities
 
@@ -464,12 +550,19 @@ def extract_institutions(corpus_path: str) -> list[dict]:
                 for match in matches:
                     # Normalize: strip whitespace, collapse internal spaces
                     normalized = " ".join(match.split()).strip()
-                    if len(normalized) < 8:
+                    if len(normalized) < 10:
                         continue
-                    # Skip matches that are just generic words
-                    if normalized.lower() in {"the hospital", "a hospital",
-                                               "the institute", "a foundation",
-                                               "the foundation"}:
+                    # Skip matches that are too generic or fragments
+                    skip_patterns = {
+                        "the hospital", "a hospital", "the institute",
+                        "a foundation", "the foundation", "the university",
+                        "s hospital", "this hospital", "our hospital",
+                        "general hospital", "the clinic", "the medical center",
+                    }
+                    if normalized.lower() in skip_patterns:
+                        continue
+                    # Must start with a capital letter (proper noun)
+                    if not normalized[0].isupper():
                         continue
                     institution_counts[normalized] += 1
 
