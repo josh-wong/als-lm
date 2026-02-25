@@ -131,12 +131,15 @@ class EpochTracker:
         self.current_epoch = 0
         self.epoch_losses = []
         self._total_epochs = 0
+        self._completed_epoch_avg_loss = 0.0
 
     def update(self, step: int, loss: float) -> bool:
         """Update tracker. Returns True if epoch boundary crossed."""
         new_epoch = step // self.steps_per_epoch if self.steps_per_epoch > 0 else 0
         self.epoch_losses.append(loss)
         if new_epoch > self.current_epoch:
+            # Save the completed epoch's average before clearing
+            self._completed_epoch_avg_loss = self.avg_epoch_loss
             self.current_epoch = new_epoch
             self.epoch_losses = []
             return True
@@ -156,6 +159,15 @@ class EpochTracker:
         if not self.epoch_losses:
             return 0.0
         return sum(self.epoch_losses) / len(self.epoch_losses)
+
+    @property
+    def completed_epoch_avg_loss(self) -> float:
+        """Average loss of the most recently completed epoch.
+
+        Only valid immediately after update() returns True. Captures the
+        epoch average before epoch_losses is cleared for the new epoch.
+        """
+        return self._completed_epoch_avg_loss
 
     @property
     def total_epochs(self) -> int:
@@ -1158,6 +1170,10 @@ def main():
     start_step = try_resume(model_engine, args, run_dir)
     is_resuming = start_step > 0
 
+    # Sync EpochTracker with resumed position to avoid spurious epoch banner
+    if is_resuming:
+        epoch_tracker.current_epoch = start_step // epoch_tracker.steps_per_epoch if epoch_tracker.steps_per_epoch > 0 else 0
+
     # ---- Logging setup -----------------------------------------------------
     log_path, log_file = setup_logging(is_resuming=is_resuming)
     if is_resuming:
@@ -1185,7 +1201,6 @@ def main():
 
     # Anomaly detection state
     loss_history = deque(maxlen=50)
-    grad_norm_history = deque(maxlen=50)
     step_times = deque(maxlen=50)
     GRAD_NORM_WARN_THRESHOLD = 10.0
     LOSS_SPIKE_FACTOR = 2.0
@@ -1196,7 +1211,7 @@ def main():
     best_val_step = 0
     final_train_loss = 0.0
     final_val_loss = 0.0
-    total_tokens_processed = 0
+    total_tokens_processed = start_step * tokens_per_step if is_resuming else 0
     loss_warned = False
 
     training_start_time = time.time()
@@ -1258,13 +1273,11 @@ def main():
 
         # Update anomaly detection deques
         loss_history.append(current_loss)
-        grad_norm_history.append(grad_norm)
         step_times.append(dt)
 
         # Epoch boundary banner
         if epoch_crossed:
             elapsed = time.time() - training_start_time
-            avg_loss = epoch_tracker.avg_epoch_loss
             prev_epoch = epoch_tracker.epoch  # Already incremented
             print(f"\n  {BOLD}{'=' * 50}{RESET}")
             print(f"  {BOLD}  Epoch {prev_epoch}/{epoch_tracker.total_epochs}{RESET}")
@@ -1273,7 +1286,7 @@ def main():
                 log_file,
                 epoch=prev_epoch,
                 steps_in_epoch=epoch_tracker.steps_per_epoch,
-                avg_train_loss=avg_loss if avg_loss > 0 else current_loss,
+                avg_train_loss=epoch_tracker.completed_epoch_avg_loss,
                 total_tokens=total_tokens_processed,
                 elapsed_sec=elapsed,
             )
