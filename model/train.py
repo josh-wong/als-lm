@@ -598,7 +598,8 @@ def save_best_checkpoint_atomic(model_engine, run_dir, step, val_loss,
         os.makedirs(temp_best_run, exist_ok=True)
 
         # 1. DeepSpeed saves to temp directory
-        client_state = {"step": step, "val_loss": val_loss}
+        client_state = {"step": step, "val_loss": val_loss,
+                        "best_val_loss": val_loss, "best_val_step": step}
         model_engine.save_checkpoint(temp_best_run, tag=tag, client_state=client_state)
 
         # 2. Extract fp32 state dict and save as best.pt (only for best)
