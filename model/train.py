@@ -18,10 +18,12 @@ Key features:
   validates vocab_size matches the canonical tokenizer before training.
 - **Epoch tracking:** EpochTracker class converts step counts into epoch
   numbers, epoch progress, and detects epoch boundary crossings.
-- **Dual checkpoints:** Saves both DeepSpeed directory checkpoints (for
-  resume) and raw .pt files (for export) at each checkpoint interval.
-- **Checkpoint retention:** Keeps last 3 checkpoints + best (lowest val
-  loss), deleting both formats for expired checkpoints.
+- **Best checkpoint:** Saves best checkpoint (lowest val loss) to best/
+  directory with both DeepSpeed directory and .pt export for downstream use.
+- **Regular checkpoints:** Saves DeepSpeed directory checkpoints (for resume)
+  at each checkpoint interval. No .pt export for regular checkpoints.
+- **Checkpoint retention:** Keeps last 3 regular checkpoints + best (lowest
+  val loss), deleting expired DeepSpeed directories.
 - **Console + JSON logging:** Colored one-liner console output every 10
   steps with ETA, JSON lines to a fixed log file at logs/training_log.jsonl.
 - **Enriched JSONL metrics:** epoch, perplexity, loss_scale, grad_norm,
@@ -800,12 +802,14 @@ def try_resume(model_engine, args, run_dir):
     If --resume is provided, uses that path. Otherwise, auto-detects the
     latest checkpoint in the run directory.
 
-    Returns the starting step number (0 if no checkpoint found).
+    Returns a dict with start_step, best_val_loss, and best_val_step
+    (defaults for fresh start if no checkpoint found).
     """
+    fresh = {"start_step": 0, "best_val_loss": float("inf"), "best_val_step": 0}
     ckpt_dir = args.resume if args.resume else run_dir
 
     if not os.path.isdir(ckpt_dir):
-        return 0
+        return fresh
 
     # Check if there are any checkpoint subdirectories
     has_checkpoints = any(
@@ -813,7 +817,7 @@ def try_resume(model_engine, args, run_dir):
         for entry in os.listdir(ckpt_dir)
     )
     if not has_checkpoints:
-        return 0
+        return fresh
 
     try:
         load_path, client_state = model_engine.load_checkpoint(
@@ -827,12 +831,16 @@ def try_resume(model_engine, args, run_dir):
             print(f"\n  Resumed from: {load_path}")
             print(f"  Starting at step: {start_step}")
             print(f"  Last loss: {last_loss}")
-            return start_step
+            return {
+                "start_step": start_step,
+                "best_val_loss": client_state.get("best_val_loss", float("inf")),
+                "best_val_step": client_state.get("best_val_step", 0),
+            }
     except Exception as e:
         print(f"\n  WARNING: Failed to resume from {ckpt_dir}: {e}")
         print("  Starting training from scratch.")
 
-    return 0
+    return fresh
 
 
 # ---------------------------------------------------------------------------
@@ -1339,7 +1347,8 @@ def main():
                 shutil.rmtree(tmp_path, ignore_errors=True)
 
     # ---- Resume support ----------------------------------------------------
-    start_step = try_resume(model_engine, args, run_dir)
+    resume_info = try_resume(model_engine, args, run_dir)
+    start_step = resume_info["start_step"]
     is_resuming = start_step > 0
 
     # Sync EpochTracker with resumed position to avoid spurious epoch banner
@@ -1390,6 +1399,11 @@ def main():
     last_val_loss = float("inf")
     last_val_step = -1
     checkpoint_interval = args.checkpoint_interval
+
+    # Restore best tracker from checkpoint on resume (overrides defaults above)
+    if is_resuming:
+        best_val_loss = resume_info["best_val_loss"]
+        best_val_step = resume_info["best_val_step"]
 
     # Checkpoint statistics counters
     total_checkpoints_saved = 0
@@ -1665,6 +1679,8 @@ def main():
                 "train_loss": current_loss,
                 "val_loss": last_val_loss,
                 "lr": current_lr,
+                "best_val_loss": best_val_loss,
+                "best_val_step": best_val_step,
             }
             checkpoint_meta = {
                 "step": step,
