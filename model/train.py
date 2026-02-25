@@ -551,7 +551,9 @@ def save_checkpoint_atomic(model_engine, run_dir, step, client_state, checkpoint
         with open(meta_path, "w") as f:
             json.dump(checkpoint_meta, f, indent=2)
 
-        # 3. Atomic rename: remove old final dir if it exists, then rename
+        # 3. Rename into place. Note: the rmtree+rename pair is not truly
+        # atomic -- a kill between the two loses both old and new. This is
+        # acceptable because retention keeps 3 checkpoints as a buffer.
         if os.path.exists(final_dir):
             shutil.rmtree(final_dir)
         os.rename(os.path.join(temp_run_dir, tag), final_dir)
@@ -626,7 +628,9 @@ def save_best_checkpoint_atomic(model_engine, run_dir, step, val_loss,
         with open(meta_path, "w") as f:
             json.dump(meta, f, indent=2)
 
-        # 4. Atomic replace: remove old best/, rename new tag dir to best/
+        # 4. Replace best/. Note: rmtree+rename is not truly atomic -- a
+        # kill between the two loses the old best. The regular checkpoint
+        # rotation provides recovery if this narrow window is hit.
         if os.path.exists(best_dir):
             shutil.rmtree(best_dir)
         os.rename(os.path.join(temp_best_run, tag), best_dir)
