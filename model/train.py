@@ -18,10 +18,12 @@ Key features:
   validates vocab_size matches the canonical tokenizer before training.
 - **Epoch tracking:** EpochTracker class converts step counts into epoch
   numbers, epoch progress, and detects epoch boundary crossings.
-- **Dual checkpoints:** Saves both DeepSpeed directory checkpoints (for
-  resume) and raw .pt files (for export) at each checkpoint interval.
-- **Checkpoint retention:** Keeps last 3 checkpoints + best (lowest val
-  loss), deleting both formats for expired checkpoints.
+- **Best checkpoint:** Saves best checkpoint (lowest val loss) to best/
+  directory with both DeepSpeed directory and .pt export for downstream use.
+- **Regular checkpoints:** Saves DeepSpeed directory checkpoints (for resume)
+  at each checkpoint interval. No .pt export for regular checkpoints.
+- **Checkpoint retention:** Keeps last 3 regular checkpoints + best (lowest
+  val loss), deleting expired DeepSpeed directories.
 - **Console + JSON logging:** Colored one-liner console output every 10
   steps with ETA, JSON lines to a fixed log file at logs/training_log.jsonl.
 - **Enriched JSONL metrics:** epoch, perplexity, loss_scale, grad_norm,
@@ -250,7 +252,13 @@ def parse_args():
         "--eval-interval",
         type=int,
         default=500,
-        help="Steps between validation / checkpoint (default: 500)",
+        help="Steps between validation (default: 500)",
+    )
+    parser.add_argument(
+        "--checkpoint-interval",
+        type=int,
+        default=1000,
+        help="Steps between checkpoint saves (default: 1000)",
     )
     parser.add_argument(
         "--eval-iters",
@@ -512,80 +520,152 @@ def get_gpu_total_memory_mb(handle):
 
 
 # ---------------------------------------------------------------------------
-# Checkpoint saving
+# Checkpoint saving (atomic pattern: temp-dir-then-rename)
 # ---------------------------------------------------------------------------
-def save_checkpoint(
-    model_engine, model_config_dict, step, train_loss, val_loss, lr, run_dir, config_name
-):
-    """Save both DeepSpeed directory checkpoint and raw .pt file.
+def save_checkpoint_atomic(model_engine, run_dir, step, client_state, checkpoint_meta, config_name):
+    """Save a regular DeepSpeed checkpoint atomically (no .pt export).
 
-    Wraps the entire save process in try/except so that a failed checkpoint
-    does not stop training (per CONTEXT.md locked decision).
+    Writes to a temporary directory, then atomically renames to the final
+    path. If interrupted mid-write, only the temp directory is affected;
+    existing checkpoints remain intact.
+
+    Returns the save duration in seconds.
     """
     tag = f"step_{step}"
+    final_dir = os.path.join(run_dir, tag)
+    temp_run_dir = os.path.join(run_dir, f".tmp_run_step_{step}")
 
+    # Clean up any leftover temp dir from a previous failed save
+    if os.path.exists(temp_run_dir):
+        shutil.rmtree(temp_run_dir)
+
+    t0 = time.time()
     try:
-        # 1. Save DeepSpeed directory checkpoint (optimizer states, sharded model)
-        client_state = {"step": step, "train_loss": train_loss, "val_loss": val_loss, "lr": lr}
-        model_engine.save_checkpoint(run_dir, tag=tag, client_state=client_state)
+        os.makedirs(temp_run_dir, exist_ok=True)
 
-        # 2. Extract fp32 state dict from ZeRO checkpoint
-        # Pass run_dir (which contains the 'latest' file) with an explicit tag
-        # so the utility can locate the step_N/ subdirectory correctly.
-        ds_ckpt_path = os.path.join(run_dir, tag)
-        state_dict = get_fp32_state_dict_from_zero_checkpoint(run_dir, tag=tag)
+        # 1. DeepSpeed saves to temp run directory (creates temp_run_dir/tag/)
+        model_engine.save_checkpoint(temp_run_dir, tag=tag, client_state=client_state)
 
-        # 3. Save raw .pt file for export
+        # 2. Write enriched checkpoint_meta.json into the DeepSpeed tag subdir
+        meta_path = os.path.join(temp_run_dir, tag, "checkpoint_meta.json")
+        with open(meta_path, "w") as f:
+            json.dump(checkpoint_meta, f, indent=2)
+
+        # 3. Rename into place. Note: the rmtree+rename pair is not truly
+        # atomic -- a kill between the two loses both old and new. This is
+        # acceptable because retention keeps 3 checkpoints as a buffer.
+        if os.path.exists(final_dir):
+            shutil.rmtree(final_dir)
+        os.rename(os.path.join(temp_run_dir, tag), final_dir)
+
+        # 4. Update run_dir/latest file to point to the new tag
+        latest_path = os.path.join(run_dir, "latest")
+        with open(latest_path, "w") as f:
+            f.write(tag)
+
+        # 5. Clean up the temp run directory shell
+        shutil.rmtree(temp_run_dir, ignore_errors=True)
+
+        save_duration = time.time() - t0
+        return save_duration
+
+    except Exception:
+        # Clean up temp on failure; existing checkpoints untouched
+        if os.path.exists(temp_run_dir):
+            shutil.rmtree(temp_run_dir, ignore_errors=True)
+        raise
+
+
+def save_best_checkpoint_atomic(model_engine, run_dir, step, val_loss,
+                                model_config_dict, config_name, epoch,
+                                wall_clock_elapsed):
+    """Save the best checkpoint to best/ with atomic rename and .pt export.
+
+    The best checkpoint includes both the DeepSpeed directory (for resume)
+    and a raw .pt file (for export). Only the best checkpoint gets a .pt
+    export to save ~2 GB per regular checkpoint.
+
+    Returns the save duration in seconds.
+    """
+    best_dir = os.path.join(run_dir, "best")
+    temp_best_run = os.path.join(run_dir, ".tmp_best")
+    tag = f"step_{step}"
+
+    # Clean up any leftover temp dir
+    if os.path.exists(temp_best_run):
+        shutil.rmtree(temp_best_run)
+
+    t0 = time.time()
+    try:
+        os.makedirs(temp_best_run, exist_ok=True)
+
+        # 1. DeepSpeed saves to temp directory
+        client_state = {"step": step, "val_loss": val_loss,
+                        "best_val_loss": val_loss, "best_val_step": step}
+        model_engine.save_checkpoint(temp_best_run, tag=tag, client_state=client_state)
+
+        # 2. Extract fp32 state dict and save as best.pt (only for best)
+        state_dict = get_fp32_state_dict_from_zero_checkpoint(temp_best_run, tag=tag)
         pt_checkpoint = {
             "model": state_dict,
             "config": model_config_dict,
             "step": step,
-            "train_loss": train_loss,
             "val_loss": val_loss,
         }
-        pt_path = os.path.join(run_dir, f"{tag}.pt")
-        torch.save(pt_checkpoint, pt_path)
+        torch.save(pt_checkpoint, os.path.join(temp_best_run, tag, "best.pt"))
 
-        # 4. Save checkpoint_meta.json
+        # 3. Write enriched checkpoint_meta.json with is_best=True
         meta = {
             "step": step,
-            "train_loss": train_loss,
             "val_loss": val_loss,
-            "lr": lr,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "is_best": True,
+            "epoch": epoch,
+            "wall_clock_elapsed": wall_clock_elapsed,
             "config_name": config_name,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
-        meta_path = os.path.join(ds_ckpt_path, "checkpoint_meta.json")
+        meta_path = os.path.join(temp_best_run, tag, "checkpoint_meta.json")
         with open(meta_path, "w") as f:
             json.dump(meta, f, indent=2)
 
-        # 5. Print checkpoint info
-        ds_size = sum(
-            os.path.getsize(os.path.join(dp, fn))
-            for dp, _, fnames in os.walk(ds_ckpt_path)
-            for fn in fnames
-        )
-        pt_size = os.path.getsize(pt_path)
-        print(f"\n  Checkpoint saved: {ds_ckpt_path}")
-        print(f"    DeepSpeed dir: {ds_size / 1024 / 1024:.1f} MB")
-        print(f"    Raw .pt file:  {pt_size / 1024 / 1024:.1f} MB")
+        # 4. Replace best/. Note: rmtree+rename is not truly atomic -- a
+        # kill between the two loses the old best. The regular checkpoint
+        # rotation provides recovery if this narrow window is hit.
+        if os.path.exists(best_dir):
+            shutil.rmtree(best_dir)
+        os.rename(os.path.join(temp_best_run, tag), best_dir)
 
-    except Exception as e:
-        print(f"\n  WARNING: Checkpoint save failed at step {step}: {e}")
-        print("  Training will continue without this checkpoint.")
+        # 5. Clean up temp shell
+        shutil.rmtree(temp_best_run, ignore_errors=True)
+
+        save_duration = time.time() - t0
+        return save_duration
+
+    except Exception:
+        # Clean up temp on failure
+        if os.path.exists(temp_best_run):
+            shutil.rmtree(temp_best_run, ignore_errors=True)
+        raise
 
 
-def cleanup_checkpoints(run_dir, keep_last=3):
-    """Retain last N checkpoints + best (lowest val loss), delete the rest.
+def cleanup_checkpoints(run_dir, keep_last=3, log_file=None):
+    """Retain last N regular checkpoints + best/ + emergency, delete the rest.
 
-    Deletes both the DeepSpeed directory (step_N/) and the .pt file
-    (step_N.pt) for expired checkpoints.
+    Only deletes regular step_XXXX/ DeepSpeed directories. Skips best/,
+    emergency_*, and .tmp_* directories. Regular checkpoints no longer
+    have .pt files (only best/ gets a .pt export).
+
+    If log_file is provided, logs individual checkpoint_delete events to JSONL.
     """
-    # Find all checkpoint step directories
+    # Find all regular checkpoint step directories (skip best, emergency, tmp)
     steps = []
     for entry in os.listdir(run_dir):
         entry_path = os.path.join(run_dir, entry)
-        if os.path.isdir(entry_path) and entry.startswith("step_"):
+        if not os.path.isdir(entry_path):
+            continue
+        if entry.startswith("best") or entry.startswith("emergency_") or entry.startswith(".tmp"):
+            continue
+        if entry.startswith("step_"):
             try:
                 step_num = int(entry.split("_")[1])
                 steps.append(step_num)
@@ -596,57 +676,126 @@ def cleanup_checkpoints(run_dir, keep_last=3):
     if len(steps) <= keep_last:
         return  # Nothing to clean up
 
-    # Read best step from tracking file
-    best_step_file = os.path.join(run_dir, "best_step.txt")
-    best_step = None
-    if os.path.isfile(best_step_file):
-        try:
-            with open(best_step_file) as f:
-                best_step = int(f.read().strip())
-        except (ValueError, OSError):
-            pass
-
-    # Determine which steps to keep: last N + best
+    # Keep last N regular checkpoints (best/ is separate and always kept)
     keep_set = set(steps[-keep_last:])
-    if best_step is not None:
-        keep_set.add(best_step)
 
-    # Delete expired checkpoints
+    # Delete expired regular checkpoints (DeepSpeed directories only)
     for step_num in steps:
         if step_num not in keep_set:
-            # Delete DeepSpeed directory
             ds_dir = os.path.join(run_dir, f"step_{step_num}")
             if os.path.isdir(ds_dir):
                 shutil.rmtree(ds_dir)
                 print(f"  Deleted checkpoint: {ds_dir}")
+                if log_file is not None:
+                    log_checkpoint_event(log_file, "checkpoint_delete", step_num, {
+                        "path": f"step_{step_num}",
+                        "reason": "retention_policy",
+                    })
 
-            # Delete .pt file
-            pt_file = os.path.join(run_dir, f"step_{step_num}.pt")
-            if os.path.isfile(pt_file):
-                os.remove(pt_file)
-                print(f"  Deleted checkpoint: {pt_file}")
 
+# ---------------------------------------------------------------------------
+# Emergency shutdown (NaN/Inf loss detection)
+# ---------------------------------------------------------------------------
+def emergency_shutdown(
+    model_engine, step, loss_value, run_dir, log_file, tb_writer,
+    loss_history, grad_norm_history, loss_scale_history,
+    epoch_tracker, training_start_time, args, gpu_handle, optimizer,
+):
+    """Save emergency checkpoint, write diagnostics, print banner, and exit.
 
-def update_best_checkpoint(run_dir, step, val_loss):
-    """Track the best checkpoint (lowest val loss) in a persistent file."""
-    best_step_file = os.path.join(run_dir, "best_step.txt")
-    best_loss_file = os.path.join(run_dir, "best_loss.txt")
+    Called when NaN or Inf is detected in the loss BEFORE backward pass,
+    preserving clean optimizer state. Exits with code 2 (distinct from
+    general errors which use code 1).
+    """
+    # Step A: Save emergency DeepSpeed checkpoint (non-atomic, diagnostics only)
+    emergency_dir = os.path.join(run_dir, f"emergency_step_{step}")
+    try:
+        model_engine.save_checkpoint(
+            run_dir, tag=f"emergency_step_{step}",
+            client_state={"step": step, "loss_value": str(loss_value)},
+        )
+        print(f"  Emergency checkpoint saved: {emergency_dir}")
+    except Exception as e:
+        print(f"  {YELLOW}WARNING: Emergency checkpoint save failed: {e}{RESET}")
+        print(f"  (Model state may contain NaN -- continuing with diagnostics)")
 
-    current_best_loss = float("inf")
-    if os.path.isfile(best_loss_file):
-        try:
-            with open(best_loss_file) as f:
-                current_best_loss = float(f.read().strip())
-        except (ValueError, OSError):
-            pass
+    # Step B: Write emergency_diagnostics.json alongside the emergency checkpoint
+    diagnostics = {
+        "type": "emergency",
+        "step": step,
+        "epoch": epoch_tracker.epoch,
+        "epoch_progress": epoch_tracker.epoch_progress(step),
+        "loss_value": str(loss_value),
+        "wall_clock_sec": time.time() - training_start_time,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "loss_history": [float(v) for v in loss_history],
+        "grad_norm_history": [float(v) for v in grad_norm_history],
+        "loss_scale_history": [float(v) for v in loss_scale_history],
+        "current_lr": optimizer.param_groups[0]["lr"],
+        "gpu_memory_mb": get_gpu_memory_mb(gpu_handle),
+        "gpu_total_mb": get_gpu_total_memory_mb(gpu_handle),
+        "training_config": {
+            "config_name": args.config,
+            "max_steps": args.max_steps if hasattr(args, "max_steps") else None,
+            "batch_size": args.batch_size,
+            "grad_accum": args.grad_accum,
+            "lr": args.lr,
+            "seed": args.seed,
+            "eval_interval": args.eval_interval,
+            "checkpoint_interval": args.checkpoint_interval,
+        },
+    }
+    diagnostics_path = os.path.join(run_dir, f"emergency_diagnostics_step_{step}.json")
+    try:
+        with open(diagnostics_path, "w") as f:
+            json.dump(diagnostics, f, indent=2)
+    except Exception as e:
+        print(f"  {YELLOW}WARNING: Failed to write diagnostics: {e}{RESET}")
+        diagnostics_path = "(write failed)"
 
-    if val_loss < current_best_loss:
-        with open(best_step_file, "w") as f:
-            f.write(str(step))
-        with open(best_loss_file, "w") as f:
-            f.write(str(val_loss))
-        return True  # New best
-    return False
+    # Step C: Log emergency event to JSONL
+    try:
+        log_checkpoint_event(log_file, "emergency", step, {
+            "epoch": epoch_tracker.epoch,
+            "loss_value": str(loss_value),
+        })
+    except Exception:
+        pass  # Best effort -- file may already be in bad state
+
+    # Step D: Find last good regular checkpoint
+    last_good = None
+    last_good_path = None
+    try:
+        for dir_entry in sorted(os.listdir(run_dir), reverse=True):
+            if (
+                dir_entry.startswith("step_")
+                and not dir_entry.startswith("emergency_")
+                and os.path.isdir(os.path.join(run_dir, dir_entry))
+            ):
+                last_good = dir_entry
+                last_good_path = os.path.join(run_dir, dir_entry)
+                break
+    except OSError:
+        pass
+
+    # Step E: Print bold multi-line emergency banner
+    print(f"\n{RED}{BOLD}{'=' * 60}")
+    print(f"  EMERGENCY SHUTDOWN: NaN/Inf loss detected")
+    print(f"{'=' * 60}{RESET}")
+    print(f"  {RED}Step:              {step}{RESET}")
+    print(f"  {RED}Loss value:        {loss_value}{RESET}")
+    print(f"  {RED}Emergency ckpt:    {emergency_dir}{RESET}")
+    print(f"  {RED}Last good ckpt:    {last_good_path if last_good else 'None'}{RESET}")
+    print(f"  {RED}Diagnostics:       {diagnostics_path}{RESET}")
+    resume_path = last_good_path if last_good else run_dir
+    print(f"\n  {BOLD}To resume from last good checkpoint:{RESET}")
+    print(f"  deepspeed model/train.py --deepspeed --deepspeed_config config/ds_zero2.json --config {args.config} --resume {resume_path}")
+    print(f"\n{RED}{BOLD}{'=' * 60}{RESET}\n")
+
+    # Step F: Close resources and exit
+    log_file.close()
+    tb_writer.close()
+    sys.exit(2)
 
 
 # ---------------------------------------------------------------------------
@@ -658,12 +807,14 @@ def try_resume(model_engine, args, run_dir):
     If --resume is provided, uses that path. Otherwise, auto-detects the
     latest checkpoint in the run directory.
 
-    Returns the starting step number (0 if no checkpoint found).
+    Returns a dict with start_step, best_val_loss, and best_val_step
+    (defaults for fresh start if no checkpoint found).
     """
+    fresh = {"start_step": 0, "best_val_loss": float("inf"), "best_val_step": 0}
     ckpt_dir = args.resume if args.resume else run_dir
 
     if not os.path.isdir(ckpt_dir):
-        return 0
+        return fresh
 
     # Check if there are any checkpoint subdirectories
     has_checkpoints = any(
@@ -671,7 +822,7 @@ def try_resume(model_engine, args, run_dir):
         for entry in os.listdir(ckpt_dir)
     )
     if not has_checkpoints:
-        return 0
+        return fresh
 
     try:
         load_path, client_state = model_engine.load_checkpoint(
@@ -685,12 +836,16 @@ def try_resume(model_engine, args, run_dir):
             print(f"\n  Resumed from: {load_path}")
             print(f"  Starting at step: {start_step}")
             print(f"  Last loss: {last_loss}")
-            return start_step
+            return {
+                "start_step": start_step,
+                "best_val_loss": client_state.get("best_val_loss", float("inf")),
+                "best_val_step": client_state.get("best_val_step", 0),
+            }
     except Exception as e:
         print(f"\n  WARNING: Failed to resume from {ckpt_dir}: {e}")
         print("  Starting training from scratch.")
 
-    return 0
+    return fresh
 
 
 # ---------------------------------------------------------------------------
@@ -830,6 +985,21 @@ def log_resume(log_file, step):
     log_file.flush()
 
 
+def log_checkpoint_event(log_file, event_type, step, details):
+    """Log checkpoint-related events to JSONL.
+
+    event_type: 'checkpoint_save', 'checkpoint_delete', 'best_update', 'emergency'
+    """
+    entry = {
+        "type": event_type,
+        "step": step,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        **details,
+    }
+    log_file.write(json.dumps(entry) + "\n")
+    log_file.flush()
+
+
 # ---------------------------------------------------------------------------
 # DeepSpeed config resolution
 # ---------------------------------------------------------------------------
@@ -894,6 +1064,7 @@ def print_dry_run(args, model_config, vocab_size, train_tokens, val_tokens, ds_c
     print(f"    Learning rate:   {args.lr:.1e}")
     print(f"    Warmup steps:    {args.warmup_steps}")
     print(f"    Eval interval:   {args.eval_interval}")
+    print(f"    Checkpoint:      every {args.checkpoint_interval} steps")
     print(f"    Seed:            {args.seed}")
     print(f"    Gradient checkpointing: {args.gradient_checkpointing}")
 
@@ -979,8 +1150,8 @@ def print_config_summary(args, model_config, param_count, vocab_size,
     print(f"    Learning rate:   {args.lr:.1e}")
     print(f"    Warmup steps:    {args.warmup_steps}")
     print(f"    Eval interval:   {args.eval_interval}")
+    print(f"    Checkpoint:      every {args.checkpoint_interval} steps")
     print(f"    Log interval:    {args.log_interval}")
-    print(f"    Checkpoint:      every {args.eval_interval} steps")
     print(f"    Seed:            {args.seed}")
 
     zero_stage = ds_config.get("zero_optimization", {}).get("stage", "N/A")
@@ -1019,8 +1190,11 @@ def print_training_summary(
     total_tokens_processed,
     run_dir,
     epoch_tracker=None,
+    total_checkpoints_saved=0,
+    total_best_updates=0,
+    total_bytes_written=0,
 ):
-    """Print the end-of-run training summary."""
+    """Print the end-of-run training summary with checkpoint statistics."""
     time_str = format_time(elapsed_time)
     avg_throughput = total_tokens_processed / elapsed_time if elapsed_time > 0 else 0
 
@@ -1031,10 +1205,8 @@ def print_training_summary(
 
     epochs_completed = epoch_tracker.epoch if epoch_tracker else 0
 
-    # Find best checkpoint path
-    best_ckpt_path = os.path.join(run_dir, f"step_{best_val_step}.pt")
-    if not os.path.isfile(best_ckpt_path):
-        best_ckpt_path = os.path.join(run_dir, f"step_{best_val_step}")
+    # Best checkpoint is always in the fixed best/ directory
+    best_ckpt_path = os.path.join(run_dir, "best")
 
     best_epoch = best_val_step // epoch_tracker.steps_per_epoch if epoch_tracker and epoch_tracker.steps_per_epoch > 0 else 0
 
@@ -1053,6 +1225,11 @@ def print_training_summary(
     print(f"  Avg throughput:     {avg_throughput:,.0f} tokens/sec")
     print(f"  Best checkpoint:    {best_ckpt_path}")
     print(f"  Checkpoint dir:     {run_dir}")
+    print(f"\n  {BOLD}Checkpoint Statistics:{RESET}")
+    print(f"    Total checkpoints saved:  {total_checkpoints_saved}")
+    print(f"    Best checkpoint updates:  {total_best_updates}")
+    print(f"    Total disk written:       {total_bytes_written / 1024 / 1024 / 1024:.2f} GB")
+    print(f"    Best checkpoint:          step {best_val_step} (val loss: {best_val_loss:.4f})")
     print(f"{BOLD}{'=' * 64}{RESET}\n")
 
 
@@ -1166,8 +1343,17 @@ def main():
     os.makedirs(run_dir, exist_ok=True)
     print(f"  Checkpoint dir: {run_dir}")
 
+    # Clean up any orphaned temp directories from previous interrupted saves
+    for entry in os.listdir(run_dir):
+        if entry.startswith(".tmp_"):
+            tmp_path = os.path.join(run_dir, entry)
+            if os.path.isdir(tmp_path):
+                print(f"  {YELLOW}WARNING: Cleaned up orphaned temp directory from previous interrupted save: {tmp_path}{RESET}")
+                shutil.rmtree(tmp_path, ignore_errors=True)
+
     # ---- Resume support ----------------------------------------------------
-    start_step = try_resume(model_engine, args, run_dir)
+    resume_info = try_resume(model_engine, args, run_dir)
+    start_step = resume_info["start_step"]
     is_resuming = start_step > 0
 
     # Sync EpochTracker with resumed position to avoid spurious epoch banner
@@ -1200,8 +1386,10 @@ def main():
     eval_interval = args.eval_interval
 
     # Anomaly detection state
-    loss_history = deque(maxlen=50)
+    loss_history = deque(maxlen=100)
     step_times = deque(maxlen=50)
+    grad_norm_history = deque(maxlen=100)    # For emergency diagnostics
+    loss_scale_history = deque(maxlen=100)   # For emergency diagnostics
     GRAD_NORM_WARN_THRESHOLD = 10.0
     LOSS_SPIKE_FACTOR = 2.0
 
@@ -1213,6 +1401,19 @@ def main():
     final_val_loss = 0.0
     total_tokens_processed = start_step * tokens_per_step if is_resuming else 0
     loss_warned = False
+    last_val_loss = float("inf")
+    last_val_step = -1
+    checkpoint_interval = args.checkpoint_interval
+
+    # Restore best tracker from checkpoint on resume (overrides defaults above)
+    if is_resuming:
+        best_val_loss = resume_info["best_val_loss"]
+        best_val_step = resume_info["best_val_step"]
+
+    # Checkpoint statistics counters
+    total_checkpoints_saved = 0
+    total_best_updates = 0
+    total_bytes_written = 0
 
     training_start_time = time.time()
 
@@ -1223,254 +1424,329 @@ def main():
         tokens_per_step, epoch_tracker, gpu_handle,
     )
 
-    for step in range(start_step, max_steps):
-        t0 = time.time()
+    try:
+        for step in range(start_step, max_steps):
+            t0 = time.time()
 
-        # Forward pass through DeepSpeed engine
-        x, y = get_batch("train", batch_size, block_size, device, args.data_dir)
-        logits, loss = model_engine(x, targets=y)
+            # Forward pass through DeepSpeed engine
+            x, y = get_batch("train", batch_size, block_size, device, args.data_dir)
+            logits, loss = model_engine(x, targets=y)
 
-        # Backward pass (DeepSpeed handles loss scaling for fp16)
-        model_engine.backward(loss)
+            # Read loss BEFORE backward to preserve clean optimizer state on NaN
+            current_loss = loss.item()
 
-        # Weight update (handles gradient accumulation internally)
-        model_engine.step()
+            # NaN/Inf emergency shutdown (MUST be before backward pass)
+            if math.isnan(current_loss) or math.isinf(current_loss):
+                emergency_shutdown(
+                    model_engine=model_engine, step=step, loss_value=current_loss,
+                    run_dir=run_dir, log_file=log_file, tb_writer=tb_writer,
+                    loss_history=loss_history, grad_norm_history=grad_norm_history,
+                    loss_scale_history=loss_scale_history, epoch_tracker=epoch_tracker,
+                    training_start_time=training_start_time, args=args,
+                    gpu_handle=gpu_handle, optimizer=optimizer,
+                )
+                # emergency_shutdown calls sys.exit(2), never returns
 
-        t1 = time.time()
-        dt = t1 - t0
-        current_loss = loss.item()
+            # Backward pass (DeepSpeed handles loss scaling for fp16)
+            model_engine.backward(loss)
 
-        # Read DeepSpeed internal metrics (valid after step())
-        try:
-            loss_scale = model_engine.optimizer.cur_scale
-        except (AttributeError, RuntimeError):
-            loss_scale = 0.0
-        raw_grad_norm = model_engine.get_global_grad_norm()
-        grad_norm = float(raw_grad_norm) if raw_grad_norm is not None else 0.0
+            # Weight update (handles gradient accumulation internally)
+            model_engine.step()
 
-        # Update epoch tracker
-        epoch_crossed = epoch_tracker.update(step, current_loss)
+            t1 = time.time()
+            dt = t1 - t0
 
-        # Track initial loss for sanity check
-        if initial_loss is None:
-            initial_loss = current_loss
-
-        # Loss sanity checks
-        if math.isnan(current_loss) or math.isinf(current_loss):
-            print(f"\n{RED}FATAL: NaN/Inf loss at step {step}. Stopping immediately.{RESET}")
-            log_file.close()
-            tb_writer.close()
-            sys.exit(1)
-
-        if step == start_step + 100 and not loss_warned and current_loss >= initial_loss:
-            print(
-                f"\n  {YELLOW}WARNING: Loss has not decreased after 100 steps "
-                f"(initial: {initial_loss:.4f}, current: {current_loss:.4f}){RESET}"
-            )
-            loss_warned = True
-
-        total_tokens_processed += tokens_per_step
-
-        # Update anomaly detection deques
-        loss_history.append(current_loss)
-        step_times.append(dt)
-
-        # Epoch boundary banner
-        if epoch_crossed:
-            elapsed = time.time() - training_start_time
-            prev_epoch = epoch_tracker.epoch  # Already incremented
-            print(f"\n  {BOLD}{'=' * 50}{RESET}")
-            print(f"  {BOLD}  Epoch {prev_epoch}/{epoch_tracker.total_epochs}{RESET}")
-            print(f"  {BOLD}{'=' * 50}{RESET}")
-            log_epoch(
-                log_file,
-                epoch=prev_epoch,
-                steps_in_epoch=epoch_tracker.steps_per_epoch,
-                avg_train_loss=epoch_tracker.completed_epoch_avg_loss,
-                total_tokens=total_tokens_processed,
-                elapsed_sec=elapsed,
-            )
-
-        # Log every log_interval steps
-        if step % log_interval == 0:
-            current_lr = optimizer.param_groups[0]["lr"]
-            tokens_per_sec = tokens_per_step / dt if dt > 0 else 0
-            gpu_mem = get_gpu_memory_mb(gpu_handle)
-
-            # Anomaly detection
-            loss_warning = False
-            grad_warning = False
-            if len(loss_history) >= 10:
-                avg_loss = sum(loss_history) / len(loss_history)
-                if current_loss > LOSS_SPIKE_FACTOR * avg_loss:
-                    loss_warning = True
-            if grad_norm > GRAD_NORM_WARN_THRESHOLD:
-                grad_warning = True
-
-            # Compute ETA (only show after 50+ steps for stability)
-            if len(step_times) >= 50:
-                avg_dt = sum(step_times) / len(step_times)
-                remaining_steps = max_steps - step
-                eta_seconds = remaining_steps * avg_dt
-                eta_str = format_eta(eta_seconds)
-            else:
-                eta_str = "..."
-
-            # Determine console color
-            pct = step / max_steps * 100
-            ep = epoch_tracker.epoch
-            total_ep = epoch_tracker.total_epochs
-
-            if loss_warning or grad_warning:
-                color = YELLOW
-            else:
-                color = GREEN
-
-            line = (
-                f"{color}"
-                f"  Step {step:>6}/{max_steps} "
-                f"| ep {ep}/{total_ep} "
-                f"| loss {current_loss:.4f} "
-                f"| lr {current_lr:.2e} "
-                f"| {tokens_per_sec:>7,.0f} tok/s "
-                f"| ETA {eta_str} "
-                f"| {pct:.1f}%"
-                f"{RESET}"
-            )
-            if loss_warning:
-                line += f" {YELLOW}[LOSS SPIKE]{RESET}"
-            if grad_warning:
-                line += f" {YELLOW}[HIGH GRAD]{RESET}"
-            print(line)
-
-            # JSONL log
-            log_step(
-                log_file, step, current_loss, current_lr, tokens_per_sec,
-                gpu_mem, dt, epoch_tracker.epoch,
-                epoch_tracker.epoch_progress(step), total_tokens_processed,
-                loss_scale, grad_norm,
-            )
-
-            # TensorBoard custom metrics (step-aligned with JSONL log)
+            # Read DeepSpeed internal metrics (valid after step())
             try:
-                perplexity = min(math.exp(current_loss), 1e5)
-            except OverflowError:
-                perplexity = 1e5
-            tb_writer.add_scalar("Metrics/train_perplexity", perplexity, step)
-            tb_writer.add_scalar("Metrics/gradient_norm", grad_norm, step)
-            tb_writer.add_scalar("Metrics/loss_scale", loss_scale, step)
-            tb_writer.add_scalar("Schedule/learning_rate", current_lr, step)
-            tb_writer.add_scalar("Schedule/epoch", epoch_tracker.epoch, step)
-            tb_writer.add_scalar("Progress/tokens_per_sec", tokens_per_sec, step)
+                loss_scale = model_engine.optimizer.cur_scale
+            except (AttributeError, RuntimeError):
+                loss_scale = 0.0
+            raw_grad_norm = model_engine.get_global_grad_norm()
+            grad_norm = float(raw_grad_norm) if raw_grad_norm is not None else 0.0
 
-        # Validate + checkpoint + generate sample every eval_interval steps (and at final step)
-        if step > 0 and (step % eval_interval == 0 or step == max_steps - 1):
-            losses = estimate_loss(
-                model_engine, args.eval_iters, batch_size, block_size, device, args.data_dir
-            )
-            final_train_loss = losses["train"]
-            final_val_loss = losses["val"]
+            # Update epoch tracker
+            epoch_crossed = epoch_tracker.update(step, current_loss)
 
-            try:
-                train_ppl = min(math.exp(losses["train"]), 1e5)
-            except OverflowError:
-                train_ppl = 1e5
-            try:
-                val_ppl = min(math.exp(losses["val"]), 1e5)
-            except OverflowError:
-                val_ppl = 1e5
-            gap = losses["val"] - losses["train"]
-            gap_ratio = losses["val"] / losses["train"] if losses["train"] > 0 else float("inf")
+            # Track initial loss for sanity check
+            if initial_loss is None:
+                initial_loss = current_loss
 
-            print(f"\n  --- Validation at step {step} (epoch {epoch_tracker.epoch}/{epoch_tracker.total_epochs}) ---")
-            print(f"    Train loss:       {losses['train']:.4f}  (ppl: {train_ppl:.2f})")
-            print(f"    Val loss:         {losses['val']:.4f}  (ppl: {val_ppl:.2f})")
-            print(f"    Gen. gap:         {gap:.4f}  (ratio: {gap_ratio:.4f})")
+            if step == start_step + 100 and not loss_warned and current_loss >= initial_loss:
+                print(
+                    f"\n  {YELLOW}WARNING: Loss has not decreased after 100 steps "
+                    f"(initial: {initial_loss:.4f}, current: {current_loss:.4f}){RESET}"
+                )
+                loss_warned = True
 
-            # Multi-prompt sample generation (5 prompts x 2 temperatures = 10 samples)
-            samples = []
-            if tokenizer is not None:
+            total_tokens_processed += tokens_per_step
+
+            # Update anomaly detection deques
+            loss_history.append(current_loss)
+            step_times.append(dt)
+            grad_norm_history.append(grad_norm)
+            loss_scale_history.append(loss_scale)
+
+            # Epoch boundary banner
+            if epoch_crossed:
+                elapsed = time.time() - training_start_time
+                prev_epoch = epoch_tracker.epoch  # Already incremented
+                print(f"\n  {BOLD}{'=' * 50}{RESET}")
+                print(f"  {BOLD}  Epoch {prev_epoch}/{epoch_tracker.total_epochs}{RESET}")
+                print(f"  {BOLD}{'=' * 50}{RESET}")
+                log_epoch(
+                    log_file,
+                    epoch=prev_epoch,
+                    steps_in_epoch=epoch_tracker.steps_per_epoch,
+                    avg_train_loss=epoch_tracker.completed_epoch_avg_loss,
+                    total_tokens=total_tokens_processed,
+                    elapsed_sec=elapsed,
+                )
+
+            # Log every log_interval steps
+            if step % log_interval == 0:
+                current_lr = optimizer.param_groups[0]["lr"]
+                tokens_per_sec = tokens_per_step / dt if dt > 0 else 0
+                gpu_mem = get_gpu_memory_mb(gpu_handle)
+
+                # Anomaly detection
+                loss_warning = False
+                grad_warning = False
+                if len(loss_history) >= 10:
+                    avg_loss = sum(loss_history) / len(loss_history)
+                    if current_loss > LOSS_SPIKE_FACTOR * avg_loss:
+                        loss_warning = True
+                if grad_norm > GRAD_NORM_WARN_THRESHOLD:
+                    grad_warning = True
+
+                # Compute ETA (only show after 50+ steps for stability)
+                if len(step_times) >= 50:
+                    avg_dt = sum(step_times) / len(step_times)
+                    remaining_steps = max_steps - step
+                    eta_seconds = remaining_steps * avg_dt
+                    eta_str = format_eta(eta_seconds)
+                else:
+                    eta_str = "..."
+
+                # Determine console color
+                pct = step / max_steps * 100
+                ep = epoch_tracker.epoch
+                total_ep = epoch_tracker.total_epochs
+
+                if loss_warning or grad_warning:
+                    color = YELLOW
+                else:
+                    color = GREEN
+
+                line = (
+                    f"{color}"
+                    f"  Step {step:>6}/{max_steps} "
+                    f"| ep {ep}/{total_ep} "
+                    f"| loss {current_loss:.4f} "
+                    f"| lr {current_lr:.2e} "
+                    f"| {tokens_per_sec:>7,.0f} tok/s "
+                    f"| ETA {eta_str} "
+                    f"| {pct:.1f}%"
+                    f"{RESET}"
+                )
+                if loss_warning:
+                    line += f" {YELLOW}[LOSS SPIKE]{RESET}"
+                if grad_warning:
+                    line += f" {YELLOW}[HIGH GRAD]{RESET}"
+                print(line)
+
+                # JSONL log
+                log_step(
+                    log_file, step, current_loss, current_lr, tokens_per_sec,
+                    gpu_mem, dt, epoch_tracker.epoch,
+                    epoch_tracker.epoch_progress(step), total_tokens_processed,
+                    loss_scale, grad_norm,
+                )
+
+                # TensorBoard custom metrics (step-aligned with JSONL log)
                 try:
-                    for prompt in SAMPLE_PROMPTS:
-                        for temp in SAMPLE_TEMPERATURES:
-                            text = generate_sample(
-                                model_engine.module,
-                                tokenizer,
-                                prompt,
-                                max_new_tokens=128,
-                                temperature=temp,
-                                device=device,
-                            )
-                            samples.append({
-                                "prompt": prompt,
-                                "temperature": temp,
-                                "text": text,
-                            })
-                    print(f"    {len(samples)} samples generated ({len(SAMPLE_PROMPTS)} prompts x {len(SAMPLE_TEMPERATURES)} temperatures)")
+                    perplexity = min(math.exp(current_loss), 1e5)
+                except OverflowError:
+                    perplexity = 1e5
+                tb_writer.add_scalar("Metrics/train_perplexity", perplexity, step)
+                tb_writer.add_scalar("Metrics/gradient_norm", grad_norm, step)
+                tb_writer.add_scalar("Metrics/loss_scale", loss_scale, step)
+                tb_writer.add_scalar("Schedule/learning_rate", current_lr, step)
+                tb_writer.add_scalar("Schedule/epoch", epoch_tracker.epoch, step)
+                tb_writer.add_scalar("Progress/tokens_per_sec", tokens_per_sec, step)
+
+            # --- Conditional 1: Validation (every eval_interval steps, and at final step) ---
+            if step > 0 and (step % eval_interval == 0 or step == max_steps - 1):
+                losses = estimate_loss(
+                    model_engine, args.eval_iters, batch_size, block_size, device, args.data_dir
+                )
+                val_loss = losses["val"]
+                final_train_loss = losses["train"]
+                final_val_loss = val_loss
+
+                try:
+                    train_ppl = min(math.exp(losses["train"]), 1e5)
+                except OverflowError:
+                    train_ppl = 1e5
+                try:
+                    val_ppl = min(math.exp(val_loss), 1e5)
+                except OverflowError:
+                    val_ppl = 1e5
+                gap = val_loss - losses["train"]
+                gap_ratio = val_loss / losses["train"] if losses["train"] > 0 else float("inf")
+
+                print(f"\n  --- Validation at step {step} (epoch {epoch_tracker.epoch}/{epoch_tracker.total_epochs}) ---")
+                print(f"    Train loss:       {losses['train']:.4f}  (ppl: {train_ppl:.2f})")
+                print(f"    Val loss:         {val_loss:.4f}  (ppl: {val_ppl:.2f})")
+                print(f"    Gen. gap:         {gap:.4f}  (ratio: {gap_ratio:.4f})")
+
+                # Multi-prompt sample generation (5 prompts x 2 temperatures = 10 samples)
+                samples = []
+                if tokenizer is not None:
+                    try:
+                        for prompt in SAMPLE_PROMPTS:
+                            for temp in SAMPLE_TEMPERATURES:
+                                text = generate_sample(
+                                    model_engine.module,
+                                    tokenizer,
+                                    prompt,
+                                    max_new_tokens=128,
+                                    temperature=temp,
+                                    device=device,
+                                )
+                                samples.append({
+                                    "prompt": prompt,
+                                    "temperature": temp,
+                                    "text": text,
+                                })
+                        print(f"    {len(samples)} samples generated ({len(SAMPLE_PROMPTS)} prompts x {len(SAMPLE_TEMPERATURES)} temperatures)")
+                    except Exception as e:
+                        print(f"    WARNING: Sample generation failed: {e}")
+                        if not samples:
+                            samples = [{"prompt": SAMPLE_PROMPTS[0], "temperature": 0.0, "text": f"[generation failed: {e}]"}]
+
+                # Log validation
+                log_validation(
+                    log_file, step, losses["train"], val_loss,
+                    samples, epoch_tracker.epoch,
+                    epoch_tracker.epoch_progress(step),
+                )
+
+                # TensorBoard validation metrics
+                tb_writer.add_scalar("Validation/val_loss", val_loss, step)
+                tb_writer.add_scalar("Validation/val_perplexity", val_ppl, step)
+                tb_writer.add_scalar("Validation/train_loss", losses["train"], step)
+                tb_writer.add_scalar("Validation/train_perplexity", train_ppl, step)
+                tb_writer.add_scalar("Validation/generalization_gap", gap, step)
+                tb_writer.add_scalar("Validation/gap_ratio", gap_ratio, step)
+
+                # Check for new best and save immediately
+                is_best = val_loss < best_val_loss
+                if is_best:
+                    best_val_loss = val_loss
+                    best_val_step = step
+                    print(f"    {GREEN}{BOLD}*** New best val loss: {val_loss:.4f} at step {step} ***{RESET}")
+                    try:
+                        wall_elapsed = time.time() - training_start_time
+                        best_save_duration = save_best_checkpoint_atomic(
+                            model_engine, run_dir, step, val_loss,
+                            model_config_dict, args.config,
+                            epoch_tracker.epoch, wall_elapsed,
+                        )
+                        best_dir = os.path.join(run_dir, "best")
+                        best_size = sum(
+                            os.path.getsize(os.path.join(dp, fn))
+                            for dp, _, fnames in os.walk(best_dir)
+                            for fn in fnames
+                        )
+                        print(f"    Best checkpoint saved: {best_dir} ({best_size / 1024 / 1024:.1f} MB, {best_save_duration:.1f}s)")
+                        total_best_updates += 1
+                        total_bytes_written += best_size
+                        log_checkpoint_event(log_file, "best_update", step, {
+                            "val_loss": val_loss,
+                            "path": "best",
+                            "size_mb": round(best_size / 1024 / 1024, 1),
+                            "save_duration_sec": round(best_save_duration, 1),
+                        })
+                    except Exception as e:
+                        print(f"    {YELLOW}WARNING: Best checkpoint save failed: {e}{RESET}")
+
+                # Update tracking for checkpoint metadata
+                last_val_loss = val_loss
+                last_val_step = step
+
+                print()  # Blank line after validation block
+
+            # --- Conditional 2: Regular checkpoint (every checkpoint_interval steps, and at final step) ---
+            if step > 0 and (step % checkpoint_interval == 0 or step == max_steps - 1):
+                current_lr = optimizer.param_groups[0]["lr"]
+                wall_elapsed = time.time() - training_start_time
+                client_state = {
+                    "step": step,
+                    "train_loss": current_loss,
+                    "val_loss": last_val_loss,
+                    "lr": current_lr,
+                    "best_val_loss": best_val_loss,
+                    "best_val_step": best_val_step,
+                }
+                checkpoint_meta = {
+                    "step": step,
+                    "train_loss": current_loss,
+                    "val_loss": last_val_loss,
+                    "is_best": False,
+                    "epoch": epoch_tracker.epoch,
+                    "wall_clock_elapsed": wall_elapsed,
+                    "lr": current_lr,
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "config_name": args.config,
+                }
+
+                try:
+                    save_duration = save_checkpoint_atomic(
+                        model_engine, run_dir, step, client_state,
+                        checkpoint_meta, args.config,
+                    )
+                    ds_dir = os.path.join(run_dir, f"step_{step}")
+                    ds_size = sum(
+                        os.path.getsize(os.path.join(dp, fn))
+                        for dp, _, fnames in os.walk(ds_dir)
+                        for fn in fnames
+                    )
+                    retained = len([
+                        d for d in os.listdir(run_dir)
+                        if d.startswith("step_") and os.path.isdir(os.path.join(run_dir, d))
+                    ])
+                    print(f"  Checkpoint saved: step_{step} ({ds_size / 1024 / 1024:.1f} MB, {save_duration:.1f}s) | retained: {retained} | best: step {best_val_step}")
+                    total_checkpoints_saved += 1
+                    total_bytes_written += ds_size
+                    log_checkpoint_event(log_file, "checkpoint_save", step, {
+                        "path": f"step_{step}",
+                        "size_mb": round(ds_size / 1024 / 1024, 1),
+                        "save_duration_sec": round(save_duration, 1),
+                        "retained_count": retained,
+                    })
                 except Exception as e:
-                    print(f"    WARNING: Sample generation failed: {e}")
-                    if not samples:
-                        samples = [{"prompt": SAMPLE_PROMPTS[0], "temperature": 0.0, "text": f"[generation failed: {e}]"}]
+                    print(f"  {YELLOW}WARNING: Checkpoint save failed at step {step}: {e}{RESET}")
+                    print(f"  Training will continue without this checkpoint.")
 
-            # Log validation
-            log_validation(
-                log_file, step, losses["train"], losses["val"],
-                samples, epoch_tracker.epoch,
-                epoch_tracker.epoch_progress(step),
-            )
+                # Cleanup old checkpoints
+                cleanup_checkpoints(run_dir, keep_last=3, log_file=log_file)
 
-            # TensorBoard validation metrics
-            tb_writer.add_scalar("Validation/val_loss", losses["val"], step)
-            tb_writer.add_scalar("Validation/val_perplexity", val_ppl, step)
-            tb_writer.add_scalar("Validation/train_loss", losses["train"], step)
-            tb_writer.add_scalar("Validation/train_perplexity", train_ppl, step)
-            tb_writer.add_scalar("Validation/generalization_gap", gap, step)
-            tb_writer.add_scalar("Validation/gap_ratio", gap_ratio, step)
-
-            # Update best checkpoint tracking
-            is_best = update_best_checkpoint(run_dir, step, losses["val"])
-            if is_best:
-                best_val_loss = losses["val"]
-                best_val_step = step
-                print(f"    New best val loss: {best_val_loss:.4f}")
-            elif losses["val"] < best_val_loss:
-                # Handle case where best was set from file on resume
-                best_val_loss = losses["val"]
-                best_val_step = step
-
-            # Save checkpoint
-            current_lr = optimizer.param_groups[0]["lr"]
-            save_checkpoint(
-                model_engine,
-                model_config_dict,
-                step,
-                losses["train"],
-                losses["val"],
-                current_lr,
-                run_dir,
-                args.config,
-            )
-
-            # Cleanup old checkpoints
-            cleanup_checkpoints(run_dir, keep_last=3)
-
-            print()  # Blank line after validation block
+    finally:
+        log_file.close()
+        tb_writer.close()
 
     # ---- Training complete -------------------------------------------------
     elapsed = time.time() - training_start_time
-    log_file.close()
-    tb_writer.close()
 
-    # Read best from file in case we didn't find one during training
-    best_step_file = os.path.join(run_dir, "best_step.txt")
-    best_loss_file = os.path.join(run_dir, "best_loss.txt")
-    if os.path.isfile(best_step_file) and os.path.isfile(best_loss_file):
+    # Read best from best/checkpoint_meta.json in case we need to recover
+    best_meta_path = os.path.join(run_dir, "best", "checkpoint_meta.json")
+    if os.path.isfile(best_meta_path):
         try:
-            with open(best_step_file) as f:
-                best_val_step = int(f.read().strip())
-            with open(best_loss_file) as f:
-                best_val_loss = float(f.read().strip())
-        except (ValueError, OSError):
+            with open(best_meta_path) as f:
+                best_meta = json.load(f)
+            best_val_step = best_meta.get("step", best_val_step)
+            best_val_loss = best_meta.get("val_loss", best_val_loss)
+        except (json.JSONDecodeError, OSError):
             pass
 
     print_training_summary(
@@ -1484,6 +1760,9 @@ def main():
         total_tokens_processed=total_tokens_processed,
         run_dir=run_dir,
         epoch_tracker=epoch_tracker,
+        total_checkpoints_saved=total_checkpoints_saved,
+        total_best_updates=total_best_updates,
+        total_bytes_written=total_bytes_written,
     )
 
 
