@@ -1250,6 +1250,9 @@ def main():
     final_val_loss = 0.0
     total_tokens_processed = start_step * tokens_per_step if is_resuming else 0
     loss_warned = False
+    last_val_loss = float("inf")
+    last_val_step = -1
+    checkpoint_interval = args.checkpoint_interval
 
     training_start_time = time.time()
 
@@ -1400,28 +1403,29 @@ def main():
             tb_writer.add_scalar("Schedule/epoch", epoch_tracker.epoch, step)
             tb_writer.add_scalar("Progress/tokens_per_sec", tokens_per_sec, step)
 
-        # Validate + checkpoint + generate sample every eval_interval steps (and at final step)
+        # --- Conditional 1: Validation (every eval_interval steps, and at final step) ---
         if step > 0 and (step % eval_interval == 0 or step == max_steps - 1):
             losses = estimate_loss(
                 model_engine, args.eval_iters, batch_size, block_size, device, args.data_dir
             )
+            val_loss = losses["val"]
             final_train_loss = losses["train"]
-            final_val_loss = losses["val"]
+            final_val_loss = val_loss
 
             try:
                 train_ppl = min(math.exp(losses["train"]), 1e5)
             except OverflowError:
                 train_ppl = 1e5
             try:
-                val_ppl = min(math.exp(losses["val"]), 1e5)
+                val_ppl = min(math.exp(val_loss), 1e5)
             except OverflowError:
                 val_ppl = 1e5
-            gap = losses["val"] - losses["train"]
-            gap_ratio = losses["val"] / losses["train"] if losses["train"] > 0 else float("inf")
+            gap = val_loss - losses["train"]
+            gap_ratio = val_loss / losses["train"] if losses["train"] > 0 else float("inf")
 
             print(f"\n  --- Validation at step {step} (epoch {epoch_tracker.epoch}/{epoch_tracker.total_epochs}) ---")
             print(f"    Train loss:       {losses['train']:.4f}  (ppl: {train_ppl:.2f})")
-            print(f"    Val loss:         {losses['val']:.4f}  (ppl: {val_ppl:.2f})")
+            print(f"    Val loss:         {val_loss:.4f}  (ppl: {val_ppl:.2f})")
             print(f"    Gen. gap:         {gap:.4f}  (ratio: {gap_ratio:.4f})")
 
             # Multi-prompt sample generation (5 prompts x 2 temperatures = 10 samples)
@@ -1451,47 +1455,92 @@ def main():
 
             # Log validation
             log_validation(
-                log_file, step, losses["train"], losses["val"],
+                log_file, step, losses["train"], val_loss,
                 samples, epoch_tracker.epoch,
                 epoch_tracker.epoch_progress(step),
             )
 
             # TensorBoard validation metrics
-            tb_writer.add_scalar("Validation/val_loss", losses["val"], step)
+            tb_writer.add_scalar("Validation/val_loss", val_loss, step)
             tb_writer.add_scalar("Validation/val_perplexity", val_ppl, step)
             tb_writer.add_scalar("Validation/train_loss", losses["train"], step)
             tb_writer.add_scalar("Validation/train_perplexity", train_ppl, step)
             tb_writer.add_scalar("Validation/generalization_gap", gap, step)
             tb_writer.add_scalar("Validation/gap_ratio", gap_ratio, step)
 
-            # Update best checkpoint tracking
-            is_best = update_best_checkpoint(run_dir, step, losses["val"])
+            # Check for new best and save immediately
+            is_best = val_loss < best_val_loss
             if is_best:
-                best_val_loss = losses["val"]
+                best_val_loss = val_loss
                 best_val_step = step
-                print(f"    New best val loss: {best_val_loss:.4f}")
-            elif losses["val"] < best_val_loss:
-                # Handle case where best was set from file on resume
-                best_val_loss = losses["val"]
-                best_val_step = step
+                print(f"    {GREEN}{BOLD}*** New best val loss: {val_loss:.4f} at step {step} ***{RESET}")
+                try:
+                    wall_elapsed = time.time() - training_start_time
+                    best_save_duration = save_best_checkpoint_atomic(
+                        model_engine, run_dir, step, val_loss,
+                        model_config_dict, args.config,
+                        epoch_tracker.epoch, wall_elapsed,
+                    )
+                    best_dir = os.path.join(run_dir, "best")
+                    best_size = sum(
+                        os.path.getsize(os.path.join(dp, fn))
+                        for dp, _, fnames in os.walk(best_dir)
+                        for fn in fnames
+                    )
+                    print(f"    Best checkpoint saved: {best_dir} ({best_size / 1024 / 1024:.1f} MB, {best_save_duration:.1f}s)")
+                except Exception as e:
+                    print(f"    {YELLOW}WARNING: Best checkpoint save failed: {e}{RESET}")
 
-            # Save checkpoint
+            # Update tracking for checkpoint metadata
+            last_val_loss = val_loss
+            last_val_step = step
+
+            print()  # Blank line after validation block
+
+        # --- Conditional 2: Regular checkpoint (every checkpoint_interval steps, and at final step) ---
+        if step > 0 and (step % checkpoint_interval == 0 or step == max_steps - 1):
             current_lr = optimizer.param_groups[0]["lr"]
-            save_checkpoint(
-                model_engine,
-                model_config_dict,
-                step,
-                losses["train"],
-                losses["val"],
-                current_lr,
-                run_dir,
-                args.config,
-            )
+            wall_elapsed = time.time() - training_start_time
+            client_state = {
+                "step": step,
+                "train_loss": current_loss,
+                "val_loss": last_val_loss,
+                "lr": current_lr,
+            }
+            checkpoint_meta = {
+                "step": step,
+                "train_loss": current_loss,
+                "val_loss": last_val_loss,
+                "is_best": False,
+                "epoch": epoch_tracker.epoch,
+                "wall_clock_elapsed": wall_elapsed,
+                "lr": current_lr,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "config_name": args.config,
+            }
+
+            try:
+                save_duration = save_checkpoint_atomic(
+                    model_engine, run_dir, step, client_state,
+                    checkpoint_meta, args.config,
+                )
+                ds_dir = os.path.join(run_dir, f"step_{step}")
+                ds_size = sum(
+                    os.path.getsize(os.path.join(dp, fn))
+                    for dp, _, fnames in os.walk(ds_dir)
+                    for fn in fnames
+                )
+                retained = len([
+                    d for d in os.listdir(run_dir)
+                    if d.startswith("step_") and os.path.isdir(os.path.join(run_dir, d))
+                ])
+                print(f"  Checkpoint saved: step_{step} ({ds_size / 1024 / 1024:.1f} MB, {save_duration:.1f}s) | retained: {retained} | best: step {best_val_step}")
+            except Exception as e:
+                print(f"  {YELLOW}WARNING: Checkpoint save failed at step {step}: {e}{RESET}")
+                print(f"  Training will continue without this checkpoint.")
 
             # Cleanup old checkpoints
             cleanup_checkpoints(run_dir, keep_last=3)
-
-            print()  # Blank line after validation block
 
     # ---- Training complete -------------------------------------------------
     elapsed = time.time() - training_start_time
