@@ -4,7 +4,7 @@
 A standalone benchmark script that validates whether a 500M+ parameter GPT-2
 model can train on the RTX 3060 12GB GPU with DeepSpeed ZeRO Stage 2. Produces
 a data-driven go/no-go recommendation before committing GPU-weeks to full
-training in v0.3.0.
+training in v0.4.0.
 
 The benchmark runs a 4-configuration matrix (CPU offload on/off x gradient
 checkpointing on/off) for the primary model size, tests an auto-fallback chain
@@ -845,7 +845,7 @@ def generate_readiness_report(
         lines.append(f"**RECOMMENDATION: GO**\n")
         lines.append(f"The {primary_result} model configuration successfully trained for the")
         lines.append(f"benchmark duration without OOM errors, and checkpoint resume verified")
-        lines.append(f"loss continuity. The chosen configuration is ready for v0.3.0 full training.\n")
+        lines.append(f"loss continuity. The chosen configuration is ready for v0.4.0 full training.\n")
     elif primary_passed and not ckpt_passed:
         lines.append(f"**RECOMMENDATION: CONDITIONAL GO**\n")
         lines.append(f"The {primary_result} model trained without OOM, but checkpoint resume")
@@ -869,7 +869,7 @@ def generate_readiness_report(
     chosen = results.get("chosen_config", None)
     if chosen:
         lines.append("## Chosen configuration\n")
-        lines.append(f"The recommended configuration for v0.3.0 training has been saved to")
+        lines.append(f"The recommended configuration for v0.4.0 training has been saved to")
         lines.append(f"`configs/{chosen.get('size', '500m').lower()}.json`.\n")
         lines.append(f"- **Model size:** {chosen.get('size', 'Unknown')}")
         lines.append(f"- **Parameters:** {chosen.get('params', 0):,}")
