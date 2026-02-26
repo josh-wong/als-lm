@@ -48,5 +48,8 @@ psutil==7.2.2
 # Metrics and monitoring (v0.4.0)
 tensorboard==2.19.0
 
+# Analysis (v0.4.0)
+matplotlib==3.10.8
+
 # Evaluation framework (v0.3.0)
 rapidfuzz==3.14.3
