@@ -42,6 +42,16 @@ import json
 import os
 import sys
 from datetime import datetime, timezone
+from pathlib import Path
+
+# Auto-discover project root for default paths
+try:
+    from eval.utils import find_project_root, resolve_default_paths
+    _PROJECT_ROOT = find_project_root()
+    _DEFAULTS = resolve_default_paths(_PROJECT_ROOT)
+except (ImportError, SystemExit):
+    _PROJECT_ROOT = None
+    _DEFAULTS = {}
 
 
 # ---------------------------------------------------------------------------
@@ -99,7 +109,7 @@ def parse_args():
     parser.add_argument(
         "--benchmark",
         type=str,
-        default="eval/questions.json",
+        default=str(_DEFAULTS["benchmark"]) if "benchmark" in _DEFAULTS else "eval/questions.json",
         help="Path to benchmark questions JSON (default: eval/questions.json)",
     )
     parser.add_argument(
@@ -121,8 +131,8 @@ def parse_args():
 # Classification logic
 # ---------------------------------------------------------------------------
 
-def classify_response(score_entry, flagged_count, temporal_flag, category,
-                      difficulty, tokens_generated):
+def classify_response(score_entry, flagged_count, category, difficulty,
+                      tokens_generated):
     """Classify a single response into a failure mode with severity.
 
     Rules are evaluated in priority order. First match wins for the primary
@@ -132,7 +142,6 @@ def classify_response(score_entry, flagged_count, temporal_flag, category,
         score_entry: Dict with accuracy_proportional and hedging_count from
             the scoring output.
         flagged_count: Number of flagged (potentially fabricated) entities.
-        temporal_flag: Whether the question has a temporal_flag field.
         category: Question category string.
         difficulty: Question difficulty string.
         tokens_generated: Number of tokens in the model response.
@@ -150,7 +159,7 @@ def classify_response(score_entry, flagged_count, temporal_flag, category,
         matches.append(("confident_fabrication", "high"))
 
     # Rule 2: outdated_information (checked before plausible_blending)
-    if (temporal_flag or category in TEMPORAL_CATEGORIES) and accuracy < 0.5:
+    if category in TEMPORAL_CATEGORIES and accuracy < 0.5:
         matches.append(("outdated_information", "medium"))
 
     # Rule 3: plausible_blending
@@ -336,7 +345,7 @@ def main():
     resp_by_id = {r["question_id"]: r for r in responses_data.get("responses", [])}
     print(f"  Loaded {len(resp_by_id)} responses from {args.responses}")
 
-    # Load benchmark (for temporal_flag and category metadata)
+    # Load benchmark (for category metadata)
     if not os.path.isfile(args.benchmark):
         print(f"ERROR: Benchmark file not found: {args.benchmark}")
         sys.exit(1)
@@ -369,7 +378,6 @@ def main():
         flagged_count = len(fab_entry.get("flagged_entities", []))
 
         bench_entry = bench_by_id.get(qid, {})
-        temporal_flag = bench_entry.get("temporal_flag", False)
         category = score_entry.get("category", bench_entry.get("category", ""))
         difficulty = score_entry.get("difficulty", bench_entry.get("difficulty", ""))
 
@@ -380,7 +388,6 @@ def main():
         result = classify_response(
             score_entry=score_entry,
             flagged_count=flagged_count,
-            temporal_flag=temporal_flag,
             category=category,
             difficulty=difficulty,
             tokens_generated=tokens_generated,
@@ -398,7 +405,6 @@ def main():
                 "accuracy": score_entry["accuracy_proportional"],
                 "hedging_count": score_entry["hedging_count"],
                 "flagged_entities": flagged_count,
-                "temporal_flag": temporal_flag,
                 "tokens_generated": tokens_generated,
             },
         }

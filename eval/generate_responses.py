@@ -35,12 +35,22 @@ import os
 import sys
 import time
 from datetime import datetime, timezone
+from pathlib import Path
 
 # Ensure the project root is on sys.path so that `from model.model import ...`
 # resolves correctly when running as `python eval/generate_responses.py`.
 _project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
+
+# Auto-discover project root for default paths
+try:
+    from eval.utils import find_project_root, resolve_default_paths
+    _PROJECT_ROOT = find_project_root()
+    _DEFAULTS = resolve_default_paths(_PROJECT_ROOT)
+except (ImportError, SystemExit):
+    _PROJECT_ROOT = None
+    _DEFAULTS = {}
 
 import torch
 from tokenizers import Tokenizer
@@ -68,7 +78,7 @@ def parse_args():
     parser.add_argument(
         "--benchmark",
         type=str,
-        default="eval/questions.json",
+        default=str(_DEFAULTS["benchmark"]) if "benchmark" in _DEFAULTS else "eval/questions.json",
         help="Path to benchmark questions file (default: eval/questions.json)",
     )
     parser.add_argument(

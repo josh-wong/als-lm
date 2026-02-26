@@ -42,6 +42,16 @@ import os
 import re
 import sys
 from datetime import datetime, timezone
+from pathlib import Path
+
+# Auto-discover project root for default paths
+try:
+    from eval.utils import find_project_root, resolve_default_paths
+    _PROJECT_ROOT = find_project_root()
+    _DEFAULTS = resolve_default_paths(_PROJECT_ROOT)
+except (ImportError, SystemExit):
+    _PROJECT_ROOT = None
+    _DEFAULTS = {}
 
 from rapidfuzz import fuzz, process
 
@@ -108,7 +118,7 @@ def parse_args():
     parser.add_argument(
         "--registry",
         type=str,
-        default="eval/entity_registry.json",
+        default=str(_DEFAULTS["registry"]) if "registry" in _DEFAULTS else "eval/entity_registry.json",
         help="Path to entity registry JSON (default: eval/entity_registry.json)",
     )
     parser.add_argument(
