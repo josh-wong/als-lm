@@ -19,7 +19,7 @@ import json
 import math
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
@@ -746,7 +746,7 @@ def generate_report(
     convergence_issues = detect_convergence_issues(validations)
 
     # Build the report
-    now = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     model_summary = _format_model_summary(config)
     training_time = _format_training_time(steps)
 
