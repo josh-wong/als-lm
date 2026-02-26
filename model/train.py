@@ -934,7 +934,7 @@ def log_validation(log_file, step, train_loss, val_loss, samples,
     except OverflowError:
         val_ppl = 1e5
     gap = val_loss - train_loss
-    gap_ratio = val_loss / train_loss if train_loss > 0 else float("inf")
+    gap_ratio = (val_loss - train_loss) / train_loss if train_loss > 0 else 0.0
 
     entry = {
         "type": "validation",
@@ -1592,7 +1592,7 @@ def main():
                 except OverflowError:
                     val_ppl = 1e5
                 gap = val_loss - losses["train"]
-                gap_ratio = val_loss / losses["train"] if losses["train"] > 0 else float("inf")
+                gap_ratio = (val_loss - losses["train"]) / losses["train"] if losses["train"] > 0 else 0.0
 
                 print(f"\n  --- Validation at step {step} (epoch {epoch_tracker.epoch}/{epoch_tracker.total_epochs}) ---")
                 print(f"    Train loss:       {losses['train']:.4f}  (ppl: {train_ppl:.2f})")
