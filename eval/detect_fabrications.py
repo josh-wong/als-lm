@@ -9,7 +9,7 @@ fabricated, with surrounding sentence context for manual review.
 This is a research evaluation tool, not a medical information system.
 
 Methodology:
-    - NCT trial IDs: regex extraction (NCT followed by 6-8 digits), exact
+    - NCT trial IDs: regex extraction (NCT followed by 8 digits), exact
       match against registry trial entries.
     - Drug names: candidate extraction via capitalized words and known drug
       suffixes, fuzzy matching against the full drug registry using
@@ -44,12 +44,27 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+# Ensure the project root is on sys.path so that `from eval.utils import ...`
+# resolves correctly when running as `python eval/<script>.py`.
+_project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+
 # Auto-discover project root for default paths
 try:
     from eval.utils import find_project_root, resolve_default_paths
     _PROJECT_ROOT = find_project_root()
     _DEFAULTS = resolve_default_paths(_PROJECT_ROOT)
-except (ImportError, SystemExit):
+except ImportError:
+    import warnings
+    warnings.warn(
+        "Cannot import eval.utils. Ensure you're running from within "
+        "the als-lm repository.",
+        stacklevel=2,
+    )
+    _PROJECT_ROOT = None
+    _DEFAULTS = {}
+except SystemExit:
     _PROJECT_ROOT = None
     _DEFAULTS = {}
 
@@ -75,8 +90,8 @@ DRUG_SUFFIXES = (
 # at least one letter. Matches SOD1, TDP-43, C9orf72, FUS, etc.
 GENE_PATTERN = re.compile(r"\b([A-Z][A-Z0-9][A-Za-z0-9\-]{0,8})\b")
 
-# NCT trial ID pattern: NCT followed by 6-8 digits
-NCT_PATTERN = re.compile(r"\b(NCT\d{6,8})\b")
+# NCT trial ID pattern: NCT followed by 8 digits
+NCT_PATTERN = re.compile(r"\b(NCT\d{8})\b")
 
 # Stopwords: common uppercase abbreviations that are NOT drug or gene names.
 # These are excluded from drug candidate extraction to reduce false flags.

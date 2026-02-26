@@ -39,12 +39,27 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+# Ensure the project root is on sys.path so that `from eval.utils import ...`
+# resolves correctly when running as `python eval/<script>.py`.
+_project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+
 # Auto-discover project root for default paths
 try:
     from eval.utils import find_project_root, resolve_default_paths
     _PROJECT_ROOT = find_project_root()
     _DEFAULTS = resolve_default_paths(_PROJECT_ROOT)
-except (ImportError, SystemExit):
+except ImportError:
+    import warnings
+    warnings.warn(
+        "Cannot import eval.utils. Ensure you're running from within "
+        "the als-lm repository.",
+        stacklevel=2,
+    )
+    _PROJECT_ROOT = None
+    _DEFAULTS = {}
+except SystemExit:
     _PROJECT_ROOT = None
     _DEFAULTS = {}
 
