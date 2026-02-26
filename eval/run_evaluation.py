@@ -33,6 +33,15 @@ import os
 import subprocess
 import sys
 import time
+from pathlib import Path
+
+# Ensure the project root is on sys.path so that `from eval.utils import ...`
+# resolves correctly when running as `python eval/run_evaluation.py`.
+_project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+
+from eval.utils import find_project_root, resolve_default_paths
 
 
 # ---------------------------------------------------------------------------
@@ -134,6 +143,18 @@ def parse_args():
         default="reports",
         help="Directory for final Markdown report (default: reports)",
     )
+    parser.add_argument(
+        "--benchmark",
+        type=str,
+        default=None,
+        help="Path to benchmark questions JSON (auto-discovered if omitted)",
+    )
+    parser.add_argument(
+        "--registry",
+        type=str,
+        default=None,
+        help="Path to entity registry JSON (auto-discovered if omitted)",
+    )
     return parser.parse_args()
 
 
@@ -208,7 +229,8 @@ def format_duration(seconds):
 # Stage execution
 # ---------------------------------------------------------------------------
 
-def build_stage_args(stage, checkpoint, results_dir, reports_dir, checkpoint_id):
+def build_stage_args(stage, checkpoint, results_dir, reports_dir,
+                     checkpoint_id, benchmark, registry):
     """Build the subprocess arguments for a given stage.
 
     Args:
@@ -217,11 +239,14 @@ def build_stage_args(stage, checkpoint, results_dir, reports_dir, checkpoint_id)
         results_dir: Directory for intermediate JSON files.
         reports_dir: Directory for the final Markdown report.
         checkpoint_id: Extracted checkpoint identifier for report filename.
+        benchmark: Absolute path string to benchmark questions JSON.
+        registry: Absolute path string to entity registry JSON.
 
     Returns:
         A list of command-line arguments for subprocess.run.
     """
     name = stage["name"]
+    script = stage["script"]
     responses = os.path.join(results_dir, "responses.json")
     scores = os.path.join(results_dir, "scores.json")
     fabrications = os.path.join(results_dir, "fabrications.json")
@@ -230,36 +255,41 @@ def build_stage_args(stage, checkpoint, results_dir, reports_dir, checkpoint_id)
 
     if name == "generate":
         return [
-            sys.executable, stage["script"],
+            sys.executable, script,
             "--checkpoint", checkpoint,
+            "--benchmark", benchmark,
             "--output", os.path.join(results_dir, "responses.json"),
         ]
     elif name == "score":
         return [
-            sys.executable, stage["script"],
+            sys.executable, script,
             "--responses", responses,
+            "--benchmark", benchmark,
             "--output", scores,
         ]
     elif name == "fabrications":
         return [
-            sys.executable, stage["script"],
+            sys.executable, script,
             "--responses", responses,
+            "--registry", registry,
             "--output", fabrications,
         ]
     elif name == "taxonomy":
         return [
-            sys.executable, stage["script"],
+            sys.executable, script,
             "--scores", scores,
             "--fabrications", fabrications,
             "--responses", responses,
+            "--benchmark", benchmark,
             "--output", taxonomy,
         ]
     elif name == "samples":
         return [
-            sys.executable, stage["script"],
+            sys.executable, script,
             "--scores", scores,
             "--fabrications", fabrications,
             "--responses", responses,
+            "--benchmark", benchmark,
             "--taxonomy", taxonomy,
             "--output", samples,
         ]
@@ -268,7 +298,7 @@ def build_stage_args(stage, checkpoint, results_dir, reports_dir, checkpoint_id)
             reports_dir, f"hallucination_eval_{checkpoint_id}.md"
         )
         return [
-            sys.executable, stage["script"],
+            sys.executable, script,
             "--scores", scores,
             "--fabrications", fabrications,
             "--taxonomy", taxonomy,
@@ -322,7 +352,7 @@ def check_checkpoint_mismatch(responses_path, checkpoint):
 
 
 def run_stage(stage, stage_num, total_stages, checkpoint, results_dir,
-              reports_dir, checkpoint_id, force):
+              reports_dir, checkpoint_id, force, benchmark, registry):
     """Execute a single pipeline stage.
 
     Handles caching (skip if output exists and not --force), subprocess
@@ -337,6 +367,8 @@ def run_stage(stage, stage_num, total_stages, checkpoint, results_dir,
         reports_dir: Directory for the final Markdown report.
         checkpoint_id: Extracted checkpoint identifier.
         force: Whether to force regeneration.
+        benchmark: Absolute path string to benchmark questions JSON.
+        registry: Absolute path string to entity registry JSON.
 
     Returns:
         True if the stage succeeded, False otherwise.
@@ -360,7 +392,8 @@ def run_stage(stage, stage_num, total_stages, checkpoint, results_dir,
     t0 = time.time()
 
     args = build_stage_args(
-        stage, checkpoint, results_dir, reports_dir, checkpoint_id
+        stage, checkpoint, results_dir, reports_dir, checkpoint_id,
+        benchmark, registry,
     )
 
     result = subprocess.run(
@@ -402,28 +435,69 @@ def main():
     print("  NOTE: This is a research evaluation tool, not a medical"
           " information system.\n")
 
+    # Discover project root and resolve default paths
+    project_root = find_project_root()
+    defaults = resolve_default_paths(project_root)
+
+    # Resolve benchmark and registry to absolute paths
+    if args.benchmark is not None:
+        benchmark = str(Path(args.benchmark).resolve())
+    else:
+        benchmark = str(defaults["benchmark"])
+
+    if args.registry is not None:
+        registry = str(Path(args.registry).resolve())
+    else:
+        registry = str(defaults["registry"])
+
+    # Resolve checkpoint, results_dir, and reports_dir to absolute paths
+    checkpoint = str(Path(args.checkpoint).resolve())
+    results_dir = str(Path(args.results_dir).resolve())
+    reports_dir = str(Path(args.reports_dir).resolve())
+
+    # Resolve stage script paths relative to project root
+    for stage in STAGES:
+        stage["script"] = str(project_root / stage["script"])
+
+    # Print resolved paths for user verification
     checkpoint_id = extract_checkpoint_id(args.checkpoint)
-    print(f"  Checkpoint: {args.checkpoint}")
+    print(f"  Project root: {project_root}")
+    print(f"  Checkpoint: {checkpoint}")
     print(f"  Checkpoint ID: {checkpoint_id}")
-    print(f"  Results dir: {args.results_dir}")
-    print(f"  Reports dir: {args.reports_dir}")
+    print(f"  Benchmark: {benchmark}")
+    print(f"  Registry: {registry}")
+    print(f"  Results dir: {results_dir}")
+    print(f"  Reports dir: {reports_dir}")
+
+    # Upfront validation: ensure benchmark and registry exist
+    if not os.path.isfile(benchmark):
+        print(f"\n  ERROR: Benchmark file not found at {benchmark}")
+        print(f"  Run the benchmark creation step first, or pass "
+              f"--benchmark /path/to/file.")
+        sys.exit(1)
+
+    if not os.path.isfile(registry):
+        print(f"\n  ERROR: Entity registry not found at {registry}")
+        print(f"  Run eval/build_entity_registry.py first, or pass "
+              f"--registry /path/to/file.")
+        sys.exit(1)
 
     # Create directories
-    os.makedirs(args.results_dir, exist_ok=True)
-    os.makedirs(args.reports_dir, exist_ok=True)
+    os.makedirs(results_dir, exist_ok=True)
+    os.makedirs(reports_dir, exist_ok=True)
 
     # Handle --force: delete all intermediate files
     if args.force:
         print(f"  Force mode: deleting intermediate files...")
         for stage in STAGES:
             if stage["output_file"]:
-                path = os.path.join(args.results_dir, stage["output_file"])
+                path = os.path.join(results_dir, stage["output_file"])
                 if os.path.isfile(path):
                     os.remove(path)
                     print(f"    Removed: {path}")
         # Also remove the report file
         report_path = os.path.join(
-            args.reports_dir, f"hallucination_eval_{checkpoint_id}.md"
+            reports_dir, f"hallucination_eval_{checkpoint_id}.md"
         )
         if os.path.isfile(report_path):
             os.remove(report_path)
@@ -443,8 +517,9 @@ def main():
 
     for i, stage in enumerate(stages_to_run, 1):
         success = run_stage(
-            stage, i, total, args.checkpoint, args.results_dir,
-            args.reports_dir, checkpoint_id, args.force,
+            stage, i, total, checkpoint, results_dir,
+            reports_dir, checkpoint_id, args.force,
+            benchmark, registry,
         )
         if not success:
             print(f"\n  Pipeline FAILED at stage '{stage['name']}'. "
@@ -459,7 +534,7 @@ def main():
 
     if not args.stage or args.stage == "report":
         report_path = os.path.join(
-            args.reports_dir, f"hallucination_eval_{checkpoint_id}.md"
+            reports_dir, f"hallucination_eval_{checkpoint_id}.md"
         )
         if os.path.isfile(report_path):
             print(f"  Report: {report_path}")
