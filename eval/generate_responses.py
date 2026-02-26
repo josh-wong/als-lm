@@ -48,7 +48,16 @@ try:
     from eval.utils import find_project_root, resolve_default_paths
     _PROJECT_ROOT = find_project_root()
     _DEFAULTS = resolve_default_paths(_PROJECT_ROOT)
-except (ImportError, SystemExit):
+except ImportError:
+    import warnings
+    warnings.warn(
+        "Cannot import eval.utils. Ensure you're running from within "
+        "the als-lm repository.",
+        stacklevel=2,
+    )
+    _PROJECT_ROOT = None
+    _DEFAULTS = {}
+except SystemExit:
     _PROJECT_ROOT = None
     _DEFAULTS = {}
 
@@ -174,14 +183,24 @@ def load_model_from_checkpoint(pt_path, device):
     return model, config_dict
 
 
-def load_tokenizer(tokenizer_path="tokenizer/als_tokenizer.json"):
+def load_tokenizer(tokenizer_path=None):
     """Load the canonical ALS tokenizer.
+
+    If no path is provided, resolves the default location using
+    ``_PROJECT_ROOT`` so the script works from any working directory.
 
     Returns the Tokenizer instance or exits with an error message.
     """
+    if tokenizer_path is None:
+        if _PROJECT_ROOT is not None:
+            tokenizer_path = str(_PROJECT_ROOT / "tokenizer" / "als_tokenizer.json")
+        else:
+            tokenizer_path = "tokenizer/als_tokenizer.json"
+
     if not os.path.isfile(tokenizer_path):
-        print(f"ERROR: Tokenizer not found: {tokenizer_path}")
-        print("  The canonical tokenizer must exist at tokenizer/als_tokenizer.json")
+        print(f"ERROR: Tokenizer not found at {tokenizer_path}")
+        print("  Have you trained the tokenizer? The canonical tokenizer must "
+              "exist at tokenizer/als_tokenizer.json")
         sys.exit(1)
 
     tokenizer = Tokenizer.from_file(tokenizer_path)
