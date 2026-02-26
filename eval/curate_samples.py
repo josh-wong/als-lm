@@ -319,7 +319,7 @@ def build_sample_entry(score_entry, bench_by_id, resp_by_id, fab_by_id,
     return {
         "question_id": qid,
         "question": bench_entry.get("question", ""),
-        "expected_answer": bench_entry.get("answer", ""),
+        "expected_answer": bench_entry.get("verified_answer", ""),
         "model_response": resp_entry.get("response", ""),
         "accuracy": score_entry["accuracy_proportional"],
         "failure_mode": tax_entry.get("primary_mode", "unknown"),
