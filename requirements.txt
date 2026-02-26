@@ -45,8 +45,8 @@ nvidia-ml-py==13.590.48
 # System monitoring (Phase 4.5)
 psutil==7.2.2
 
-# Metrics and monitoring (v0.3.0)
+# Metrics and monitoring (v0.4.0)
 tensorboard==2.19.0
 
-# Evaluation framework (v0.4.0)
+# Evaluation framework (v0.3.0)
 rapidfuzz==3.14.3
