@@ -43,8 +43,9 @@ data/stats.md
 # Tokenized data (Phase 3 - binary files, regenerable from corpus + tokenizer)
 data/tokenized/
 
-# Environment validation reports (Phase 4.1)
-reports/
+# Environment validation reports (Phase 4.1), except production training analysis (committed deliverable)
+reports/*
+!reports/production_training_analysis/
 
 # Training artifacts (Phase 4.3)
 logs/

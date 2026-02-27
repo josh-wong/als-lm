@@ -3,15 +3,15 @@
 Overfitting analysis script for ALS-LM training logs.
 
 Reads a JSONL training log and produces:
-  - loss_curves.png: Train vs validation loss with epoch markers
+  - train_val_loss.png: Train vs validation loss with epoch markers
   - perplexity_gap.png: Train vs validation perplexity divergence
   - lr_schedule.png: Learning rate over training steps
-  - analysis_report.md: Narrative Markdown report with overfitting diagnosis
+  - overfitting_report.md: Narrative Markdown report with overfitting diagnosis
 
 Supports both the old (tiny model) and enriched (Phase 5+) log formats.
 
 Usage:
-    python scripts/analyze_training.py <path/to/log.jsonl>
+    python scripts/analyze_training.py <path/to/log.jsonl> [--output-dir DIR]
 """
 
 import argparse
@@ -802,7 +802,7 @@ def generate_report(
         f"## Training overview\n\n"
         f"{overview}\n\n"
         f"## Loss curves\n\n"
-        f"![Loss Curves](loss_curves.png)\n\n"
+        f"![Loss Curves](train_val_loss.png)\n\n"
         f"{_interpret_loss_curves(steps, validations)}\n\n"
         f"{epoch_table_header}"
         f"{_build_epoch_table(validations)}\n"
@@ -831,6 +831,11 @@ def main() -> None:
         "log_file",
         help="Path to the JSONL training log file",
     )
+    parser.add_argument(
+        "--output-dir",
+        default=None,
+        help="Directory to write output files (default: <log_dir>/<stem>_analysis/)",
+    )
     args = parser.parse_args()
 
     log_path = os.path.abspath(args.log_file)
@@ -839,9 +844,13 @@ def main() -> None:
         sys.exit(1)
 
     log_filename = os.path.basename(log_path)
-    log_dir = os.path.dirname(log_path)
-    stem = Path(log_path).stem
-    output_dir = os.path.join(log_dir, f"{stem}_analysis")
+
+    if args.output_dir:
+        output_dir = os.path.abspath(args.output_dir)
+    else:
+        log_dir = os.path.dirname(log_path)
+        stem = Path(log_path).stem
+        output_dir = os.path.join(log_dir, f"{stem}_analysis")
     os.makedirs(output_dir, exist_ok=True)
 
     # Parse log
@@ -860,9 +869,9 @@ def main() -> None:
     # Generate plots
     print("Generating plots...")
 
-    loss_path = os.path.join(output_dir, "loss_curves.png")
+    loss_path = os.path.join(output_dir, "train_val_loss.png")
     plot_loss_curves(parsed["steps"], parsed["validations"], loss_path)
-    print(f"  Saved: loss_curves.png")
+    print(f"  Saved: train_val_loss.png")
 
     if n_val > 0:
         ppl_path = os.path.join(output_dir, "perplexity_gap.png")
@@ -878,10 +887,10 @@ def main() -> None:
     # Generate report
     print("Writing report...")
     report = generate_report(parsed, log_filename, output_dir)
-    report_path = os.path.join(output_dir, "analysis_report.md")
+    report_path = os.path.join(output_dir, "overfitting_report.md")
     with open(report_path, "w", encoding="utf-8") as f:
         f.write(report)
-    print(f"  Saved: analysis_report.md")
+    print(f"  Saved: overfitting_report.md")
 
     print(f"\nDone: {output_dir}/")
 
