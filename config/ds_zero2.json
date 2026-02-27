@@ -38,7 +38,7 @@
             "warmup_min_ratio": 0.0,
             "warmup_num_steps": "auto",
             "total_num_steps": "auto",
-            "cos_min_ratio": 0.1
+            "cos_min_ratio": 0.0
         }
     },
     "activation_checkpointing": {
