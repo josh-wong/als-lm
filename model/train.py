@@ -633,7 +633,7 @@ def save_best_checkpoint_atomic(model_engine, run_dir, step, val_loss,
         # rotation provides recovery if this narrow window is hit.
         if os.path.exists(best_dir):
             shutil.rmtree(best_dir)
-        os.rename(os.path.join(temp_best_run, tag), best_dir)
+        shutil.move(os.path.join(temp_best_run, tag), best_dir)
 
         # 5. Clean up temp shell
         shutil.rmtree(temp_best_run, ignore_errors=True)
