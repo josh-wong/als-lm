@@ -147,11 +147,15 @@ def parse_args():
 # ---------------------------------------------------------------------------
 
 def classify_response(score_entry, flagged_count, category, difficulty,
-                      tokens_generated):
+                      tokens_generated, is_coherent=True):
     """Classify a single response into a failure mode with severity.
 
     Rules are evaluated in priority order. First match wins for the primary
     label. A secondary label is assigned if another rule also matches.
+
+    If ``is_coherent`` is False the response is immediately classified as
+    "degenerate" with severity "low" -- the output is unusable but not
+    dangerously misleading.
 
     Args:
         score_entry: Dict with accuracy_proportional and hedging_count from
@@ -160,10 +164,19 @@ def classify_response(score_entry, flagged_count, category, difficulty,
         category: Question category string.
         difficulty: Question difficulty string.
         tokens_generated: Number of tokens in the model response.
+        is_coherent: Boolean coherence flag from generate_responses.py.
 
     Returns:
         A dict with primary_mode, secondary_mode, and severity.
     """
+    # Early exit: incoherent responses are always degenerate
+    if not is_coherent:
+        return {
+            "primary_mode": "degenerate",
+            "secondary_mode": None,
+            "severity": "low",
+        }
+
     accuracy = score_entry["accuracy_proportional"]
     hedging_count = score_entry["hedging_count"]
 
@@ -398,6 +411,7 @@ def main():
 
         resp_entry = resp_by_id.get(qid, {})
         tokens_generated = resp_entry.get("tokens_generated", 0)
+        resp_is_coherent = resp_entry.get("is_coherent", True)
 
         # Run classification
         result = classify_response(
@@ -406,6 +420,7 @@ def main():
             category=category,
             difficulty=difficulty,
             tokens_generated=tokens_generated,
+            is_coherent=resp_is_coherent,
         )
 
         classification = {
