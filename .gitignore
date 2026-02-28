@@ -46,6 +46,7 @@ data/tokenized/
 # Environment validation reports (Phase 4.1), except production training analysis (committed deliverable)
 reports/*
 !reports/production_training_analysis/
+!reports/eval/
 
 # Training artifacts (Phase 4.3)
 logs/

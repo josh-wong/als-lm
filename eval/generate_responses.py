@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Generate model responses to ALS benchmark questions for evaluation.
 
-Loads a model checkpoint, runs greedy inference on every benchmark question,
-and saves structured JSON output for downstream scoring and fabrication
-detection. The script is checkpoint-agnostic and works with tiny, medium, or
-500M models. It is robust to degenerate outputs (gibberish, repetition, empty
-output) from undertrained models.
+Supports two inference modes: (1) loading a PyTorch checkpoint directly, or
+(2) querying an Ollama server hosting GGUF models. Includes a coherence
+pre-filter to flag degenerate output (empty, repetitive, token salad) before
+expensive downstream scoring stages, and resume support to pick up from the
+last completed question if a run is interrupted.
 
 This is a research evaluation tool, not a medical information system.
 
@@ -16,6 +16,15 @@ Usage examples::
 
     # Using a direct .pt file
     python eval/generate_responses.py --checkpoint checkpoints/tiny_20260225/best/best.pt
+
+    # Using an Ollama model
+    python eval/generate_responses.py --ollama-model als-lm-500m:q8_0
+
+    # Ollama with custom URL and resume support
+    python eval/generate_responses.py \\
+        --ollama-model als-lm-500m:f16 \\
+        --ollama-url http://localhost:11434 \\
+        --resume
 
     # Custom output path and max tokens
     python eval/generate_responses.py \\
@@ -32,10 +41,13 @@ Usage examples::
 import argparse
 import json
 import os
+import re
 import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+
+import requests
 
 # Ensure the project root is on sys.path so that `from model.model import ...`
 # resolves correctly when running as `python eval/generate_responses.py`.
@@ -61,10 +73,25 @@ except SystemExit:
     _PROJECT_ROOT = None
     _DEFAULTS = {}
 
-import torch
-from tokenizers import Tokenizer
+# Checkpoint-mode imports are deferred until needed so that Ollama-only runs
+# do not require PyTorch, tokenizers, or the model package to be installed.
+_CHECKPOINT_IMPORTS_LOADED = False
 
-from model.model import GPT, GPTConfig
+
+def _ensure_checkpoint_imports():
+    """Lazily import PyTorch, tokenizers, and the GPT model."""
+    global _CHECKPOINT_IMPORTS_LOADED
+    if _CHECKPOINT_IMPORTS_LOADED:
+        return
+    global torch, Tokenizer, GPT, GPTConfig
+    import torch as _torch
+    from tokenizers import Tokenizer as _Tokenizer
+    from model.model import GPT as _GPT, GPTConfig as _GPTConfig
+    torch = _torch
+    Tokenizer = _Tokenizer
+    GPT = _GPT
+    GPTConfig = _GPTConfig
+    _CHECKPOINT_IMPORTS_LOADED = True
 
 
 def parse_args():
@@ -75,14 +102,38 @@ def parse_args():
         epilog=(
             "Examples:\n"
             "  python eval/generate_responses.py --checkpoint checkpoints/tiny/best\n"
-            "  python eval/generate_responses.py --checkpoint best.pt --device cpu\n"
+            "  python eval/generate_responses.py --ollama-model als-lm-500m:q8_0\n"
+            "  python eval/generate_responses.py --ollama-model als-lm-500m:f16 --resume\n"
         ),
     )
     parser.add_argument(
         "--checkpoint",
         type=str,
-        required=True,
+        default=None,
         help="Path to checkpoint directory (containing best.pt) or direct .pt file",
+    )
+    parser.add_argument(
+        "--ollama-model",
+        type=str,
+        default=None,
+        help="Ollama model name (e.g., 'als-lm-500m:q8_0'). Uses Ollama API instead of checkpoint.",
+    )
+    parser.add_argument(
+        "--ollama-url",
+        type=str,
+        default="http://localhost:11434",
+        help="Ollama server URL (default: http://localhost:11434)",
+    )
+    parser.add_argument(
+        "--temperature",
+        type=float,
+        default=0.0,
+        help="Generation temperature (default: 0.0 for deterministic results)",
+    )
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Resume from last completed question if output file exists",
     )
     parser.add_argument(
         "--benchmark",
@@ -108,7 +159,16 @@ def parse_args():
         default=None,
         help="Device for inference: cuda or cpu (default: auto-detect)",
     )
-    return parser.parse_args()
+
+    args = parser.parse_args()
+
+    # Validate: exactly one of --checkpoint or --ollama-model must be provided
+    if args.checkpoint and args.ollama_model:
+        parser.error("Specify either --checkpoint or --ollama-model, not both.")
+    if not args.checkpoint and not args.ollama_model:
+        parser.error("One of --checkpoint or --ollama-model is required.")
+
+    return args
 
 
 def resolve_checkpoint_path(checkpoint_arg):
@@ -150,6 +210,7 @@ def load_model_from_checkpoint(pt_path, device):
 
     Returns (model, model_config_dict).
     """
+    _ensure_checkpoint_imports()
     print(f"  Loading checkpoint: {pt_path}")
     checkpoint = torch.load(pt_path, map_location=device, weights_only=False)
 
@@ -191,6 +252,7 @@ def load_tokenizer(tokenizer_path=None):
 
     Returns the Tokenizer instance or exits with an error message.
     """
+    _ensure_checkpoint_imports()
     if tokenizer_path is None:
         if _PROJECT_ROOT is not None:
             tokenizer_path = str(_PROJECT_ROOT / "tokenizer" / "als_tokenizer.json")
@@ -208,7 +270,6 @@ def load_tokenizer(tokenizer_path=None):
     return tokenizer
 
 
-@torch.no_grad()
 def generate_greedy(model, input_ids, max_new_tokens, eos_token_id, device):
     """Generate tokens using greedy decoding (temperature=0).
 
@@ -230,28 +291,151 @@ def generate_greedy(model, input_ids, max_new_tokens, eos_token_id, device):
         (new_token_ids, tokens_generated) where new_token_ids is a list of
         generated token IDs (excluding prompt) and tokens_generated is the count.
     """
-    idx = torch.tensor([input_ids], dtype=torch.long, device=device)
-    block_size = model.config.block_size
-    new_tokens = []
+    _ensure_checkpoint_imports()
+    with torch.no_grad():
+        idx = torch.tensor([input_ids], dtype=torch.long, device=device)
+        block_size = model.config.block_size
+        new_tokens = []
 
-    for _ in range(max_new_tokens):
-        # Truncate to block_size if sequence exceeds context window
-        idx_cond = idx[:, -block_size:]
-        logits, _ = model(idx_cond)
-        # Take logits at the last position
-        logits = logits[:, -1, :]
-        # Greedy decoding: argmax
-        idx_next = torch.argmax(logits, dim=-1, keepdim=True)
-        token_id = idx_next.item()
+        for _ in range(max_new_tokens):
+            # Truncate to block_size if sequence exceeds context window
+            idx_cond = idx[:, -block_size:]
+            logits, _ = model(idx_cond)
+            # Take logits at the last position
+            logits = logits[:, -1, :]
+            # Greedy decoding: argmax
+            idx_next = torch.argmax(logits, dim=-1, keepdim=True)
+            token_id = idx_next.item()
 
-        # Stop on <|endoftext|>
-        if eos_token_id is not None and token_id == eos_token_id:
-            break
+            # Stop on <|endoftext|>
+            if eos_token_id is not None and token_id == eos_token_id:
+                break
 
-        new_tokens.append(token_id)
-        idx = torch.cat([idx, idx_next], dim=1)
+            new_tokens.append(token_id)
+            idx = torch.cat([idx, idx_next], dim=1)
 
     return new_tokens, len(new_tokens)
+
+
+def is_coherent(text):
+    """Binary coherence pre-filter for model output.
+
+    Flags degenerate responses that should be classified as failures without
+    expensive downstream scoring. A response is incoherent if any of these
+    conditions hold:
+
+    - Empty or whitespace-only
+    - Shorter than 10 characters
+    - Contains a word repeated 6 or more times consecutively
+    - Contains punctuation-separated token repetition (e.g. "tau, tau, tau")
+    - Contains any 3-gram repeated 4+ times
+    - More than 80% non-alphanumeric characters (token salad)
+
+    Args:
+        text: The generated response text.
+
+    Returns:
+        True if the text appears coherent, False otherwise.
+    """
+    if not text or not text.strip():
+        return False
+
+    stripped = text.strip()
+
+    if len(stripped) < 10:
+        return False
+
+    # Check for consecutive word repetition (same word 6+ times in a row)
+    if re.search(r"(\b\w+\b)(\s+\1){5,}", stripped, re.IGNORECASE):
+        return False
+
+    # Check for punctuation-separated token repetition. Strip commas,
+    # semicolons, and hyphens then re-check for consecutive words. This
+    # catches patterns like "TDP-43, TDP-43, TDP-43" and "tau, tau, tau".
+    cleaned = re.sub(r"[,;\-]+", " ", stripped)
+    cleaned = re.sub(r"\s+", " ", cleaned)
+    if re.search(r"(\b\w+\b)(\s+\1){5,}", cleaned, re.IGNORECASE):
+        return False
+
+    # Check for n-gram repetition. Build a frequency table of 3-word
+    # sliding windows. If any 3-gram appears 4+ times, the output is
+    # degenerate. This catches phrase-level loops like "protein-binding
+    # protein-binding" and "and FTD, and FTD, and FTD".
+    words = stripped.split()
+    if len(words) >= 6:
+        trigram_counts = {}
+        for i in range(len(words) - 2):
+            trigram = " ".join(words[i:i + 3]).lower()
+            trigram_counts[trigram] = trigram_counts.get(trigram, 0) + 1
+            if trigram_counts[trigram] >= 4:
+                return False
+
+    # Check for token salad (>80% non-alphanumeric)
+    alnum_count = sum(1 for ch in stripped if ch.isalnum())
+    if len(stripped) > 0 and alnum_count / len(stripped) < 0.2:
+        return False
+
+    return True
+
+
+def generate_ollama_response(ollama_url, model_name, prompt, max_tokens,
+                             temperature):
+    """Generate a single response via the Ollama HTTP API.
+
+    Posts to ``/api/generate`` with streaming disabled. Retries up to 3 times
+    on connection errors, timeouts, or server errors (HTTP 5xx) with a
+    5-second delay between attempts. Client errors (4xx) fail immediately.
+
+    Args:
+        ollama_url: Base URL of the Ollama server (e.g. ``http://localhost:11434``).
+        model_name: Ollama model tag (e.g. ``als-lm-500m:q8_0``).
+        prompt: The prompt text to send.
+        max_tokens: Maximum tokens to generate (``num_predict``).
+        temperature: Sampling temperature (0.0 for greedy).
+
+    Returns:
+        ``(response_text, tokens_generated)`` on success, or
+        ``("[ollama error: <details>]", 0)`` on permanent failure.
+    """
+    url = f"{ollama_url.rstrip('/')}/api/generate"
+    payload = {
+        "model": model_name,
+        "prompt": prompt,
+        "stream": False,
+        "options": {
+            "temperature": temperature,
+            "num_predict": max_tokens,
+        },
+    }
+
+    max_retries = 3
+    for attempt in range(1, max_retries + 1):
+        try:
+            resp = requests.post(url, json=payload, timeout=120)
+            resp.raise_for_status()
+            data = resp.json()
+            response_text = data.get("response", "")
+            tokens_generated = data.get("eval_count", 0)
+            if tokens_generated == 0 and response_text:
+                # Fallback: estimate from word count
+                tokens_generated = len(response_text.split())
+            return response_text, tokens_generated
+        except (requests.ConnectionError, requests.Timeout) as exc:
+            if attempt < max_retries:
+                print(f"    Retry {attempt}/{max_retries} after error: {exc}")
+                time.sleep(5)
+            else:
+                return f"[ollama error: {exc}]", 0
+        except requests.HTTPError as exc:
+            if resp.status_code >= 500 and attempt < max_retries:
+                print(f"    Retry {attempt}/{max_retries} after HTTP {resp.status_code}")
+                time.sleep(5)
+            else:
+                return f"[ollama error: HTTP {resp.status_code} - {exc}]", 0
+        except Exception as exc:
+            return f"[ollama error: {exc}]", 0
+
+    return "[ollama error: max retries exceeded]", 0
 
 
 def generate_responses(model, tokenizer, questions, max_tokens, device):
@@ -314,9 +498,134 @@ def generate_responses(model, tokenizer, questions, max_tokens, device):
             "prompt": prompt_text,
             "response": response_text,
             "tokens_generated": tokens_generated,
+            "is_coherent": is_coherent(response_text),
         })
 
     return responses
+
+
+def generate_responses_ollama(ollama_url, model_name, questions, max_tokens,
+                              temperature):
+    """Run inference on all benchmark questions via the Ollama API.
+
+    For each question, sends the ``prompt_template`` to the Ollama server and
+    collects the structured response including a coherence check.
+
+    Args:
+        ollama_url: Base URL of the Ollama server.
+        model_name: Ollama model tag.
+        questions: List of question dicts from questions.json.
+        max_tokens: Maximum tokens to generate per response.
+        temperature: Sampling temperature.
+
+    Returns:
+        List of response dicts with question metadata and generated text.
+    """
+    responses = []
+    total = len(questions)
+
+    for i, question in enumerate(questions):
+        qid = question["id"]
+        prompt_text = question["prompt_template"]
+
+        print(f"  Generating response {i + 1}/{total} ({qid})...")
+
+        response_text, tokens_generated = generate_ollama_response(
+            ollama_url, model_name, prompt_text, max_tokens, temperature,
+        )
+
+        responses.append({
+            "question_id": qid,
+            "category": question["category"],
+            "difficulty": question["difficulty"],
+            "is_trap": question["is_trap"],
+            "prompt": prompt_text,
+            "response": response_text,
+            "tokens_generated": tokens_generated,
+            "is_coherent": is_coherent(response_text),
+        })
+
+    return responses
+
+
+def _load_existing_responses(output_path):
+    """Load previously generated responses from *output_path*.
+
+    Returns ``(responses_dict, metadata_dict)`` where *responses_dict* maps
+    ``question_id`` -> response dict and *metadata_dict* is the saved
+    metadata block (empty dict if absent). Returns ``({}, {})`` if the file
+    does not exist or cannot be parsed.
+    """
+    if not os.path.isfile(output_path):
+        return {}, {}
+    try:
+        with open(output_path) as fh:
+            data = json.load(fh)
+        responses = {r["question_id"]: r for r in data.get("responses", [])}
+        return responses, data.get("metadata", {})
+    except (json.JSONDecodeError, KeyError, OSError):
+        return {}, {}
+
+
+def _validate_resume_metadata(existing_metadata, args):
+    """Warn if the existing file's metadata conflicts with current arguments.
+
+    Checks inference mode, model identity, max tokens, and temperature.
+    Mismatches produce warnings but do not abort the run — the caller is
+    responsible for deciding whether to proceed.
+
+    Returns True if metadata is compatible, False if mismatches were found.
+    """
+    mismatches = []
+
+    existing_mode = existing_metadata.get("inference_mode")
+    current_mode = "ollama" if args.ollama_model else "checkpoint"
+
+    if existing_mode and existing_mode != current_mode:
+        mismatches.append(
+            f"inference mode: existing={existing_mode}, current={current_mode}"
+        )
+
+    if current_mode == "ollama":
+        existing_model = existing_metadata.get("ollama_model")
+        if existing_model and existing_model != args.ollama_model:
+            mismatches.append(
+                f"ollama model: existing={existing_model}, "
+                f"current={args.ollama_model}"
+            )
+    else:
+        existing_ckpt = existing_metadata.get("checkpoint_path")
+        if existing_ckpt and args.checkpoint:
+            current_ckpt = os.path.abspath(args.checkpoint)
+            if existing_ckpt != current_ckpt:
+                mismatches.append(
+                    f"checkpoint: existing={existing_ckpt}, "
+                    f"current={current_ckpt}"
+                )
+
+    existing_params = existing_metadata.get("generation_params", {})
+    if existing_params.get("max_tokens") is not None:
+        if existing_params["max_tokens"] != args.max_tokens:
+            mismatches.append(
+                f"max_tokens: existing={existing_params['max_tokens']}, "
+                f"current={args.max_tokens}"
+            )
+    if existing_params.get("temperature") is not None:
+        current_temp = args.temperature if args.ollama_model else 0.0
+        if existing_params["temperature"] != current_temp:
+            mismatches.append(
+                f"temperature: existing={existing_params['temperature']}, "
+                f"current={current_temp}"
+            )
+
+    if mismatches:
+        print("  WARNING: Resume file metadata does not match current arguments:")
+        for m in mismatches:
+            print(f"    - {m}")
+        print("  Proceeding anyway. The output metadata will reflect the current run.")
+        return False
+
+    return True
 
 
 def main():
@@ -326,21 +635,18 @@ def main():
     print("\n=== ALS-LM Response Generation ===\n")
     print("  NOTE: This is a research evaluation tool, not a medical information system.\n")
 
-    # Resolve device
-    if args.device is not None:
-        device = torch.device(args.device)
-    else:
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"  Device: {device}")
+    # Determine inference mode
+    use_ollama = args.ollama_model is not None
 
-    # Load checkpoint
-    pt_path = resolve_checkpoint_path(args.checkpoint)
-    model, model_config_dict = load_model_from_checkpoint(pt_path, device)
+    # ---- Resume logic -------------------------------------------------------
+    existing_responses = {}
+    if args.resume:
+        existing_responses, existing_metadata = _load_existing_responses(args.output)
+        if existing_responses:
+            print(f"  Resume mode: {len(existing_responses)} existing responses loaded")
+            _validate_resume_metadata(existing_metadata, args)
 
-    # Load tokenizer
-    tokenizer = load_tokenizer()
-
-    # Load benchmark questions
+    # ---- Load benchmark questions --------------------------------------------
     if not os.path.isfile(args.benchmark):
         print(f"ERROR: Benchmark file not found: {args.benchmark}")
         sys.exit(1)
@@ -349,15 +655,74 @@ def main():
         questions = json.load(f)
     print(f"  Benchmark loaded: {len(questions)} questions from {args.benchmark}")
 
-    # Generate responses
-    print(f"\n  Starting inference (max_tokens={args.max_tokens}, temperature=0.0)...\n")
-    t0 = time.time()
-    responses = generate_responses(model, tokenizer, questions, args.max_tokens, device)
-    elapsed = time.time() - t0
+    # Filter questions for resume
+    if existing_responses:
+        questions_to_run = [
+            q for q in questions if q["id"] not in existing_responses
+        ]
+        print(f"  Skipping {len(questions) - len(questions_to_run)} already-completed questions")
+    else:
+        questions_to_run = questions
 
-    # Build output structure
-    output = {
-        "metadata": {
+    # ---- Generate responses --------------------------------------------------
+    if use_ollama:
+        # Ollama mode
+        print(f"  Inference mode: Ollama")
+        print(f"  Ollama model: {args.ollama_model}")
+        print(f"  Ollama URL: {args.ollama_url}")
+        print(f"\n  Starting inference (max_tokens={args.max_tokens}, "
+              f"temperature={args.temperature})...\n")
+
+        t0 = time.time()
+        new_responses = generate_responses_ollama(
+            args.ollama_url, args.ollama_model, questions_to_run,
+            args.max_tokens, args.temperature,
+        )
+        elapsed = time.time() - t0
+
+        # Build metadata for Ollama mode
+        metadata = {
+            "inference_mode": "ollama",
+            "ollama_model": args.ollama_model,
+            "ollama_url": args.ollama_url,
+            "generation_params": {
+                "max_tokens": args.max_tokens,
+                "temperature": args.temperature,
+            },
+            "benchmark_path": args.benchmark,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "total_questions": len(questions),
+        }
+    else:
+        # Checkpoint mode
+        _ensure_checkpoint_imports()
+
+        # Resolve device
+        if args.device is not None:
+            device = torch.device(args.device)
+        else:
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        print(f"  Device: {device}")
+
+        # Load checkpoint
+        pt_path = resolve_checkpoint_path(args.checkpoint)
+        model, model_config_dict = load_model_from_checkpoint(pt_path, device)
+
+        # Load tokenizer
+        tokenizer = load_tokenizer()
+
+        print(f"\n  Starting inference (max_tokens={args.max_tokens}, "
+              f"temperature=0.0)...\n")
+
+        t0 = time.time()
+        new_responses = generate_responses(
+            model, tokenizer, questions_to_run, args.max_tokens, device,
+        )
+        elapsed = time.time() - t0
+
+        # Build metadata for checkpoint mode
+        metadata = {
+            "inference_mode": "checkpoint",
             "checkpoint_path": os.path.abspath(pt_path),
             "model_config": model_config_dict,
             "generation_params": {
@@ -368,8 +733,18 @@ def main():
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "total_questions": len(questions),
             "device": str(device),
-        },
-        "responses": responses,
+        }
+
+    # ---- Merge with existing responses (resume) -----------------------------
+    if existing_responses:
+        merged = list(existing_responses.values()) + new_responses
+    else:
+        merged = new_responses
+
+    # Build output structure
+    output = {
+        "metadata": metadata,
+        "responses": merged,
     }
 
     # Create output directory if needed
@@ -381,16 +756,31 @@ def main():
     with open(args.output, "w") as f:
         json.dump(output, f, indent=2)
 
-    # Summary statistics
-    total_tokens = sum(r["tokens_generated"] for r in responses)
-    empty_count = sum(1 for r in responses if r["tokens_generated"] == 0)
-    error_count = sum(1 for r in responses if r["response"].startswith("[generation error:"))
+    # ---- Summary statistics --------------------------------------------------
+    all_responses = merged
+    total_tokens = sum(r["tokens_generated"] for r in all_responses)
+    empty_count = sum(1 for r in all_responses if r["tokens_generated"] == 0)
+    error_count = sum(
+        1 for r in all_responses
+        if r["response"].startswith("[generation error:")
+        or r["response"].startswith("[ollama error:")
+    )
+    incoherent_count = sum(
+        1 for r in all_responses if not r.get("is_coherent", True)
+    )
 
     print(f"\n  === Generation Complete ===")
-    print(f"  Total time: {elapsed:.1f}s ({elapsed / len(questions):.2f}s per question)")
+    if questions_to_run:
+        print(f"  Total time: {elapsed:.1f}s "
+              f"({elapsed / len(questions_to_run):.2f}s per question)")
+    print(f"  New responses generated: {len(new_responses)}")
+    print(f"  Total responses (including resumed): {len(all_responses)}")
     print(f"  Total tokens generated: {total_tokens:,}")
-    print(f"  Average tokens per response: {total_tokens / len(questions):.1f}")
+    if all_responses:
+        print(f"  Average tokens per response: "
+              f"{total_tokens / len(all_responses):.1f}")
     print(f"  Empty responses: {empty_count}")
+    print(f"  Incoherent responses: {incoherent_count}")
     print(f"  Generation errors: {error_count}")
     print(f"  Output saved to: {args.output}")
     print()

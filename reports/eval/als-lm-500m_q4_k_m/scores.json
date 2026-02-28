@@ -1,0 +1,4834 @@
+{
+  "metadata": {
+    "responses_path": "/mnt/c/Users/joshu/OneDrive/Documents/GitHub/als-lm/eval/results/als-lm-500m_q4_k_m/responses.json",
+    "benchmark_path": "/mnt/c/Users/joshu/OneDrive/Documents/GitHub/als-lm/eval/questions.json",
+    "threshold": 80,
+    "timestamp": "2026-02-28T07:55:02.564757+00:00",
+    "total_questions": 160,
+    "total_scored": 160
+  },
+  "aggregate": {
+    "overall": {
+      "mean_accuracy": 0.0052,
+      "median_accuracy": 0.0,
+      "binary_pass_rate": 0,
+      "total_hedging_instances": 0
+    },
+    "by_category": {
+      "clinical_trials": {
+        "mean_accuracy": 0.0125,
+        "median_accuracy": 0.0,
+        "binary_pass_rate": 0,
+        "count": 20
+      },
+      "diagnostic_criteria": {
+        "mean_accuracy": 0.0,
+        "median_accuracy": 0.0,
+        "binary_pass_rate": 0,
+        "count": 20
+      },
+      "disease_mechanisms": {
+        "mean_accuracy": 0.0,
+        "median_accuracy": 0.0,
+        "binary_pass_rate": 0,
+        "count": 20
+      },
+      "drug_treatment": {
+        "mean_accuracy": 0.0,
+        "median_accuracy": 0.0,
+        "binary_pass_rate": 0,
+        "count": 20
+      },
+      "epidemiology": {
+        "mean_accuracy": 0.0,
+        "median_accuracy": 0.0,
+        "binary_pass_rate": 0,
+        "count": 20
+      },
+      "gene_mutation": {
+        "mean_accuracy": 0.0125,
+        "median_accuracy": 0.0,
+        "binary_pass_rate": 0,
+        "count": 20
+      },
+      "patient_care": {
+        "mean_accuracy": 0.0167,
+        "median_accuracy": 0.0,
+        "binary_pass_rate": 0,
+        "count": 20
+      },
+      "temporal_accuracy": {
+        "mean_accuracy": 0.0,
+        "median_accuracy": 0.0,
+        "binary_pass_rate": 0,
+        "count": 20
+      }
+    },
+    "by_difficulty": {
+      "easy": {
+        "mean_accuracy": 0.0066,
+        "median_accuracy": 0.0,
+        "binary_pass_rate": 0,
+        "count": 38
+      },
+      "hard": {
+        "mean_accuracy": 0.0047,
+        "median_accuracy": 0.0,
+        "binary_pass_rate": 0,
+        "count": 53
+      },
+      "medium": {
+        "mean_accuracy": 0.0048,
+        "median_accuracy": 0.0,
+        "binary_pass_rate": 0,
+        "count": 69
+      }
+    },
+    "trap_questions": {
+      "count": 16,
+      "mean_accuracy": 0.0208,
+      "binary_pass_rate": 0
+    }
+  },
+  "per_question": [
+    {
+      "question_id": "DRUG-001",
+      "category": "drug_treatment",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "riluzole",
+          "best_score": 50.0
+        },
+        {
+          "fact": "edaravone",
+          "best_score": 55.55555555555556
+        },
+        {
+          "fact": "1995",
+          "best_score": 0
+        },
+        {
+          "fact": "2017",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DRUG-002",
+      "category": "drug_treatment",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "glutamate release inhibitor",
+          "best_score": 44.44444444444444
+        },
+        {
+          "fact": "excitotoxicity",
+          "best_score": 42.85714285714286
+        },
+        {
+          "fact": "sodium channels",
+          "best_score": 46.666666666666664
+        },
+        {
+          "fact": "motor neuron protection",
+          "best_score": 43.47826086956522
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DRUG-003",
+      "category": "drug_treatment",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "free radical scavenger",
+          "best_score": 50.0
+        },
+        {
+          "fact": "oxidative stress",
+          "best_score": 50.0
+        },
+        {
+          "fact": "radicava",
+          "best_score": 42.85714285714286
+        },
+        {
+          "fact": "alsfrs-r",
+          "best_score": 50.0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DRUG-004",
+      "category": "drug_treatment",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "nuedexta",
+          "best_score": 0
+        },
+        {
+          "fact": "dextromethorphan",
+          "best_score": 0
+        },
+        {
+          "fact": "quinidine",
+          "best_score": 0
+        },
+        {
+          "fact": "pseudobulbar affect",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DRUG-005",
+      "category": "drug_treatment",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "spasticity",
+          "best_score": 50.0
+        },
+        {
+          "fact": "gaba-b receptor agonist",
+          "best_score": 48.78048780487805
+        },
+        {
+          "fact": "upper motor neuron",
+          "best_score": 50.0
+        },
+        {
+          "fact": "muscle stiffness",
+          "best_score": 48.0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DRUG-006",
+      "category": "drug_treatment",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "bensimon",
+          "best_score": 66.66666666666667
+        },
+        {
+          "fact": "double-blind placebo-controlled",
+          "best_score": 38.70967741935484
+        },
+        {
+          "fact": "100 mg per day",
+          "best_score": 42.85714285714286
+        },
+        {
+          "fact": "survival benefit 2-3 months",
+          "best_score": 48.14814814814815
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DRUG-007",
+      "category": "drug_treatment",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "antisense oligonucleotide",
+          "best_score": 52.0
+        },
+        {
+          "fact": "sod1 mutations",
+          "best_score": 78.57142857142857
+        },
+        {
+          "fact": "intrathecal administration",
+          "best_score": 53.84615384615385
+        },
+        {
+          "fact": "qalsody",
+          "best_score": 46.15384615384615
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DRUG-008",
+      "category": "drug_treatment",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "nausea",
+          "best_score": 66.66666666666667
+        },
+        {
+          "fact": "elevated liver enzymes",
+          "best_score": 41.860465116279066
+        },
+        {
+          "fact": "asthenia",
+          "best_score": 62.5
+        },
+        {
+          "fact": "liver function monitoring",
+          "best_score": 43.99999999999999
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DRUG-009",
+      "category": "drug_treatment",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "sodium phenylbutyrate",
+          "best_score": 42.85714285714286
+        },
+        {
+          "fact": "taurursodiol",
+          "best_score": 50.0
+        },
+        {
+          "fact": "centaur trial",
+          "best_score": 61.53846153846154
+        },
+        {
+          "fact": "alsfrs-r decline",
+          "best_score": 46.666666666666664
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DRUG-010",
+      "category": "drug_treatment",
+      "difficulty": "medium",
+      "is_trap": true,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "tyrosine kinase inhibitor",
+          "best_score": 48.0
+        },
+        {
+          "fact": "investigational",
+          "best_score": 46.666666666666664
+        },
+        {
+          "fact": "not fda-approved for als",
+          "best_score": 41.666666666666664
+        },
+        {
+          "fact": "neuroinflammation",
+          "best_score": 47.05882352941176
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "GENE-001",
+      "category": "gene_mutation",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "c9orf72",
+          "best_score": 44.44444444444444
+        },
+        {
+          "fact": "hexanucleotide repeat expansion",
+          "best_score": 48.0
+        },
+        {
+          "fact": "40% of familial als",
+          "best_score": 48.484848484848484
+        },
+        {
+          "fact": "chromosome 9",
+          "best_score": 52.63157894736843
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "GENE-002",
+      "category": "gene_mutation",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "superoxide dismutase 1",
+          "best_score": 50.0
+        },
+        {
+          "fact": "toxic gain of function",
+          "best_score": 45.45454545454546
+        },
+        {
+          "fact": "protein misfolding",
+          "best_score": 44.44444444444444
+        },
+        {
+          "fact": "12-20% of familial als",
+          "best_score": 36.36363636363637
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "GENE-003",
+      "category": "gene_mutation",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "tdp-43",
+          "best_score": 36.36363636363637
+        },
+        {
+          "fact": "rna-binding protein",
+          "best_score": 57.89473684210527
+        },
+        {
+          "fact": "cytoplasmic mislocalization",
+          "best_score": 55.55555555555556
+        },
+        {
+          "fact": "97% of als cases",
+          "best_score": 51.61290322580645
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "GENE-004",
+      "category": "gene_mutation",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.25,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [
+        {
+          "fact": "rna-binding protein",
+          "best_score": 100.0
+        }
+      ],
+      "key_facts_missed": [
+        {
+          "fact": "cytoplasmic mislocalization",
+          "best_score": 37.5
+        },
+        {
+          "fact": "younger onset",
+          "best_score": 50.0
+        },
+        {
+          "fact": "fus-positive inclusions",
+          "best_score": 39.13043478260869
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "GENE-005",
+      "category": "gene_mutation",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "5-10% familial",
+          "best_score": 35.71428571428571
+        },
+        {
+          "fact": "90-95% sporadic",
+          "best_score": 38.46153846153846
+        },
+        {
+          "fact": "genetic overlap",
+          "best_score": 60.0
+        },
+        {
+          "fact": "c9orf72 in sporadic cases",
+          "best_score": 45.45454545454546
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "GENE-006",
+      "category": "gene_mutation",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "serine/threonine kinase",
+          "best_score": 53.65853658536586
+        },
+        {
+          "fact": "autophagy",
+          "best_score": 55.55555555555556
+        },
+        {
+          "fact": "frontotemporal dementia",
+          "best_score": 46.51162790697675
+        },
+        {
+          "fact": "optineurin phosphorylation",
+          "best_score": 46.51162790697675
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "GENE-007",
+      "category": "gene_mutation",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "loss of function",
+          "best_score": 43.75
+        },
+        {
+          "fact": "rna foci",
+          "best_score": 50.0
+        },
+        {
+          "fact": "dipeptide repeat proteins",
+          "best_score": 48.0
+        },
+        {
+          "fact": "ran translation",
+          "best_score": 53.84615384615385
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "GENE-008",
+      "category": "gene_mutation",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "superoxide dismutase 1",
+          "best_score": 45.45454545454546
+        },
+        {
+          "fact": "copper-zinc",
+          "best_score": 50.0
+        },
+        {
+          "fact": "antioxidant defense",
+          "best_score": 42.10526315789473
+        },
+        {
+          "fact": "converts superoxide to hydrogen peroxide",
+          "best_score": 42.50000000000001
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "GENE-009",
+      "category": "gene_mutation",
+      "difficulty": "hard",
+      "is_trap": true,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 3,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "no such gene associated with als",
+          "best_score": 56.25
+        },
+        {
+          "fact": "brca genes relate to cancer",
+          "best_score": 51.85185185185186
+        },
+        {
+          "fact": "fabricated association",
+          "best_score": 50.0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "GENE-010",
+      "category": "gene_mutation",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "disease spectrum",
+          "best_score": 62.5
+        },
+        {
+          "fact": "c9orf72 shared cause",
+          "best_score": 42.42424242424242
+        },
+        {
+          "fact": "15% als patients develop ftd",
+          "best_score": 46.42857142857143
+        },
+        {
+          "fact": "tardbp and fus shared",
+          "best_score": 43.75
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DIAG-001",
+      "category": "diagnostic_criteria",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "upper motor neuron and lower motor neuron signs",
+          "best_score": 0
+        },
+        {
+          "fact": "four body regions",
+          "best_score": 0
+        },
+        {
+          "fact": "definite probable possible",
+          "best_score": 0
+        },
+        {
+          "fact": "world federation of neurology",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DIAG-002",
+      "category": "diagnostic_criteria",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "emg equivalent to clinical examination",
+          "best_score": 0
+        },
+        {
+          "fact": "fasciculation potentials accepted",
+          "best_score": 0
+        },
+        {
+          "fact": "increased diagnostic sensitivity",
+          "best_score": 0
+        },
+        {
+          "fact": "2008",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DIAG-003",
+      "category": "diagnostic_criteria",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "hyperreflexia",
+          "best_score": 38.46153846153846
+        },
+        {
+          "fact": "spasticity",
+          "best_score": 58.82352941176471
+        },
+        {
+          "fact": "babinski sign",
+          "best_score": 38.46153846153846
+        },
+        {
+          "fact": "pseudobulbar affect",
+          "best_score": 42.10526315789473
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DIAG-004",
+      "category": "diagnostic_criteria",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "muscle weakness",
+          "best_score": 22.22222222222222
+        },
+        {
+          "fact": "muscle atrophy",
+          "best_score": 30.76923076923077
+        },
+        {
+          "fact": "fasciculations",
+          "best_score": 16.666666666666664
+        },
+        {
+          "fact": "hyporeflexia",
+          "best_score": 16.666666666666664
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DIAG-005",
+      "category": "diagnostic_criteria",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "fibrillation potentials",
+          "best_score": 52.17391304347826
+        },
+        {
+          "fact": "fasciculation potentials",
+          "best_score": 50.0
+        },
+        {
+          "fact": "large motor unit action potentials",
+          "best_score": 50.0
+        },
+        {
+          "fact": "multiple body regions",
+          "best_score": 42.85714285714286
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DIAG-006",
+      "category": "diagnostic_criteria",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "simplified diagnosis",
+          "best_score": 45.714285714285715
+        },
+        {
+          "fact": "progressive motor impairment",
+          "best_score": 57.14285714285714
+        },
+        {
+          "fact": "umn and/or lmn dysfunction",
+          "best_score": 46.15384615384615
+        },
+        {
+          "fact": "eliminated combined umn lmn requirement",
+          "best_score": 46.15384615384615
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DIAG-007",
+      "category": "diagnostic_criteria",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "cervical spondylotic myelopathy",
+          "best_score": 41.93548387096774
+        },
+        {
+          "fact": "multifocal motor neuropathy",
+          "best_score": 44.44444444444444
+        },
+        {
+          "fact": "kennedy disease",
+          "best_score": 75.0
+        },
+        {
+          "fact": "myasthenia gravis",
+          "best_score": 52.94117647058824
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DIAG-008",
+      "category": "diagnostic_criteria",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "x-linked recessive",
+          "best_score": 44.44444444444444
+        },
+        {
+          "fact": "androgen receptor gene",
+          "best_score": 56.25
+        },
+        {
+          "fact": "slowly progressive",
+          "best_score": 44.44444444444444
+        },
+        {
+          "fact": "no upper motor neuron signs",
+          "best_score": 48.14814814814815
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DIAG-009",
+      "category": "diagnostic_criteria",
+      "difficulty": "hard",
+      "is_trap": true,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 3,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "no such classification exists",
+          "best_score": 0
+        },
+        {
+          "fact": "fabricated name",
+          "best_score": 0
+        },
+        {
+          "fact": "el escorial awaji gold coast are real criteria",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DIAG-010",
+      "category": "diagnostic_criteria",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "10-16 months average",
+          "best_score": 0
+        },
+        {
+          "fact": "diagnostic delay",
+          "best_score": 0
+        },
+        {
+          "fact": "insidious onset",
+          "best_score": 0
+        },
+        {
+          "fact": "exclusion of other conditions",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TRIAL-001",
+      "category": "clinical_trials",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "12-item questionnaire",
+          "best_score": 42.85714285714286
+        },
+        {
+          "fact": "score 0-48",
+          "best_score": 50.0
+        },
+        {
+          "fact": "four domains",
+          "best_score": 50.0
+        },
+        {
+          "fact": "primary outcome measure in trials",
+          "best_score": 54.54545454545454
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TRIAL-002",
+      "category": "clinical_trials",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "phase 3 double-blind",
+          "best_score": 44.99999999999999
+        },
+        {
+          "fact": "sod1-mutant als patients",
+          "best_score": 42.10526315789473
+        },
+        {
+          "fact": "did not meet primary endpoint",
+          "best_score": 44.827586206896555
+        },
+        {
+          "fact": "reduced sod1 protein and neurofilament levels",
+          "best_score": 44.18604651162791
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TRIAL-003",
+      "category": "clinical_trials",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "alsfrs-r score change",
+          "best_score": 51.61290322580645
+        },
+        {
+          "fact": "survival",
+          "best_score": 53.333333333333336
+        },
+        {
+          "fact": "forced vital capacity",
+          "best_score": 47.61904761904761
+        },
+        {
+          "fact": "neurofilament light chain",
+          "best_score": 42.85714285714286
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TRIAL-004",
+      "category": "clinical_trials",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "bensimon 1994",
+          "best_score": 48.0
+        },
+        {
+          "fact": "new england journal of medicine",
+          "best_score": 50.0
+        },
+        {
+          "fact": "155 patients",
+          "best_score": 50.0
+        },
+        {
+          "fact": "tracheostomy-free survival improvement",
+          "best_score": 46.37681159420289
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TRIAL-005",
+      "category": "clinical_trials",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "mci186-19 japan",
+          "best_score": 36.36363636363637
+        },
+        {
+          "fact": "early-stage selected population",
+          "best_score": 45.16129032258065
+        },
+        {
+          "fact": "33% slower alsfrs-r decline",
+          "best_score": 44.44444444444444
+        },
+        {
+          "fact": "previous unselected trial failed",
+          "best_score": 43.75
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TRIAL-006",
+      "category": "clinical_trials",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "multiple treatments simultaneously",
+          "best_score": 44.89795918367348
+        },
+        {
+          "fact": "shared control group",
+          "best_score": 48.64864864864865
+        },
+        {
+          "fact": "healey als platform trial",
+          "best_score": 52.0
+        },
+        {
+          "fact": "adaptive design",
+          "best_score": 58.33333333333333
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TRIAL-007",
+      "category": "clinical_trials",
+      "difficulty": "hard",
+      "is_trap": true,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 3,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "fabricated trial number",
+          "best_score": 0
+        },
+        {
+          "fact": "neuromax is not a real drug",
+          "best_score": 0
+        },
+        {
+          "fact": "no such trial exists",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TRIAL-008",
+      "category": "clinical_trials",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.25,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [
+        {
+          "fact": "nct identifiers",
+          "best_score": 80.0
+        }
+      ],
+      "key_facts_missed": [
+        {
+          "fact": "u.s. national library of medicine",
+          "best_score": 45.45454545454546
+        },
+        {
+          "fact": "trial registration database",
+          "best_score": 51.06382978723405
+        },
+        {
+          "fact": "fda-regulated product requirement",
+          "best_score": 44.44444444444444
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TRIAL-009",
+      "category": "clinical_trials",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "rare disease limits enrollment",
+          "best_score": 56.666666666666664
+        },
+        {
+          "fact": "rapid progression",
+          "best_score": 78.78787878787878
+        },
+        {
+          "fact": "clinical heterogeneity",
+          "best_score": 46.666666666666664
+        },
+        {
+          "fact": "lack of reliable biomarkers",
+          "best_score": 44.44444444444444
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TRIAL-010",
+      "category": "clinical_trials",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "axonal degeneration marker",
+          "best_score": 61.53846153846154
+        },
+        {
+          "fact": "elevated in csf and blood",
+          "best_score": 52.38095238095239
+        },
+        {
+          "fact": "correlates with disease progression",
+          "best_score": 77.96610169491525
+        },
+        {
+          "fact": "pharmacodynamic biomarker in trials",
+          "best_score": 47.05882352941176
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "MECH-001",
+      "category": "disease_mechanisms",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "excessive glutamate signaling",
+          "best_score": 0
+        },
+        {
+          "fact": "calcium influx",
+          "best_score": 0
+        },
+        {
+          "fact": "eaat2 transporter impairment",
+          "best_score": 0
+        },
+        {
+          "fact": "ampa receptor vulnerability",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "MECH-002",
+      "category": "disease_mechanisms",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "nuclear to cytoplasmic mislocalization",
+          "best_score": 39.28571428571429
+        },
+        {
+          "fact": "97% of als cases",
+          "best_score": 38.46153846153846
+        },
+        {
+          "fact": "hyperphosphorylated inclusions",
+          "best_score": 40.0
+        },
+        {
+          "fact": "loss of function and toxic gain of function",
+          "best_score": 44.18604651162791
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "MECH-003",
+      "category": "disease_mechanisms",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "reactive oxygen species imbalance",
+          "best_score": 0
+        },
+        {
+          "fact": "mitochondrial dysfunction",
+          "best_score": 0
+        },
+        {
+          "fact": "mutant sod1 aberrant chemistry",
+          "best_score": 0
+        },
+        {
+          "fact": "edaravone targets oxidative stress",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "MECH-004",
+      "category": "disease_mechanisms",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "misfolded protein inclusions",
+          "best_score": 53.57142857142857
+        },
+        {
+          "fact": "tdp-43 most common",
+          "best_score": 76.47058823529412
+        },
+        {
+          "fact": "sod1 and fus aggregates",
+          "best_score": 71.7948717948718
+        },
+        {
+          "fact": "gain and loss of function toxicity",
+          "best_score": 50.0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "MECH-005",
+      "category": "disease_mechanisms",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "astrocyte glutamate reuptake failure",
+          "best_score": 31.25
+        },
+        {
+          "fact": "microglial neurotoxic shift",
+          "best_score": 37.03703703703704
+        },
+        {
+          "fact": "oligodendrocyte degeneration",
+          "best_score": 32.14285714285714
+        },
+        {
+          "fact": "non-cell-autonomous disease",
+          "best_score": 33.9622641509434
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "MECH-006",
+      "category": "disease_mechanisms",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "tdp-43 and fus are rna-binding proteins",
+          "best_score": 70.0
+        },
+        {
+          "fact": "mrna splicing and transport impairment",
+          "best_score": 46.15384615384615
+        },
+        {
+          "fact": "stress granule disruption",
+          "best_score": 51.162790697674424
+        },
+        {
+          "fact": "c9orf72 rna foci",
+          "best_score": 50.0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "MECH-007",
+      "category": "disease_mechanisms",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "clearance of protein aggregates",
+          "best_score": 50.847457627118644
+        },
+        {
+          "fact": "tbk1 optn sqstm1 mutations",
+          "best_score": 63.63636363636363
+        },
+        {
+          "fact": "c9orf72 regulates autophagy",
+          "best_score": 43.47826086956522
+        },
+        {
+          "fact": "vicious cycle of accumulation",
+          "best_score": 53.06122448979591
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "MECH-008",
+      "category": "disease_mechanisms",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "mutations destabilize protein structure",
+          "best_score": 0
+        },
+        {
+          "fact": "toxic aggregates",
+          "best_score": 0
+        },
+        {
+          "fact": "gain of function not loss",
+          "best_score": 0
+        },
+        {
+          "fact": "over 180 mutations identified",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "MECH-009",
+      "category": "disease_mechanisms",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "microglial activation",
+          "best_score": 42.85714285714286
+        },
+        {
+          "fact": "pro-inflammatory cytokines",
+          "best_score": 42.307692307692314
+        },
+        {
+          "fact": "m1/m2 phenotype switch",
+          "best_score": 45.45454545454546
+        },
+        {
+          "fact": "regulatory t cell decline",
+          "best_score": 50.0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "MECH-010",
+      "category": "disease_mechanisms",
+      "difficulty": "medium",
+      "is_trap": true,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 3,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "plk4 not involved in als",
+          "best_score": 0
+        },
+        {
+          "fact": "fabricated mechanism",
+          "best_score": 0
+        },
+        {
+          "fact": "plk4 relates to centriole duplication",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TEMP-001",
+      "category": "temporal_accuracy",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 3,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "1995",
+          "best_score": 25.0
+        },
+        {
+          "fact": "first fda-approved als drug",
+          "best_score": 37.03703703703704
+        },
+        {
+          "fact": "bensimon 1994 trial",
+          "best_score": 47.36842105263158
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TEMP-002",
+      "category": "temporal_accuracy",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "2017",
+          "best_score": 0
+        },
+        {
+          "fact": "second fda-approved als drug",
+          "best_score": 46.808510638297875
+        },
+        {
+          "fact": "22 years after riluzole",
+          "best_score": 47.82608695652174
+        },
+        {
+          "fact": "previously approved in japan for stroke",
+          "best_score": 43.58974358974359
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TEMP-003",
+      "category": "temporal_accuracy",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "1869",
+          "best_score": 0
+        },
+        {
+          "fact": "jean-martin charcot",
+          "best_score": 42.10526315789473
+        },
+        {
+          "fact": "french neurologist",
+          "best_score": 50.0
+        },
+        {
+          "fact": "lateral column sclerosis",
+          "best_score": 41.666666666666664
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TEMP-004",
+      "category": "temporal_accuracy",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "1993",
+          "best_score": 40.0
+        },
+        {
+          "fact": "rosen et al.",
+          "best_score": 50.0
+        },
+        {
+          "fact": "first als gene identified",
+          "best_score": 64.0
+        },
+        {
+          "fact": "published in nature",
+          "best_score": 52.63157894736843
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TEMP-005",
+      "category": "temporal_accuracy",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "2011",
+          "best_score": 0
+        },
+        {
+          "fact": "dejesus-hernandez and renton et al.",
+          "best_score": 49.18032786885246
+        },
+        {
+          "fact": "published in neuron",
+          "best_score": 50.0
+        },
+        {
+          "fact": "most common familial als mutation",
+          "best_score": 58.62068965517242
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TEMP-006",
+      "category": "temporal_accuracy",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "lou gehrig diagnosed 1939",
+          "best_score": 0
+        },
+        {
+          "fact": "new york yankees",
+          "best_score": 0
+        },
+        {
+          "fact": "farewell speech july 4 1939",
+          "best_score": 0
+        },
+        {
+          "fact": "died 1941",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TEMP-007",
+      "category": "temporal_accuracy",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "original 1994",
+          "best_score": 38.46153846153846
+        },
+        {
+          "fact": "airlie house revision 1998",
+          "best_score": 46.15384615384615
+        },
+        {
+          "fact": "awaji 2008",
+          "best_score": 31.57894736842105
+        },
+        {
+          "fact": "gold coast 2019",
+          "best_score": 40.0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TEMP-008",
+      "category": "temporal_accuracy",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "summer 2014",
+          "best_score": 0
+        },
+        {
+          "fact": "over $115 million raised",
+          "best_score": 0
+        },
+        {
+          "fact": "als association",
+          "best_score": 0
+        },
+        {
+          "fact": "nek1 gene identification funded",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TEMP-009",
+      "category": "temporal_accuracy",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "1999 cedarbaum",
+          "best_score": 38.095238095238095
+        },
+        {
+          "fact": "expanded respiratory assessment",
+          "best_score": 44.827586206896555
+        },
+        {
+          "fact": "12 items score 0-48",
+          "best_score": 43.75
+        },
+        {
+          "fact": "original alsfrs 1996",
+          "best_score": 44.99999999999999
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TEMP-010",
+      "category": "temporal_accuracy",
+      "difficulty": "medium",
+      "is_trap": true,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 3,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "false claim",
+          "best_score": 0
+        },
+        {
+          "fact": "riluzole approved 1995 not 2005",
+          "best_score": 0
+        },
+        {
+          "fact": "no als drug approved in 2005",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "EPI-001",
+      "category": "epidemiology",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "1.5-2.7 per 100,000 person-years",
+          "best_score": 6.060606060606055
+        },
+        {
+          "fact": "30,000 americans living with als",
+          "best_score": 6.060606060606055
+        },
+        {
+          "fact": "5,000 new us cases annually",
+          "best_score": 7.14285714285714
+        },
+        {
+          "fact": "lower rates in east asia",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "EPI-002",
+      "category": "epidemiology",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "55-75 years typical onset",
+          "best_score": 38.095238095238095
+        },
+        {
+          "fact": "mean age 60-65",
+          "best_score": 45.45454545454546
+        },
+        {
+          "fact": "peak incidence 70-79",
+          "best_score": 37.5
+        },
+        {
+          "fact": "juvenile als rare",
+          "best_score": 42.85714285714286
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "EPI-003",
+      "category": "epidemiology",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "male-to-female ratio 1.2-1.5 to 1",
+          "best_score": 42.42424242424242
+        },
+        {
+          "fact": "male predominance in spinal onset",
+          "best_score": 48.484848484848484
+        },
+        {
+          "fact": "bulbar onset more common in women",
+          "best_score": 48.484848484848484
+        },
+        {
+          "fact": "gender difference narrows with age",
+          "best_score": 45.833333333333336
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "EPI-004",
+      "category": "epidemiology",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "median 3-5 years from onset",
+          "best_score": 0
+        },
+        {
+          "fact": "10% survive over 10 years",
+          "best_score": 0
+        },
+        {
+          "fact": "bulbar onset shorter survival",
+          "best_score": 0
+        },
+        {
+          "fact": "limb onset longer survival",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "EPI-005",
+      "category": "epidemiology",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "chamorro people of guam",
+          "best_score": 43.47826086956522
+        },
+        {
+          "fact": "50-100 times higher incidence",
+          "best_score": 48.275862068965516
+        },
+        {
+          "fact": "bmaa neurotoxin hypothesis",
+          "best_score": 46.15384615384615
+        },
+        {
+          "fact": "incidence declined since 1960s",
+          "best_score": 53.84615384615385
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "EPI-006",
+      "category": "epidemiology",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "smoking most consistent risk factor",
+          "best_score": 51.42857142857142
+        },
+        {
+          "fact": "military service",
+          "best_score": 38.70967741935484
+        },
+        {
+          "fact": "heavy metal exposure",
+          "best_score": 55.00000000000001
+        },
+        {
+          "fact": "pesticide exposure",
+          "best_score": 50.0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "EPI-007",
+      "category": "epidemiology",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "italian soccer players 6-fold risk",
+          "best_score": 0
+        },
+        {
+          "fact": "chio et al. study",
+          "best_score": 0
+        },
+        {
+          "fact": "nfl players increased risk",
+          "best_score": 0
+        },
+        {
+          "fact": "mechanisms debated",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "EPI-008",
+      "category": "epidemiology",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "limb onset 65-70%",
+          "best_score": 43.47826086956522
+        },
+        {
+          "fact": "bulbar onset 25-30%",
+          "best_score": 38.46153846153846
+        },
+        {
+          "fact": "limb starts in arms or legs",
+          "best_score": 49.056603773584904
+        },
+        {
+          "fact": "bulbar starts with speech and swallowing",
+          "best_score": 44.99999999999999
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "EPI-009",
+      "category": "epidemiology",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "2-fold increased risk",
+          "best_score": 25.0
+        },
+        {
+          "fact": "gulf war 1990-1991",
+          "best_score": 25.0
+        },
+        {
+          "fact": "va presumptive service-connected disease",
+          "best_score": 50.0
+        },
+        {
+          "fact": "unknown cause",
+          "best_score": 25.0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "EPI-010",
+      "category": "epidemiology",
+      "difficulty": "medium",
+      "is_trap": true,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 3,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "no documented faroe islands als cluster",
+          "best_score": 0
+        },
+        {
+          "fact": "fabricated claim",
+          "best_score": 0
+        },
+        {
+          "fact": "real clusters are guam kii peninsula new guinea",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "CARE-001",
+      "category": "patient_care",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "fvc below 50% predicted",
+          "best_score": 46.51162790697675
+        },
+        {
+          "fact": "orthopnea and dyspnea symptoms",
+          "best_score": 48.97959183673469
+        },
+        {
+          "fact": "bipap most common",
+          "best_score": 70.58823529411764
+        },
+        {
+          "fact": "improves quality of life and survival",
+          "best_score": 46.57534246575342
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "CARE-002",
+      "category": "patient_care",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "significant dysphagia",
+          "best_score": 0
+        },
+        {
+          "fact": "weight loss over 10%",
+          "best_score": 0
+        },
+        {
+          "fact": "fvc above 50% for safer placement",
+          "best_score": 0
+        },
+        {
+          "fact": "reduces aspiration risk",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "CARE-003",
+      "category": "patient_care",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "coordinated specialist team",
+          "best_score": 50.0
+        },
+        {
+          "fact": "improved survival 7-10 months",
+          "best_score": 44.827586206896555
+        },
+        {
+          "fact": "neurologist pulmonologist therapists",
+          "best_score": 40.0
+        },
+        {
+          "fact": "als association certified clinics",
+          "best_score": 48.484848484848484
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "CARE-004",
+      "category": "patient_care",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "eye-tracking systems",
+          "best_score": 0
+        },
+        {
+          "fact": "speech-generating devices",
+          "best_score": 0
+        },
+        {
+          "fact": "voice banking",
+          "best_score": 0
+        },
+        {
+          "fact": "brain-computer interfaces",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "CARE-005",
+      "category": "patient_care",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "can prolong survival by years",
+          "best_score": 0
+        },
+        {
+          "fact": "requires 24-hour caregiver support",
+          "best_score": 0
+        },
+        {
+          "fact": "advance directives important",
+          "best_score": 0
+        },
+        {
+          "fact": "japan 30% vs western 5-10%",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "CARE-006",
+      "category": "patient_care",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "maintaining mobility",
+          "best_score": 0
+        },
+        {
+          "fact": "preventing contractures",
+          "best_score": 0
+        },
+        {
+          "fact": "assistive device prescription",
+          "best_score": 0
+        },
+        {
+          "fact": "avoid overexertion",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "CARE-007",
+      "category": "patient_care",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "morphine for dyspnea",
+          "best_score": 0
+        },
+        {
+          "fact": "anticholinergics for sialorrhea",
+          "best_score": 0
+        },
+        {
+          "fact": "hospice referral",
+          "best_score": 0
+        },
+        {
+          "fact": "respiratory failure most common cause of death",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "CARE-008",
+      "category": "patient_care",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "impaired swallowing not overproduction",
+          "best_score": 38.46153846153846
+        },
+        {
+          "fact": "anticholinergic medications first-line",
+          "best_score": 40.57971014492754
+        },
+        {
+          "fact": "botulinum toxin injections",
+          "best_score": 38.46153846153846
+        },
+        {
+          "fact": "suction devices",
+          "best_score": 46.666666666666664
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "CARE-009",
+      "category": "patient_care",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "malnutrition is negative prognostic factor",
+          "best_score": 47.22222222222222
+        },
+        {
+          "fact": "modified food texture",
+          "best_score": 57.14285714285714
+        },
+        {
+          "fact": "monitor weight regularly",
+          "best_score": 47.61904761904761
+        },
+        {
+          "fact": "high calorie diet may benefit",
+          "best_score": 48.275862068965516
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "CARE-010",
+      "category": "patient_care",
+      "difficulty": "medium",
+      "is_trap": true,
+      "accuracy_proportional": 0.3333,
+      "accuracy_binary": 0,
+      "key_facts_total": 3,
+      "key_facts_found": [
+        {
+          "fact": "research only",
+          "best_score": 84.61538461538461
+        }
+      ],
+      "key_facts_missed": [
+        {
+          "fact": "no established neurostimulation therapy for als",
+          "best_score": 46.808510638297875
+        },
+        {
+          "fact": "not recommended as standard of care",
+          "best_score": 48.484848484848484
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DRUG-011",
+      "category": "drug_treatment",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "fornai 2008 initial positive study",
+          "best_score": 41.17647058823529
+        },
+        {
+          "fact": "subsequent trials showed no benefit",
+          "best_score": 42.85714285714286
+        },
+        {
+          "fact": "licals trial negative",
+          "best_score": 42.85714285714286
+        },
+        {
+          "fact": "not recommended for als",
+          "best_score": 52.17391304347826
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DRUG-012",
+      "category": "drug_treatment",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "blocks voltage-gated sodium channels",
+          "best_score": 44.44444444444444
+        },
+        {
+          "fact": "inhibits calcium channels",
+          "best_score": 48.0
+        },
+        {
+          "fact": "enhances astrocyte glutamate uptake",
+          "best_score": 50.79365079365079
+        },
+        {
+          "fact": "reduces synaptic glutamate",
+          "best_score": 46.51162790697675
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DRUG-013",
+      "category": "drug_treatment",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "50 mg twice daily",
+          "best_score": 0
+        },
+        {
+          "fact": "100 mg total per day",
+          "best_score": 0
+        },
+        {
+          "fact": "take on empty stomach",
+          "best_score": 0
+        },
+        {
+          "fact": "monitor liver function",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DRUG-014",
+      "category": "drug_treatment",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "nmda receptor antagonist",
+          "best_score": 50.0
+        },
+        {
+          "fact": "excitotoxicity rationale",
+          "best_score": 48.78048780487805
+        },
+        {
+          "fact": "trial showed no benefit",
+          "best_score": 47.82608695652174
+        },
+        {
+          "fact": "not used for als",
+          "best_score": 50.0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DRUG-015",
+      "category": "drug_treatment",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "fda approved september 2022",
+          "best_score": 50.0
+        },
+        {
+          "fact": "centaur phase 2 basis",
+          "best_score": 47.61904761904761
+        },
+        {
+          "fact": "phoenix phase 3 failed",
+          "best_score": 45.45454545454546
+        },
+        {
+          "fact": "withdrawn april 2024",
+          "best_score": 42.10526315789473
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DRUG-016",
+      "category": "drug_treatment",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "initially intravenous infusion",
+          "best_score": 46.666666666666664
+        },
+        {
+          "fact": "60-minute infusions in cycles",
+          "best_score": 50.98039215686274
+        },
+        {
+          "fact": "oral formulation approved 2022",
+          "best_score": 45.28301886792453
+        },
+        {
+          "fact": "improved convenience",
+          "best_score": 50.0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DRUG-017",
+      "category": "drug_treatment",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "donates electrons to neutralize ros",
+          "best_score": 50.847457627118644
+        },
+        {
+          "fact": "scavenges hydroxyl and peroxyl radicals",
+          "best_score": 43.58974358974359
+        },
+        {
+          "fact": "inhibits lipid peroxidation",
+          "best_score": 43.90243902439024
+        },
+        {
+          "fact": "crosses blood-brain barrier",
+          "best_score": 40.74074074074075
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DRUG-018",
+      "category": "drug_treatment",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "mexiletine",
+          "best_score": 50.0
+        },
+        {
+          "fact": "quinine with caution",
+          "best_score": 60.0
+        },
+        {
+          "fact": "baclofen",
+          "best_score": 50.0
+        },
+        {
+          "fact": "gabapentin",
+          "best_score": 60.0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DRUG-019",
+      "category": "drug_treatment",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "cox-2 inhibitor",
+          "best_score": 41.666666666666664
+        },
+        {
+          "fact": "neuroinflammation rationale",
+          "best_score": 44.44444444444444
+        },
+        {
+          "fact": "phase ii trial negative",
+          "best_score": 47.82608695652174
+        },
+        {
+          "fact": "no effect on alsfrs-r",
+          "best_score": 44.44444444444444
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DRUG-020",
+      "category": "drug_treatment",
+      "difficulty": "medium",
+      "is_trap": true,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 3,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "cortexilin is not a real drug",
+          "best_score": 0
+        },
+        {
+          "fact": "fabricated name",
+          "best_score": 0
+        },
+        {
+          "fact": "no clinical evidence exists",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "GENE-011",
+      "category": "gene_mutation",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "autophagy and nf-kb signaling",
+          "best_score": 41.379310344827594
+        },
+        {
+          "fact": "identified 2010 maruyama",
+          "best_score": 68.29268292682926
+        },
+        {
+          "fact": "impairs mitophagy",
+          "best_score": 52.94117647058824
+        },
+        {
+          "fact": "interacts with tbk1",
+          "best_score": 57.89473684210527
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "GENE-012",
+      "category": "gene_mutation",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "identified via project mine 2016",
+          "best_score": 70.17543859649122
+        },
+        {
+          "fact": "dna damage repair and cell cycle",
+          "best_score": 50.0
+        },
+        {
+          "fact": "found in ~3% of als cases",
+          "best_score": 50.0
+        },
+        {
+          "fact": "interacts with c21orf2",
+          "best_score": 54.54545454545454
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "GENE-013",
+      "category": "gene_mutation",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "ggggcc hexanucleotide repeat",
+          "best_score": 42.85714285714286
+        },
+        {
+          "fact": "normal 2-23 repeats pathogenic hundreds to thousands",
+          "best_score": 42.307692307692314
+        },
+        {
+          "fact": "autosomal dominant incomplete penetrance",
+          "best_score": 44.99999999999999
+        },
+        {
+          "fact": "rna foci and dipeptide repeat proteins",
+          "best_score": 52.63157894736843
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "GENE-014",
+      "category": "gene_mutation",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "aaa+ atpase protein quality control",
+          "best_score": 0
+        },
+        {
+          "fact": "multisystem proteinopathy",
+          "best_score": 0
+        },
+        {
+          "fact": "als ibm paget disease ftd",
+          "best_score": 0
+        },
+        {
+          "fact": "tdp-43 inclusions",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "GENE-015",
+      "category": "gene_mutation",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "5-10% of sporadic cases have known gene mutations",
+          "best_score": 46.93877551020408
+        },
+        {
+          "fact": "c9orf72 most common in sporadic",
+          "best_score": 58.62068965517242
+        },
+        {
+          "fact": "heritability estimated 40-60%",
+          "best_score": 37.93103448275862
+        },
+        {
+          "fact": "boundary between familial and sporadic blurred",
+          "best_score": 42.352941176470594
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "GENE-016",
+      "category": "gene_mutation",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "encodes p62 sequestosome-1",
+          "best_score": 35.29411764705882
+        },
+        {
+          "fact": "selective autophagy adaptor",
+          "best_score": 40.74074074074075
+        },
+        {
+          "fact": "mutations in familial and sporadic als",
+          "best_score": 60.526315789473685
+        },
+        {
+          "fact": "p62 inclusions common in als pathology",
+          "best_score": 47.36842105263158
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "GENE-017",
+      "category": "gene_mutation",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "ubiquitin-proteasome shuttle protein",
+          "best_score": 44.44444444444444
+        },
+        {
+          "fact": "x-linked dominant inheritance",
+          "best_score": 43.13725490196079
+        },
+        {
+          "fact": "pxx repeat domain mutations",
+          "best_score": 44.44444444444444
+        },
+        {
+          "fact": "co-localizes with tdp-43",
+          "best_score": 37.83783783783784
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "GENE-018",
+      "category": "gene_mutation",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "recommended for family history or early onset",
+          "best_score": 44.44444444444444
+        },
+        {
+          "fact": "covers inheritance and penetrance",
+          "best_score": 46.875
+        },
+        {
+          "fact": "pre and post test sessions",
+          "best_score": 50.98039215686274
+        },
+        {
+          "fact": "psychological impact discussed",
+          "best_score": 46.666666666666664
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "GENE-019",
+      "category": "gene_mutation",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "intermediate cag repeats 27-33",
+          "best_score": 0
+        },
+        {
+          "fact": "enhances tdp-43 toxicity",
+          "best_score": 0
+        },
+        {
+          "fact": "stress granule formation",
+          "best_score": 0
+        },
+        {
+          "fact": "elden 2010 discovery",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "GENE-020",
+      "category": "gene_mutation",
+      "difficulty": "hard",
+      "is_trap": true,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 3,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "mndf1 is not a real gene",
+          "best_score": 0
+        },
+        {
+          "fact": "fabricated name",
+          "best_score": 0
+        },
+        {
+          "fact": "no such gene in human genome databases",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DIAG-011",
+      "category": "diagnostic_criteria",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "hyperreflexia",
+          "best_score": 38.46153846153846
+        },
+        {
+          "fact": "babinski sign",
+          "best_score": 50.0
+        },
+        {
+          "fact": "spasticity",
+          "best_score": 50.0
+        },
+        {
+          "fact": "clonus and hoffmann sign",
+          "best_score": 50.0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DIAG-012",
+      "category": "diagnostic_criteria",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "fibrillation potentials and positive sharp waves",
+          "best_score": 0
+        },
+        {
+          "fact": "fasciculation potentials",
+          "best_score": 0
+        },
+        {
+          "fact": "large amplitude polyphasic motor units",
+          "best_score": 0
+        },
+        {
+          "fact": "abnormalities in multiple body regions",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DIAG-013",
+      "category": "diagnostic_criteria",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "cervical myelopathy causes sensory deficits als does not",
+          "best_score": 0
+        },
+        {
+          "fact": "mri shows cord compression in csm",
+          "best_score": 0
+        },
+        {
+          "fact": "als has bulbar signs and widespread emg changes",
+          "best_score": 0
+        },
+        {
+          "fact": "some patients have both conditions",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DIAG-014",
+      "category": "diagnostic_criteria",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "treatable with ivig",
+          "best_score": 47.36842105263158
+        },
+        {
+          "fact": "no upper motor neuron signs",
+          "best_score": 48.88888888888889
+        },
+        {
+          "fact": "conduction block on nerve conduction studies",
+          "best_score": 47.72727272727273
+        },
+        {
+          "fact": "anti-gm1 antibodies in ~50%",
+          "best_score": 48.14814814814815
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DIAG-015",
+      "category": "diagnostic_criteria",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "primarily excludes structural mimics",
+          "best_score": 40.0
+        },
+        {
+          "fact": "typically normal in als",
+          "best_score": 50.0
+        },
+        {
+          "fact": "rules out cervical myelopathy and tumors",
+          "best_score": 45.16129032258065
+        },
+        {
+          "fact": "corticospinal tract t2 changes possible",
+          "best_score": 48.71794871794872
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DIAG-016",
+      "category": "diagnostic_criteria",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "upper motor neurons only",
+          "best_score": 44.99999999999999
+        },
+        {
+          "fact": "no lmn signs on emg",
+          "best_score": 42.10526315789473
+        },
+        {
+          "fact": "slower progression 10-20 year survival",
+          "best_score": 55.263157894736835
+        },
+        {
+          "fact": "4 year observation for diagnostic certainty",
+          "best_score": 44.18604651162791
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DIAG-017",
+      "category": "diagnostic_criteria",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "bulbar cervical thoracic lumbosacral",
+          "best_score": 36.111111111111114
+        },
+        {
+          "fact": "four body regions",
+          "best_score": 43.75
+        },
+        {
+          "fact": "umn and lmn signs assessed in each",
+          "best_score": 47.05882352941176
+        },
+        {
+          "fact": "spread across regions increases certainty",
+          "best_score": 43.90243902439024
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DIAG-018",
+      "category": "diagnostic_criteria",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "binary classification replaces certainty levels",
+          "best_score": 43.83561643835616
+        },
+        {
+          "fact": "shefner 2020",
+          "best_score": 50.0
+        },
+        {
+          "fact": "improved sensitivity 92% vs 57%",
+          "best_score": 46.15384615384615
+        },
+        {
+          "fact": "requires exclusion of alternatives",
+          "best_score": 47.05882352941176
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DIAG-019",
+      "category": "diagnostic_criteria",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "pure lower motor neuron presentation",
+          "best_score": 49.27536231884058
+        },
+        {
+          "fact": "5-10% of motor neuron disease",
+          "best_score": 60.86956521739131
+        },
+        {
+          "fact": "30-50% develop umn signs later",
+          "best_score": 40.0
+        },
+        {
+          "fact": "tdp-43 pathology at autopsy",
+          "best_score": 77.77777777777779
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "DIAG-020",
+      "category": "diagnostic_criteria",
+      "difficulty": "medium",
+      "is_trap": true,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 3,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "brinkworth staging system does not exist",
+          "best_score": 0
+        },
+        {
+          "fact": "fabricated name",
+          "best_score": 0
+        },
+        {
+          "fact": "real systems include kings and mitos staging",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TRIAL-011",
+      "category": "clinical_trials",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "empower phase 3 trial",
+          "best_score": 53.333333333333336
+        },
+        {
+          "fact": "mitochondrial protection mechanism",
+          "best_score": 44.11764705882353
+        },
+        {
+          "fact": "940+ patients no benefit",
+          "best_score": 46.51162790697675
+        },
+        {
+          "fact": "phase 2 had shown positive trend",
+          "best_score": 51.72413793103448
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TRIAL-012",
+      "category": "clinical_trials",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "upregulates eaat2 glutamate transporter",
+          "best_score": 46.15384615384615
+        },
+        {
+          "fact": "513 patients stage 3 trial",
+          "best_score": 50.0
+        },
+        {
+          "fact": "terminated early for futility 2012",
+          "best_score": 44.11764705882353
+        },
+        {
+          "fact": "glutamate uptake enhancement insufficient",
+          "best_score": 50.0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TRIAL-013",
+      "category": "clinical_trials",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "12 domains 0-48 point scale",
+          "best_score": 37.03703703703704
+        },
+        {
+          "fact": "correlates with survival",
+          "best_score": 45.833333333333336
+        },
+        {
+          "fact": "ceiling effects in early disease",
+          "best_score": 43.63636363636364
+        },
+        {
+          "fact": "combined endpoints increasingly used",
+          "best_score": 44.44444444444444
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TRIAL-014",
+      "category": "clinical_trials",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "anti-inflammatory tetracycline",
+          "best_score": 42.10526315789473
+        },
+        {
+          "fact": "patients deteriorated faster than placebo",
+          "best_score": 51.21951219512195
+        },
+        {
+          "fact": "harmful dose-dependent effect",
+          "best_score": 47.82608695652174
+        },
+        {
+          "fact": "cautionary tale about sod1 mouse models",
+          "best_score": 46.15384615384615
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TRIAL-015",
+      "category": "clinical_trials",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "presymptomatic sod1 mutation carriers",
+          "best_score": 54.54545454545454
+        },
+        {
+          "fact": "elevated neurofilament triggers enrollment",
+          "best_score": 47.61904761904761
+        },
+        {
+          "fact": "first als prevention trial",
+          "best_score": 50.0
+        },
+        {
+          "fact": "paradigm shift to preventive treatment",
+          "best_score": 45.070422535211264
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TRIAL-016",
+      "category": "clinical_trials",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "neurofilament for progression rate stratification",
+          "best_score": 40.0
+        },
+        {
+          "fact": "genetic screening for targeted therapies",
+          "best_score": 49.27536231884058
+        },
+        {
+          "fact": "reduces patient heterogeneity",
+          "best_score": 48.275862068965516
+        },
+        {
+          "fact": "pharmacodynamic biomarkers assess target engagement",
+          "best_score": 37.254901960784316
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TRIAL-017",
+      "category": "clinical_trials",
+      "difficulty": "hard",
+      "is_trap": true,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 3,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "nct08442197 is fabricated",
+          "best_score": 36.0
+        },
+        {
+          "fact": "neurogenix is not a real compound",
+          "best_score": 51.515151515151516
+        },
+        {
+          "fact": "no such trial exists on clinicaltrials.gov",
+          "best_score": 39.34426229508197
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TRIAL-018",
+      "category": "clinical_trials",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "rare disease limits patient pool",
+          "best_score": 53.968253968253975
+        },
+        {
+          "fact": "rapid progression affects participation",
+          "best_score": 61.53846153846154
+        },
+        {
+          "fact": "strict eligibility excludes many",
+          "best_score": 40.625
+        },
+        {
+          "fact": "high dropout from disease progression",
+          "best_score": 70.17543859649122
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TRIAL-019",
+      "category": "clinical_trials",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "tofersen antisense for sod1",
+          "best_score": 53.06122448979591
+        },
+        {
+          "fact": "antisense approaches for c9orf72",
+          "best_score": 55.172413793103445
+        },
+        {
+          "fact": "aav-mediated gene delivery",
+          "best_score": 50.0
+        },
+        {
+          "fact": "limited to genetic subpopulations",
+          "best_score": 54.54545454545454
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TRIAL-020",
+      "category": "clinical_trials",
+      "difficulty": "hard",
+      "is_trap": true,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 3,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "benefit-als is fabricated",
+          "best_score": 43.99999999999999
+        },
+        {
+          "fact": "healey als platform trial is real",
+          "best_score": 51.515151515151516
+        },
+        {
+          "fact": "mnd-smart is another real platform trial",
+          "best_score": 46.666666666666664
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "MECH-011",
+      "category": "disease_mechanisms",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "co-culture experiments show selective motor neuron killing",
+          "best_score": 46.55172413793104
+        },
+        {
+          "fact": "secreted toxic factors",
+          "best_score": 50.0
+        },
+        {
+          "fact": "downregulated eaat2 glutamate transporter",
+          "best_score": 53.65853658536586
+        },
+        {
+          "fact": "pro-inflammatory cytokine release",
+          "best_score": 46.15384615384615
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "MECH-012",
+      "category": "disease_mechanisms",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "membraneless organelles formed by phase separation",
+          "best_score": 43.99999999999999
+        },
+        {
+          "fact": "contain tdp-43 and fus",
+          "best_score": 54.54545454545454
+        },
+        {
+          "fact": "mutations cause liquid to solid transition",
+          "best_score": 42.85714285714286
+        },
+        {
+          "fact": "atxn2 enhances tdp-43 recruitment",
+          "best_score": 46.875
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "MECH-013",
+      "category": "disease_mechanisms",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "c9orf72 dipeptide repeats disrupt nucleoporins",
+          "best_score": 42.352941176470594
+        },
+        {
+          "fact": "impaired nucleocytoplasmic transport",
+          "best_score": 42.622950819672134
+        },
+        {
+          "fact": "tdp-43 mislocalization from nucleus",
+          "best_score": 42.85714285714286
+        },
+        {
+          "fact": "rescuing transport reduces toxicity",
+          "best_score": 41.17647058823529
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "MECH-014",
+      "category": "disease_mechanisms",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "long axons require efficient transport",
+          "best_score": 47.36842105263158
+        },
+        {
+          "fact": "both anterograde and retrograde impaired",
+          "best_score": 50.0
+        },
+        {
+          "fact": "mutant sod1 inhibits dynein",
+          "best_score": 56.41025641025641
+        },
+        {
+          "fact": "dying back neuropathy pattern",
+          "best_score": 48.97959183673469
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "MECH-015",
+      "category": "disease_mechanisms",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "swollen vacuolated morphology",
+          "best_score": 41.379310344827594
+        },
+        {
+          "fact": "complex i and iv deficiencies",
+          "best_score": 41.379310344827594
+        },
+        {
+          "fact": "impaired calcium buffering",
+          "best_score": 42.553191489361694
+        },
+        {
+          "fact": "mutant sod1 accumulates on mitochondria",
+          "best_score": 46.15384615384615
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "MECH-016",
+      "category": "disease_mechanisms",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "misfolded proteins template normal protein misfolding",
+          "best_score": 48.35164835164834
+        },
+        {
+          "fact": "cell to cell transmission",
+          "best_score": 46.15384615384615
+        },
+        {
+          "fact": "follows neuroanatomical connectivity",
+          "best_score": 45.45454545454546
+        },
+        {
+          "fact": "sod1 and tdp-43 seeding demonstrated",
+          "best_score": 58.06451612903225
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "MECH-017",
+      "category": "disease_mechanisms",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "m2 neuroprotective to m1 neurotoxic shift",
+          "best_score": 46.34146341463414
+        },
+        {
+          "fact": "release tnf-alpha and nitric oxide",
+          "best_score": 47.05882352941176
+        },
+        {
+          "fact": "microgliosis around motor neurons",
+          "best_score": 42.42424242424242
+        },
+        {
+          "fact": "pet imaging shows activation",
+          "best_score": 43.63636363636364
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "MECH-018",
+      "category": "disease_mechanisms",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "produced by ran translation",
+          "best_score": 51.85185185185186
+        },
+        {
+          "fact": "five species from sense and antisense strands",
+          "best_score": 46.753246753246756
+        },
+        {
+          "fact": "poly-gr and poly-pr most toxic",
+          "best_score": 43.333333333333336
+        },
+        {
+          "fact": "disrupt nucleolar function and transport",
+          "best_score": 43.58974358974359
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "MECH-019",
+      "category": "disease_mechanisms",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "excess glutamate overstimulates receptors",
+          "best_score": 46.34146341463414
+        },
+        {
+          "fact": "motor neurons lack glur2 subunit",
+          "best_score": 45.28301886792453
+        },
+        {
+          "fact": "eaat2 reduced 50-90% in als",
+          "best_score": 41.860465116279066
+        },
+        {
+          "fact": "riluzole efficacy supports hypothesis",
+          "best_score": 46.15384615384615
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "MECH-020",
+      "category": "disease_mechanisms",
+      "difficulty": "medium",
+      "is_trap": true,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 3,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "creb4 synaptic rescue pathway does not exist",
+          "best_score": 0
+        },
+        {
+          "fact": "fabricated mechanism",
+          "best_score": 0
+        },
+        {
+          "fact": "creb is real but no creb4 variant in als",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TEMP-011",
+      "category": "temporal_accuracy",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "sod1 1993",
+          "best_score": 42.85714285714286
+        },
+        {
+          "fact": "tardbp 2008 and fus 2009",
+          "best_score": 37.5
+        },
+        {
+          "fact": "c9orf72 2011",
+          "best_score": 33.333333333333336
+        },
+        {
+          "fact": "tbk1 2015 and nek1 2016",
+          "best_score": 31.818181818181824
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TEMP-012",
+      "category": "temporal_accuracy",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "2011 simultaneous discovery",
+          "best_score": 40.74074074074075
+        },
+        {
+          "fact": "dejesus-hernandez and renton groups",
+          "best_score": 50.0
+        },
+        {
+          "fact": "published in neuron",
+          "best_score": 47.36842105263158
+        },
+        {
+          "fact": "most common genetic cause of familial als and ftd",
+          "best_score": 42.85714285714286
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TEMP-013",
+      "category": "temporal_accuracy",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "el escorial 1994 brooks",
+          "best_score": 39.13043478260869
+        },
+        {
+          "fact": "revised 1998 airlie house",
+          "best_score": 46.15384615384615
+        },
+        {
+          "fact": "awaji 2008 de carvalho",
+          "best_score": 40.90909090909091
+        },
+        {
+          "fact": "gold coast 2020 shefner",
+          "best_score": 43.47826086956522
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TEMP-014",
+      "category": "temporal_accuracy",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "2006 neumann et al",
+          "best_score": 48.0
+        },
+        {
+          "fact": "published in science",
+          "best_score": 48.275862068965516
+        },
+        {
+          "fact": "found in ~97% of als cases",
+          "best_score": 46.15384615384615
+        },
+        {
+          "fact": "mislocalized from nucleus to cytoplasm",
+          "best_score": 42.85714285714286
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TEMP-015",
+      "category": "temporal_accuracy",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "summer 2014",
+          "best_score": 0
+        },
+        {
+          "fact": "$115 million for als association",
+          "best_score": 0
+        },
+        {
+          "fact": "over $220 million globally",
+          "best_score": 0
+        },
+        {
+          "fact": "inspired by pete frates",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TEMP-016",
+      "category": "temporal_accuracy",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "riluzole 1995",
+          "best_score": 38.46153846153846
+        },
+        {
+          "fact": "edaravone 2017",
+          "best_score": 42.85714285714286
+        },
+        {
+          "fact": "amx0035 2022 withdrawn 2024",
+          "best_score": 33.333333333333336
+        },
+        {
+          "fact": "tofersen 2023 for sod1-als",
+          "best_score": 39.21568627450981
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TEMP-017",
+      "category": "temporal_accuracy",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "sod1-g93a mouse 1994 gurney",
+          "best_score": 37.03703703703704
+        },
+        {
+          "fact": "published in science",
+          "best_score": 66.66666666666667
+        },
+        {
+          "fact": "overexpresses mutant human sod1",
+          "best_score": 41.93548387096774
+        },
+        {
+          "fact": "most widely used als preclinical model",
+          "best_score": 54.054054054054056
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TEMP-018",
+      "category": "temporal_accuracy",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "april 2023 accelerated approval",
+          "best_score": 41.93548387096774
+        },
+        {
+          "fact": "based on neurofilament reduction",
+          "best_score": 50.0
+        },
+        {
+          "fact": "valor trial missed primary endpoint",
+          "best_score": 44.827586206896555
+        },
+        {
+          "fact": "contingent on confirmatory studies",
+          "best_score": 52.94117647058824
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TEMP-019",
+      "category": "temporal_accuracy",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "2009 kwiatkowski and vance",
+          "best_score": 40.0
+        },
+        {
+          "fact": "published in science",
+          "best_score": 44.99999999999999
+        },
+        {
+          "fact": "second rna-binding protein after tdp-43",
+          "best_score": 69.33333333333334
+        },
+        {
+          "fact": "4-5% of familial als",
+          "best_score": 35.89743589743589
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "TEMP-020",
+      "category": "temporal_accuracy",
+      "difficulty": "medium",
+      "is_trap": true,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 3,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "false claim",
+          "best_score": 0
+        },
+        {
+          "fact": "c9orf72 discovered 2011 not 2006",
+          "best_score": 0
+        },
+        {
+          "fact": "2006 was tdp-43 pathology discovery",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "EPI-011",
+      "category": "epidemiology",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "europe 2.1-3.0 per 100k",
+          "best_score": 40.0
+        },
+        {
+          "fact": "united states 1.5-2.7 per 100k",
+          "best_score": 43.99999999999999
+        },
+        {
+          "fact": "east asia 0.8-1.5 per 100k lower",
+          "best_score": 37.93103448275862
+        },
+        {
+          "fact": "eurals consortium data",
+          "best_score": 51.28205128205128
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "EPI-012",
+      "category": "epidemiology",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "1.5-fold increased risk across service eras",
+          "best_score": 0
+        },
+        {
+          "fact": "va presumes service connection",
+          "best_score": 0
+        },
+        {
+          "fact": "multiple proposed mechanisms",
+          "best_score": 0
+        },
+        {
+          "fact": "not limited to gulf war",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "EPI-013",
+      "category": "epidemiology",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "35-50% show cognitive or behavioral changes",
+          "best_score": 41.860465116279066
+        },
+        {
+          "fact": "13-15% meet ftd criteria",
+          "best_score": 41.860465116279066
+        },
+        {
+          "fact": "executive function most affected",
+          "best_score": 46.875
+        },
+        {
+          "fact": "c9orf72 carriers highest risk",
+          "best_score": 41.379310344827594
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "EPI-014",
+      "category": "epidemiology",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "bulbar onset median 2.0-2.5 years",
+          "best_score": 0
+        },
+        {
+          "fact": "limb onset median 3.0-5.0 years",
+          "best_score": 0
+        },
+        {
+          "fact": "bulbar 25-30% of cases",
+          "best_score": 0
+        },
+        {
+          "fact": "bulbar more common in women and elderly",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "EPI-015",
+      "category": "epidemiology",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "peak incidence 65-75 years",
+          "best_score": 42.307692307692314
+        },
+        {
+          "fact": "mean onset 58-63 for limb 65-70 for bulbar",
+          "best_score": 36.111111111111114
+        },
+        {
+          "fact": "fewer than 5% before age 30",
+          "best_score": 51.85185185185186
+        },
+        {
+          "fact": "strongest risk factor for sporadic als",
+          "best_score": 44.73684210526315
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "EPI-016",
+      "category": "epidemiology",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "lead exposure strongest evidence",
+          "best_score": 51.72413793103448
+        },
+        {
+          "fact": "pesticides consistent association",
+          "best_score": 51.515151515151516
+        },
+        {
+          "fact": "intense physical activity",
+          "best_score": 50.0
+        },
+        {
+          "fact": "smoking modest risk factor",
+          "best_score": 47.61904761904761
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "EPI-017",
+      "category": "epidemiology",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "guam kii peninsula western new guinea",
+          "best_score": 45.945945945945944
+        },
+        {
+          "fact": "50-100x higher incidence historically in guam",
+          "best_score": 42.85714285714286
+        },
+        {
+          "fact": "declining incidence since 1960s",
+          "best_score": 51.61290322580645
+        },
+        {
+          "fact": "cycad bmaa hypothesis debated",
+          "best_score": 48.275862068965516
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "EPI-018",
+      "category": "epidemiology",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "overall ratio 1.3-1.5 male to female",
+          "best_score": 44.776119402985074
+        },
+        {
+          "fact": "limb onset more male predominant",
+          "best_score": 45.28301886792453
+        },
+        {
+          "fact": "bulbar onset closer to equal",
+          "best_score": 43.63636363636364
+        },
+        {
+          "fact": "sex difference narrows with age",
+          "best_score": 48.14814814814815
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "EPI-019",
+      "category": "epidemiology",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "irish register since 1995",
+          "best_score": 48.0
+        },
+        {
+          "fact": "eurals european consortium",
+          "best_score": 50.0
+        },
+        {
+          "fact": "us national registry cdc 2010",
+          "best_score": 44.827586206896555
+        },
+        {
+          "fact": "provide unbiased incidence data",
+          "best_score": 48.38709677419355
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "EPI-020",
+      "category": "epidemiology",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "approximately 6-fold increased risk",
+          "best_score": 45.714285714285715
+        },
+        {
+          "fact": "younger onset age ~43 vs ~65",
+          "best_score": 39.28571428571429
+        },
+        {
+          "fact": "chio 2005 italian study",
+          "best_score": 52.63157894736843
+        },
+        {
+          "fact": "multiple hypothesized factors",
+          "best_score": 48.275862068965516
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "CARE-011",
+      "category": "patient_care",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "survival benefit 7-10 months",
+          "best_score": 44.99999999999999
+        },
+        {
+          "fact": "coordinates neurology pt ot slp nutrition",
+          "best_score": 41.463414634146346
+        },
+        {
+          "fact": "earlier respiratory and nutritional intervention",
+          "best_score": 50.66666666666666
+        },
+        {
+          "fact": "reduced hospitalizations",
+          "best_score": 41.666666666666664
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "CARE-012",
+      "category": "patient_care",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "eye-tracking with infrared gaze detection",
+          "best_score": 43.90243902439024
+        },
+        {
+          "fact": "brain-computer interfaces detect neural signals",
+          "best_score": 48.93617021276596
+        },
+        {
+          "fact": "p300 eeg-based systems",
+          "best_score": 46.15384615384615
+        },
+        {
+          "fact": "invasive bcis like braingate use implanted electrodes",
+          "best_score": 47.16981132075472
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "CARE-013",
+      "category": "patient_care",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "tracheostomy decision most critical",
+          "best_score": 48.57142857142858
+        },
+        {
+          "fact": "early discussion while communication intact",
+          "best_score": 46.51162790697675
+        },
+        {
+          "fact": "dnr status important given respiratory failure",
+          "best_score": 46.34146341463414
+        },
+        {
+          "fact": "up to 50% develop cognitive changes",
+          "best_score": 54.28571428571429
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "CARE-014",
+      "category": "patient_care",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "fvc measured every 2-3 months",
+          "best_score": 0
+        },
+        {
+          "fact": "niv recommended below 50% fvc",
+          "best_score": 0
+        },
+        {
+          "fact": "nocturnal oximetry for desaturation",
+          "best_score": 0
+        },
+        {
+          "fact": "orthopnea and morning headaches are warning signs",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "CARE-015",
+      "category": "patient_care",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "executive dysfunction and behavioral disinhibition",
+          "best_score": 40.90909090909091
+        },
+        {
+          "fact": "ecas screening tool",
+          "best_score": 52.63157894736843
+        },
+        {
+          "fact": "early capacity and advance directive planning",
+          "best_score": 41.9753086419753
+        },
+        {
+          "fact": "extreme caregiver burden",
+          "best_score": 46.808510638297875
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "CARE-016",
+      "category": "patient_care",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "among highest burden of neurological diseases",
+          "best_score": 0
+        },
+        {
+          "fact": "30-40% of caregivers experience depression",
+          "best_score": 0
+        },
+        {
+          "fact": "correlates with functional decline",
+          "best_score": 0
+        },
+        {
+          "fact": "respite care and support groups important",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "CARE-017",
+      "category": "patient_care",
+      "difficulty": "easy",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "communication and swallowing assessment",
+          "best_score": 0
+        },
+        {
+          "fact": "aac device recommendation",
+          "best_score": 0
+        },
+        {
+          "fact": "early voice banking recommended",
+          "best_score": 0
+        },
+        {
+          "fact": "swallowing strategies and peg timing",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "CARE-018",
+      "category": "patient_care",
+      "difficulty": "hard",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "palliative care from diagnosis",
+          "best_score": 0
+        },
+        {
+          "fact": "hospice when 6 months prognosis",
+          "best_score": 0
+        },
+        {
+          "fact": "morphine for air hunger",
+          "best_score": 0
+        },
+        {
+          "fact": "bereavement support for families",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "CARE-019",
+      "category": "patient_care",
+      "difficulty": "medium",
+      "is_trap": false,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 4,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "50-70% of patients experience pain",
+          "best_score": 0
+        },
+        {
+          "fact": "musculoskeletal cramps spasticity neuropathic sources",
+          "best_score": 0
+        },
+        {
+          "fact": "mexiletine for cramps",
+          "best_score": 0
+        },
+        {
+          "fact": "opioids for severe pain",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    },
+    {
+      "question_id": "CARE-020",
+      "category": "patient_care",
+      "difficulty": "medium",
+      "is_trap": true,
+      "accuracy_proportional": 0.0,
+      "accuracy_binary": 0,
+      "key_facts_total": 3,
+      "key_facts_found": [],
+      "key_facts_missed": [
+        {
+          "fact": "motorguard protocol does not exist",
+          "best_score": 0
+        },
+        {
+          "fact": "fabricated name",
+          "best_score": 0
+        },
+        {
+          "fact": "real protocols include niv and cough assist",
+          "best_score": 0
+        }
+      ],
+      "hedging_count": 0,
+      "hedging_phrases_found": []
+    }
+  ]
+}

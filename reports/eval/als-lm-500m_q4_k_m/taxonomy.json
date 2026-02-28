@@ -1,0 +1,2450 @@
+{
+  "metadata": {
+    "scores_path": "/mnt/c/Users/joshu/OneDrive/Documents/GitHub/als-lm/eval/results/als-lm-500m_q4_k_m/scores.json",
+    "fabrications_path": "/mnt/c/Users/joshu/OneDrive/Documents/GitHub/als-lm/eval/results/als-lm-500m_q4_k_m/fabrications.json",
+    "responses_path": "/mnt/c/Users/joshu/OneDrive/Documents/GitHub/als-lm/eval/results/als-lm-500m_q4_k_m/responses.json",
+    "benchmark_path": "/mnt/c/Users/joshu/OneDrive/Documents/GitHub/als-lm/eval/questions.json",
+    "overrides_path": "eval/taxonomy_overrides.json",
+    "timestamp": "2026-02-28T07:55:03.105837+00:00",
+    "total_classified": 160,
+    "overrides_applied": 0
+  },
+  "distribution": {
+    "confident_fabrication": {
+      "count": 54,
+      "pct": 33.8
+    },
+    "plausible_blending": {
+      "count": 43,
+      "pct": 26.9
+    },
+    "outdated_information": {
+      "count": 19,
+      "pct": 11.9
+    },
+    "boundary_confusion": {
+      "count": 0,
+      "pct": 0.0
+    },
+    "accurate_but_misleading": {
+      "count": 0,
+      "pct": 0.0
+    },
+    "accurate": {
+      "count": 0,
+      "pct": 0.0
+    },
+    "degenerate": {
+      "count": 44,
+      "pct": 27.5
+    }
+  },
+  "severity_distribution": {
+    "high": 55,
+    "medium": 61,
+    "low": 44,
+    "none": 0
+  },
+  "per_question": [
+    {
+      "question_id": "DRUG-001",
+      "category": "drug_treatment",
+      "difficulty": "easy",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 128
+      }
+    },
+    {
+      "question_id": "DRUG-002",
+      "category": "drug_treatment",
+      "difficulty": "medium",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 2,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "DRUG-003",
+      "category": "drug_treatment",
+      "difficulty": "medium",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 170
+      }
+    },
+    {
+      "question_id": "DRUG-004",
+      "category": "drug_treatment",
+      "difficulty": "easy",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "DRUG-005",
+      "category": "drug_treatment",
+      "difficulty": "medium",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "DRUG-006",
+      "category": "drug_treatment",
+      "difficulty": "hard",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 145
+      }
+    },
+    {
+      "question_id": "DRUG-007",
+      "category": "drug_treatment",
+      "difficulty": "hard",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "DRUG-008",
+      "category": "drug_treatment",
+      "difficulty": "easy",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "DRUG-009",
+      "category": "drug_treatment",
+      "difficulty": "hard",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "DRUG-010",
+      "category": "drug_treatment",
+      "difficulty": "medium",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "GENE-001",
+      "category": "gene_mutation",
+      "difficulty": "easy",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "GENE-002",
+      "category": "gene_mutation",
+      "difficulty": "medium",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "GENE-003",
+      "category": "gene_mutation",
+      "difficulty": "medium",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "GENE-004",
+      "category": "gene_mutation",
+      "difficulty": "hard",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.25,
+        "hedging_count": 0,
+        "flagged_entities": 2,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "GENE-005",
+      "category": "gene_mutation",
+      "difficulty": "easy",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "GENE-006",
+      "category": "gene_mutation",
+      "difficulty": "hard",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "GENE-007",
+      "category": "gene_mutation",
+      "difficulty": "medium",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "GENE-008",
+      "category": "gene_mutation",
+      "difficulty": "easy",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 3,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "GENE-009",
+      "category": "gene_mutation",
+      "difficulty": "hard",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 203
+      }
+    },
+    {
+      "question_id": "GENE-010",
+      "category": "gene_mutation",
+      "difficulty": "medium",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "DIAG-001",
+      "category": "diagnostic_criteria",
+      "difficulty": "medium",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "DIAG-002",
+      "category": "diagnostic_criteria",
+      "difficulty": "hard",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 0
+      }
+    },
+    {
+      "question_id": "DIAG-003",
+      "category": "diagnostic_criteria",
+      "difficulty": "easy",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "DIAG-004",
+      "category": "diagnostic_criteria",
+      "difficulty": "easy",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "DIAG-005",
+      "category": "diagnostic_criteria",
+      "difficulty": "medium",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "DIAG-006",
+      "category": "diagnostic_criteria",
+      "difficulty": "hard",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "DIAG-007",
+      "category": "diagnostic_criteria",
+      "difficulty": "medium",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "DIAG-008",
+      "category": "diagnostic_criteria",
+      "difficulty": "medium",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 2,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "DIAG-009",
+      "category": "diagnostic_criteria",
+      "difficulty": "hard",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "DIAG-010",
+      "category": "diagnostic_criteria",
+      "difficulty": "easy",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "TRIAL-001",
+      "category": "clinical_trials",
+      "difficulty": "medium",
+      "primary_mode": "outdated_information",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 263
+      }
+    },
+    {
+      "question_id": "TRIAL-002",
+      "category": "clinical_trials",
+      "difficulty": "hard",
+      "primary_mode": "outdated_information",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 60
+      }
+    },
+    {
+      "question_id": "TRIAL-003",
+      "category": "clinical_trials",
+      "difficulty": "medium",
+      "primary_mode": "outdated_information",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "TRIAL-004",
+      "category": "clinical_trials",
+      "difficulty": "easy",
+      "primary_mode": "outdated_information",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "TRIAL-005",
+      "category": "clinical_trials",
+      "difficulty": "hard",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": "outdated_information",
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 2,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "TRIAL-006",
+      "category": "clinical_trials",
+      "difficulty": "medium",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": "outdated_information",
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "TRIAL-007",
+      "category": "clinical_trials",
+      "difficulty": "hard",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 0
+      }
+    },
+    {
+      "question_id": "TRIAL-008",
+      "category": "clinical_trials",
+      "difficulty": "easy",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": "outdated_information",
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.25,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "TRIAL-009",
+      "category": "clinical_trials",
+      "difficulty": "medium",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": "outdated_information",
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 3,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "TRIAL-010",
+      "category": "clinical_trials",
+      "difficulty": "hard",
+      "primary_mode": "outdated_information",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "MECH-001",
+      "category": "disease_mechanisms",
+      "difficulty": "medium",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "MECH-002",
+      "category": "disease_mechanisms",
+      "difficulty": "medium",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "MECH-003",
+      "category": "disease_mechanisms",
+      "difficulty": "hard",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 0
+      }
+    },
+    {
+      "question_id": "MECH-004",
+      "category": "disease_mechanisms",
+      "difficulty": "easy",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 3,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "MECH-005",
+      "category": "disease_mechanisms",
+      "difficulty": "hard",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "MECH-006",
+      "category": "disease_mechanisms",
+      "difficulty": "medium",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 4,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "MECH-007",
+      "category": "disease_mechanisms",
+      "difficulty": "hard",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "MECH-008",
+      "category": "disease_mechanisms",
+      "difficulty": "easy",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 0
+      }
+    },
+    {
+      "question_id": "MECH-009",
+      "category": "disease_mechanisms",
+      "difficulty": "medium",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "MECH-010",
+      "category": "disease_mechanisms",
+      "difficulty": "medium",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "TEMP-001",
+      "category": "temporal_accuracy",
+      "difficulty": "easy",
+      "primary_mode": "outdated_information",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "TEMP-002",
+      "category": "temporal_accuracy",
+      "difficulty": "easy",
+      "primary_mode": "outdated_information",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 248
+      }
+    },
+    {
+      "question_id": "TEMP-003",
+      "category": "temporal_accuracy",
+      "difficulty": "medium",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": "outdated_information",
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "TEMP-004",
+      "category": "temporal_accuracy",
+      "difficulty": "medium",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": "outdated_information",
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "TEMP-005",
+      "category": "temporal_accuracy",
+      "difficulty": "hard",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": "outdated_information",
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "TEMP-006",
+      "category": "temporal_accuracy",
+      "difficulty": "easy",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 0
+      }
+    },
+    {
+      "question_id": "TEMP-007",
+      "category": "temporal_accuracy",
+      "difficulty": "hard",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": "outdated_information",
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 2,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "TEMP-008",
+      "category": "temporal_accuracy",
+      "difficulty": "medium",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "TEMP-009",
+      "category": "temporal_accuracy",
+      "difficulty": "hard",
+      "primary_mode": "outdated_information",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 96
+      }
+    },
+    {
+      "question_id": "TEMP-010",
+      "category": "temporal_accuracy",
+      "difficulty": "medium",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "EPI-001",
+      "category": "epidemiology",
+      "difficulty": "easy",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "EPI-002",
+      "category": "epidemiology",
+      "difficulty": "easy",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "EPI-003",
+      "category": "epidemiology",
+      "difficulty": "medium",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 2,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "EPI-004",
+      "category": "epidemiology",
+      "difficulty": "medium",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 0
+      }
+    },
+    {
+      "question_id": "EPI-005",
+      "category": "epidemiology",
+      "difficulty": "hard",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 231
+      }
+    },
+    {
+      "question_id": "EPI-006",
+      "category": "epidemiology",
+      "difficulty": "medium",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "EPI-007",
+      "category": "epidemiology",
+      "difficulty": "hard",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "EPI-008",
+      "category": "epidemiology",
+      "difficulty": "easy",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "EPI-009",
+      "category": "epidemiology",
+      "difficulty": "hard",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 2
+      }
+    },
+    {
+      "question_id": "EPI-010",
+      "category": "epidemiology",
+      "difficulty": "medium",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 0
+      }
+    },
+    {
+      "question_id": "CARE-001",
+      "category": "patient_care",
+      "difficulty": "medium",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 272
+      }
+    },
+    {
+      "question_id": "CARE-002",
+      "category": "patient_care",
+      "difficulty": "medium",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "CARE-003",
+      "category": "patient_care",
+      "difficulty": "easy",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 250
+      }
+    },
+    {
+      "question_id": "CARE-004",
+      "category": "patient_care",
+      "difficulty": "medium",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "CARE-005",
+      "category": "patient_care",
+      "difficulty": "hard",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 0
+      }
+    },
+    {
+      "question_id": "CARE-006",
+      "category": "patient_care",
+      "difficulty": "easy",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 0
+      }
+    },
+    {
+      "question_id": "CARE-007",
+      "category": "patient_care",
+      "difficulty": "hard",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "CARE-008",
+      "category": "patient_care",
+      "difficulty": "medium",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 54
+      }
+    },
+    {
+      "question_id": "CARE-009",
+      "category": "patient_care",
+      "difficulty": "easy",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 2,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "CARE-010",
+      "category": "patient_care",
+      "difficulty": "medium",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.3333,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 201
+      }
+    },
+    {
+      "question_id": "DRUG-011",
+      "category": "drug_treatment",
+      "difficulty": "medium",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "DRUG-012",
+      "category": "drug_treatment",
+      "difficulty": "hard",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "DRUG-013",
+      "category": "drug_treatment",
+      "difficulty": "easy",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 0
+      }
+    },
+    {
+      "question_id": "DRUG-014",
+      "category": "drug_treatment",
+      "difficulty": "medium",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "DRUG-015",
+      "category": "drug_treatment",
+      "difficulty": "hard",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "DRUG-016",
+      "category": "drug_treatment",
+      "difficulty": "medium",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 4,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "DRUG-017",
+      "category": "drug_treatment",
+      "difficulty": "hard",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "DRUG-018",
+      "category": "drug_treatment",
+      "difficulty": "easy",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "DRUG-019",
+      "category": "drug_treatment",
+      "difficulty": "hard",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "DRUG-020",
+      "category": "drug_treatment",
+      "difficulty": "medium",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 0
+      }
+    },
+    {
+      "question_id": "GENE-011",
+      "category": "gene_mutation",
+      "difficulty": "medium",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "GENE-012",
+      "category": "gene_mutation",
+      "difficulty": "hard",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "GENE-013",
+      "category": "gene_mutation",
+      "difficulty": "medium",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 8,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "GENE-014",
+      "category": "gene_mutation",
+      "difficulty": "hard",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 0
+      }
+    },
+    {
+      "question_id": "GENE-015",
+      "category": "gene_mutation",
+      "difficulty": "easy",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "GENE-016",
+      "category": "gene_mutation",
+      "difficulty": "medium",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "GENE-017",
+      "category": "gene_mutation",
+      "difficulty": "hard",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 2,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "GENE-018",
+      "category": "gene_mutation",
+      "difficulty": "easy",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 78
+      }
+    },
+    {
+      "question_id": "GENE-019",
+      "category": "gene_mutation",
+      "difficulty": "medium",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "GENE-020",
+      "category": "gene_mutation",
+      "difficulty": "hard",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 0
+      }
+    },
+    {
+      "question_id": "DIAG-011",
+      "category": "diagnostic_criteria",
+      "difficulty": "medium",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 195
+      }
+    },
+    {
+      "question_id": "DIAG-012",
+      "category": "diagnostic_criteria",
+      "difficulty": "hard",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 0
+      }
+    },
+    {
+      "question_id": "DIAG-013",
+      "category": "diagnostic_criteria",
+      "difficulty": "medium",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "DIAG-014",
+      "category": "diagnostic_criteria",
+      "difficulty": "hard",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 2,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "DIAG-015",
+      "category": "diagnostic_criteria",
+      "difficulty": "easy",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 279
+      }
+    },
+    {
+      "question_id": "DIAG-016",
+      "category": "diagnostic_criteria",
+      "difficulty": "medium",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 66
+      }
+    },
+    {
+      "question_id": "DIAG-017",
+      "category": "diagnostic_criteria",
+      "difficulty": "easy",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 2,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "DIAG-018",
+      "category": "diagnostic_criteria",
+      "difficulty": "hard",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 145
+      }
+    },
+    {
+      "question_id": "DIAG-019",
+      "category": "diagnostic_criteria",
+      "difficulty": "medium",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "DIAG-020",
+      "category": "diagnostic_criteria",
+      "difficulty": "medium",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 0
+      }
+    },
+    {
+      "question_id": "TRIAL-011",
+      "category": "clinical_trials",
+      "difficulty": "medium",
+      "primary_mode": "outdated_information",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 61
+      }
+    },
+    {
+      "question_id": "TRIAL-012",
+      "category": "clinical_trials",
+      "difficulty": "hard",
+      "primary_mode": "outdated_information",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 95
+      }
+    },
+    {
+      "question_id": "TRIAL-013",
+      "category": "clinical_trials",
+      "difficulty": "medium",
+      "primary_mode": "outdated_information",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 42
+      }
+    },
+    {
+      "question_id": "TRIAL-014",
+      "category": "clinical_trials",
+      "difficulty": "hard",
+      "primary_mode": "outdated_information",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 284
+      }
+    },
+    {
+      "question_id": "TRIAL-015",
+      "category": "clinical_trials",
+      "difficulty": "easy",
+      "primary_mode": "outdated_information",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "TRIAL-016",
+      "category": "clinical_trials",
+      "difficulty": "medium",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": "outdated_information",
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "TRIAL-017",
+      "category": "clinical_trials",
+      "difficulty": "hard",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": "outdated_information",
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 2,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "TRIAL-018",
+      "category": "clinical_trials",
+      "difficulty": "easy",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": "outdated_information",
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "TRIAL-019",
+      "category": "clinical_trials",
+      "difficulty": "medium",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": "outdated_information",
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "TRIAL-020",
+      "category": "clinical_trials",
+      "difficulty": "hard",
+      "primary_mode": "outdated_information",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 79
+      }
+    },
+    {
+      "question_id": "MECH-011",
+      "category": "disease_mechanisms",
+      "difficulty": "hard",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 2,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "MECH-012",
+      "category": "disease_mechanisms",
+      "difficulty": "medium",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "MECH-013",
+      "category": "disease_mechanisms",
+      "difficulty": "hard",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "MECH-014",
+      "category": "disease_mechanisms",
+      "difficulty": "medium",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "MECH-015",
+      "category": "disease_mechanisms",
+      "difficulty": "hard",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "MECH-016",
+      "category": "disease_mechanisms",
+      "difficulty": "medium",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "MECH-017",
+      "category": "disease_mechanisms",
+      "difficulty": "easy",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 72
+      }
+    },
+    {
+      "question_id": "MECH-018",
+      "category": "disease_mechanisms",
+      "difficulty": "hard",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "MECH-019",
+      "category": "disease_mechanisms",
+      "difficulty": "easy",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "MECH-020",
+      "category": "disease_mechanisms",
+      "difficulty": "medium",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 0
+      }
+    },
+    {
+      "question_id": "TEMP-011",
+      "category": "temporal_accuracy",
+      "difficulty": "medium",
+      "primary_mode": "outdated_information",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 62
+      }
+    },
+    {
+      "question_id": "TEMP-012",
+      "category": "temporal_accuracy",
+      "difficulty": "medium",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": "outdated_information",
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 8,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "TEMP-013",
+      "category": "temporal_accuracy",
+      "difficulty": "hard",
+      "primary_mode": "outdated_information",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 103
+      }
+    },
+    {
+      "question_id": "TEMP-014",
+      "category": "temporal_accuracy",
+      "difficulty": "medium",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": "outdated_information",
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "TEMP-015",
+      "category": "temporal_accuracy",
+      "difficulty": "easy",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "TEMP-016",
+      "category": "temporal_accuracy",
+      "difficulty": "hard",
+      "primary_mode": "outdated_information",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 54
+      }
+    },
+    {
+      "question_id": "TEMP-017",
+      "category": "temporal_accuracy",
+      "difficulty": "medium",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": "outdated_information",
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 3,
+        "tokens_generated": 88
+      }
+    },
+    {
+      "question_id": "TEMP-018",
+      "category": "temporal_accuracy",
+      "difficulty": "easy",
+      "primary_mode": "outdated_information",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 211
+      }
+    },
+    {
+      "question_id": "TEMP-019",
+      "category": "temporal_accuracy",
+      "difficulty": "hard",
+      "primary_mode": "outdated_information",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "TEMP-020",
+      "category": "temporal_accuracy",
+      "difficulty": "medium",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "EPI-011",
+      "category": "epidemiology",
+      "difficulty": "medium",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 288
+      }
+    },
+    {
+      "question_id": "EPI-012",
+      "category": "epidemiology",
+      "difficulty": "hard",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 0
+      }
+    },
+    {
+      "question_id": "EPI-013",
+      "category": "epidemiology",
+      "difficulty": "medium",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "EPI-014",
+      "category": "epidemiology",
+      "difficulty": "hard",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 0
+      }
+    },
+    {
+      "question_id": "EPI-015",
+      "category": "epidemiology",
+      "difficulty": "easy",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 166
+      }
+    },
+    {
+      "question_id": "EPI-016",
+      "category": "epidemiology",
+      "difficulty": "medium",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 97
+      }
+    },
+    {
+      "question_id": "EPI-017",
+      "category": "epidemiology",
+      "difficulty": "hard",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 511
+      }
+    },
+    {
+      "question_id": "EPI-018",
+      "category": "epidemiology",
+      "difficulty": "easy",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 55
+      }
+    },
+    {
+      "question_id": "EPI-019",
+      "category": "epidemiology",
+      "difficulty": "medium",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 88
+      }
+    },
+    {
+      "question_id": "EPI-020",
+      "category": "epidemiology",
+      "difficulty": "hard",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 116
+      }
+    },
+    {
+      "question_id": "CARE-011",
+      "category": "patient_care",
+      "difficulty": "medium",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "CARE-012",
+      "category": "patient_care",
+      "difficulty": "hard",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 95
+      }
+    },
+    {
+      "question_id": "CARE-013",
+      "category": "patient_care",
+      "difficulty": "medium",
+      "primary_mode": "confident_fabrication",
+      "secondary_mode": null,
+      "severity": "high",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 1,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "CARE-014",
+      "category": "patient_care",
+      "difficulty": "easy",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 0
+      }
+    },
+    {
+      "question_id": "CARE-015",
+      "category": "patient_care",
+      "difficulty": "hard",
+      "primary_mode": "plausible_blending",
+      "secondary_mode": null,
+      "severity": "medium",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 58
+      }
+    },
+    {
+      "question_id": "CARE-016",
+      "category": "patient_care",
+      "difficulty": "medium",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 0
+      }
+    },
+    {
+      "question_id": "CARE-017",
+      "category": "patient_care",
+      "difficulty": "easy",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "CARE-018",
+      "category": "patient_care",
+      "difficulty": "hard",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 0
+      }
+    },
+    {
+      "question_id": "CARE-019",
+      "category": "patient_care",
+      "difficulty": "medium",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 512
+      }
+    },
+    {
+      "question_id": "CARE-020",
+      "category": "patient_care",
+      "difficulty": "medium",
+      "primary_mode": "degenerate",
+      "secondary_mode": null,
+      "severity": "low",
+      "override": false,
+      "signals": {
+        "accuracy": 0.0,
+        "hedging_count": 0,
+        "flagged_entities": 0,
+        "tokens_generated": 0
+      }
+    }
+  ]
+}
