@@ -12,21 +12,23 @@ The three stages are:
    mismatch.
 
 2. **HuggingFace to GGUF:** Runs llama.cpp's ``convert_hf_to_gguf.py`` to
-   produce a GGUF file. Handles the custom tokenizer pre-tokenizer hash by
-   patching the conversion script at runtime so the ALS tokenizer's hash maps
-   to the ``"gpt2"`` pre-tokenizer type.
+   produce an F16 base GGUF file, then uses ``llama-quantize`` to produce
+   Q8_0 and Q4_K_M quantized variants. Handles the custom tokenizer
+   pre-tokenizer hash by patching the conversion script at runtime so the
+   ALS tokenizer's hash maps to the ``"gpt2"`` pre-tokenizer type.
 
-3. **GGUF to Ollama:** Generates a Modelfile from the checked-in template,
-   runs ``ollama create`` to register the model, and performs an auto-test
-   generation to verify the full pipeline end-to-end.
+3. **GGUF to Ollama:** Generates a Modelfile per quantization level from the
+   checked-in template, runs ``ollama create`` to register each model with
+   size:tag naming, copies Q8_0 as the default tag, and runs a smoke test
+   suite with diverse ALS prompts against each model.
 
 Usage::
 
-    # Auto-detect latest checkpoint, export as "tiny"
+    # Auto-detect latest checkpoint, export as "500m"
     python -m export.export_pipeline
 
     # Specify checkpoint and size
-    python -m export.export_pipeline --checkpoint checkpoints/tiny_20260224/step_1999.pt --size tiny
+    python -m export.export_pipeline --checkpoint checkpoints/500M_20260227_192113/best/best.pt --size 500m
 
     # Skip Ollama stage (if Ollama is not installed)
     python -m export.export_pipeline --skip-ollama
@@ -35,6 +37,7 @@ Usage::
 import argparse
 import hashlib
 import json
+import multiprocessing
 import os
 import re
 import shutil
@@ -42,6 +45,7 @@ import subprocess
 import sys
 import tempfile
 import time
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -73,6 +77,90 @@ DISCLAIMER = (
     "misleading. Consult qualified medical professionals for any health-related "
     "questions."
 )
+
+# Quantization levels produced by the export pipeline.
+# F16 is the base conversion from HuggingFace; Q8_0 and Q4_K_M are
+# quantized from F16 using llama-quantize.
+QUANT_LEVELS = ["f16", "q8_0", "q4_k_m"]
+
+# Smoke test prompts covering ALS pathology, treatment, genetics,
+# cellular biology, and clinical research.
+SMOKE_TEST_PROMPTS = [
+    "ALS is a neurodegenerative disease that",
+    "Riluzole is used in the treatment of",
+    "The SOD1 gene mutation causes",
+    "Motor neurons in ALS patients",
+    "Clinical trials for ALS have investigated",
+]
+
+
+def build_llama_quantize() -> Path:
+    """Build the llama-quantize binary from llama.cpp source if not present.
+
+    Checks whether ``lib/llama.cpp/build/bin/llama-quantize`` already exists.
+    If not, runs CMake to configure and build only the ``llama-quantize``
+    target. This avoids building the entire llama.cpp project.
+
+    Returns:
+        Path to the ``llama-quantize`` binary.
+
+    Raises:
+        RuntimeError: If the build fails or the binary is not found after
+            building.
+    """
+    quantize_bin = LLAMA_CPP_DIR / "build" / "bin" / "llama-quantize"
+
+    if quantize_bin.is_file():
+        print(f"  llama-quantize already built: {quantize_bin}")
+        return quantize_bin
+
+    print("  Building llama-quantize from source...")
+
+    # CMake configure
+    cmake_configure = [
+        "cmake", "-B", "build", "-DCMAKE_BUILD_TYPE=Release",
+    ]
+    result = subprocess.run(
+        cmake_configure,
+        capture_output=True,
+        text=True,
+        cwd=str(LLAMA_CPP_DIR),
+    )
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"CMake configure failed (exit code {result.returncode}). "
+            f"stderr: {result.stderr[:500]}"
+        )
+    print("  CMake configure completed")
+
+    # CMake build (only the quantize target)
+    nproc = multiprocessing.cpu_count()
+    cmake_build = [
+        "cmake", "--build", "build",
+        "--target", "llama-quantize",
+        f"-j{nproc}",
+    ]
+    result = subprocess.run(
+        cmake_build,
+        capture_output=True,
+        text=True,
+        cwd=str(LLAMA_CPP_DIR),
+    )
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"CMake build failed (exit code {result.returncode}). "
+            f"stderr: {result.stderr[:500]}"
+        )
+    print("  CMake build completed")
+
+    # Verify binary exists
+    if not quantize_bin.is_file():
+        raise RuntimeError(
+            f"llama-quantize binary not found after build: {quantize_bin}"
+        )
+
+    print(f"  llama-quantize built successfully: {quantize_bin}")
+    return quantize_bin
 
 
 def find_latest_checkpoint(checkpoints_dir: Optional[Path] = None) -> Path:
@@ -379,30 +467,40 @@ def _patch_converter_script(converter_path: Path, token_hash: str) -> Path:
 def stage_gguf_convert(
     hf_dir: Path,
     gguf_dir: Path,
-    size: str = "tiny",
+    size: str = "500m",
 ) -> dict:
-    """Stage 2: Convert HuggingFace model to GGUF format.
+    """Stage 2: Convert HuggingFace model to multi-quant GGUF files.
 
-    Verifies llama.cpp is cloned, computes the custom tokenizer hash, patches
-    the converter script to recognize the hash, runs the GGUF conversion, and
-    verifies the resulting GGUF file's tokenizer metadata.
+    Produces three GGUF files:
+
+    - **F16:** Base conversion from HuggingFace via ``convert_hf_to_gguf.py``
+    - **Q8_0:** 8-bit quantization via ``llama-quantize``
+    - **Q4_K_M:** 4-bit quantization via ``llama-quantize``
+
+    Verifies llama.cpp is cloned, builds ``llama-quantize`` if needed,
+    computes the custom tokenizer hash, patches the converter script to
+    recognize the hash, runs the F16 conversion, quantizes to Q8_0 and
+    Q4_K_M, and verifies the F16 file's tokenizer metadata.
 
     Args:
         hf_dir: Path to the HuggingFace model directory from Stage 1.
-        gguf_dir: Directory to write the GGUF output file.
+        gguf_dir: Directory to write the GGUF output files.
         size: Model size qualifier (e.g., "tiny", "500m") for the output
-            filename.
+            filenames.
 
     Returns:
-        A dict with ``success``, ``output_path``, and ``error`` keys.
+        A dict with ``success``, ``output_paths`` (list of 3 Paths), and
+        ``error`` keys.
     """
     print("\n" + "=" * 60)
-    print("Stage 2: HuggingFace -> GGUF")
+    print("Stage 2: HuggingFace -> GGUF (F16 + Q8_0 + Q4_K_M)")
     print("=" * 60)
 
     converter_path = LLAMA_CPP_DIR / "convert_hf_to_gguf.py"
-    gguf_filename = f"als-lm-{size}-f32.gguf"
-    gguf_path = gguf_dir / gguf_filename
+    f16_path = gguf_dir / f"als-lm-{size}-f16.gguf"
+    q8_path = gguf_dir / f"als-lm-{size}-q8_0.gguf"
+    q4_path = gguf_dir / f"als-lm-{size}-q4_k_m.gguf"
+    output_paths = [f16_path, q8_path, q4_path]
     patched_script = None
 
     try:
@@ -410,11 +508,22 @@ def stage_gguf_convert(
         if not converter_path.is_file():
             return {
                 "success": False,
-                "output_path": str(gguf_path),
+                "output_paths": [str(p) for p in output_paths],
                 "error": (
                     "llama.cpp not found at lib/llama.cpp/. "
                     "Clone it with: git clone https://github.com/ggml-org/llama.cpp.git lib/llama.cpp"
                 ),
+            }
+
+        # Build llama-quantize if needed
+        print("\nChecking llama-quantize binary...")
+        try:
+            quantize_bin = build_llama_quantize()
+        except RuntimeError as e:
+            return {
+                "success": False,
+                "output_paths": [str(p) for p in output_paths],
+                "error": str(e),
             }
 
         # Create output directory
@@ -428,17 +537,17 @@ def stage_gguf_convert(
         print("\nPatching converter script for custom tokenizer hash...")
         patched_script = _patch_converter_script(converter_path, token_hash)
 
-        # Run GGUF conversion
-        print(f"\nRunning GGUF conversion...")
+        # Step 1: Convert HF to F16 GGUF (base file)
+        print(f"\nConverting HuggingFace to F16 GGUF...")
         print(f"  Input:  {hf_dir}")
-        print(f"  Output: {gguf_path}")
+        print(f"  Output: {f16_path}")
 
         cmd = [
             sys.executable,
             str(patched_script),
             str(hf_dir),
-            "--outfile", str(gguf_path),
-            "--outtype", "f32",
+            "--outfile", str(f16_path),
+            "--outtype", "f16",
         ]
         result = subprocess.run(
             cmd,
@@ -455,44 +564,105 @@ def stage_gguf_convert(
         if result.returncode != 0:
             return {
                 "success": False,
-                "output_path": str(gguf_path),
+                "output_paths": [str(p) for p in output_paths],
                 "error": (
-                    f"GGUF conversion failed (exit code {result.returncode}). "
+                    f"F16 GGUF conversion failed (exit code {result.returncode}). "
                     f"stderr: {result.stderr[:500]}"
                 ),
             }
 
-        if not gguf_path.is_file():
+        if not f16_path.is_file():
             return {
                 "success": False,
-                "output_path": str(gguf_path),
-                "error": f"GGUF output file not created: {gguf_path}",
+                "output_paths": [str(p) for p in output_paths],
+                "error": f"F16 GGUF output file not created: {f16_path}",
             }
 
-        print(f"\n  GGUF file created: {gguf_path}")
-        print(f"  File size: {gguf_path.stat().st_size / 1024 / 1024:.1f} MB")
+        f16_size_mb = f16_path.stat().st_size / 1024 / 1024
+        print(f"\n  F16 GGUF created: {f16_path}")
+        print(f"  File size: {f16_size_mb:.1f} MB")
 
-        # Verify GGUF tokenizer metadata
+        # Verify GGUF tokenizer metadata on the F16 base file
         print("\nVerifying GGUF tokenizer metadata...")
-        verification_result = _verify_gguf_tokenizer(gguf_path)
+        verification_result = _verify_gguf_tokenizer(f16_path)
         if not verification_result["success"]:
             return {
                 "success": False,
-                "output_path": str(gguf_path),
+                "output_paths": [str(p) for p in output_paths],
                 "error": verification_result["error"],
             }
+
+        # Step 2: Quantize F16 to Q8_0
+        print(f"\nQuantizing Q8_0...")
+        q8_cmd = [
+            str(quantize_bin),
+            str(f16_path),
+            str(q8_path),
+            "Q8_0",
+        ]
+        result = subprocess.run(
+            q8_cmd,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            return {
+                "success": False,
+                "output_paths": [str(p) for p in output_paths],
+                "error": (
+                    f"Q8_0 quantization failed (exit code {result.returncode}). "
+                    f"stderr: {result.stderr[:500]}"
+                ),
+            }
+        q8_size_mb = q8_path.stat().st_size / 1024 / 1024
+        print(f"  done ({q8_size_mb:.1f} MB)")
+
+        # Step 3: Quantize F16 to Q4_K_M
+        print(f"\nQuantizing Q4_K_M...")
+        q4_cmd = [
+            str(quantize_bin),
+            str(f16_path),
+            str(q4_path),
+            "Q4_K_M",
+        ]
+        result = subprocess.run(
+            q4_cmd,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            return {
+                "success": False,
+                "output_paths": [str(p) for p in output_paths],
+                "error": (
+                    f"Q4_K_M quantization failed (exit code {result.returncode}). "
+                    f"stderr: {result.stderr[:500]}"
+                ),
+            }
+        q4_size_mb = q4_path.stat().st_size / 1024 / 1024
+        print(f"  done ({q4_size_mb:.1f} MB)")
+
+        # Print file size comparison table
+        print("\n  File size comparison:")
+        print("  " + "-" * 55)
+        print(f"  {'Model':<30} {'Size (MB)':>10} {'Ratio':>10}")
+        print("  " + "-" * 55)
+        print(f"  {'als-lm-' + size + '-f16.gguf':<30} {f16_size_mb:>10.1f} {'1.00x':>10}")
+        print(f"  {'als-lm-' + size + '-q8_0.gguf':<30} {q8_size_mb:>10.1f} {q8_size_mb/f16_size_mb:>9.2f}x")
+        print(f"  {'als-lm-' + size + '-q4_k_m.gguf':<30} {q4_size_mb:>10.1f} {q4_size_mb/f16_size_mb:>9.2f}x")
+        print("  " + "-" * 55)
 
         print("\n  Stage 2 PASSED")
         return {
             "success": True,
-            "output_path": str(gguf_path),
+            "output_paths": [str(p) for p in output_paths],
             "error": None,
         }
 
     except Exception as e:
         return {
             "success": False,
-            "output_path": str(gguf_path),
+            "output_paths": [str(p) for p in output_paths],
             "error": str(e),
         }
 
@@ -882,12 +1052,14 @@ def main() -> None:
         print_summary(results, args.size)
         sys.exit(1)
 
-    # Stage 2: HuggingFace -> GGUF
+    # Stage 2: HuggingFace -> GGUF (F16 + Q8_0 + Q4_K_M)
     results["gguf_convert"] = stage_gguf_convert(hf_dir, gguf_dir, args.size)
     if not results["gguf_convert"]["success"]:
         print(f"\nERROR: Stage 2 failed: {results['gguf_convert']['error']}")
         print_summary(results, args.size)
         sys.exit(1)
+
+    gguf_paths = [Path(p) for p in results["gguf_convert"]["output_paths"]]
 
     # Stage 3: GGUF -> Ollama (optional)
     if args.skip_ollama:
@@ -901,7 +1073,7 @@ def main() -> None:
         }
     else:
         results["ollama_create"] = stage_ollama_create(
-            Path(results["gguf_convert"]["output_path"]),
+            gguf_paths,
             output_base,
             args.size,
         )
