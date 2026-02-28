@@ -37,7 +37,6 @@ Usage::
 import argparse
 import hashlib
 import json
-import multiprocessing
 import os
 import re
 import shutil
@@ -134,7 +133,7 @@ def build_llama_quantize() -> Path:
     print("  CMake configure completed")
 
     # CMake build (only the quantize target)
-    nproc = multiprocessing.cpu_count()
+    nproc = os.cpu_count()
     cmake_build = [
         "cmake", "--build", "build",
         "--target", "llama-quantize",
@@ -901,7 +900,7 @@ def stage_ollama_create(
             print(f"\nRegistering model '{model_name}'...")
 
             # Generate Modelfile for this quant level
-            gguf_relative = os.path.relpath(str(gguf_path), str(gguf_path.parent))
+            gguf_relative = gguf_path.name
             generated = template.replace("{{GGUF_PATH}}", f"./{gguf_relative}")
             generated = generated.replace("{{DISCLAIMER}}", DISCLAIMER)
 
@@ -1048,7 +1047,7 @@ def smoke_test_models(
         else:
             file_sizes[tag] = 0.0
 
-    f16_size = file_sizes.get("f16", 1.0)  # Avoid division by zero
+    f16_size = file_sizes.get("f16", 0.0) or 1.0  # Avoid division by zero
 
     # Write results file
     output_dir.mkdir(parents=True, exist_ok=True)
