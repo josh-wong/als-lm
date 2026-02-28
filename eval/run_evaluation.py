@@ -548,7 +548,9 @@ def main():
         Path(args.reports_dir).resolve() / "eval" / model_id
     )
 
-    # Resolve stage script paths relative to project root
+    # Resolve stage script paths relative to project root. Build local
+    # copies to avoid mutating the module-level STAGES constant.
+    STAGES = [dict(s) for s in STAGES]
     for stage in STAGES:
         stage["script"] = str(project_root / stage["script"])
 

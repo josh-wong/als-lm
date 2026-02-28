@@ -98,7 +98,7 @@ def check_ollama_running(ollama_url):
         SystemExit: If the server is unreachable.
     """
     try:
-        resp = requests.get(f"{ollama_url}/api/tags", timeout=10)
+        resp = requests.get(f"{ollama_url.rstrip('/')}/api/tags", timeout=10)
         resp.raise_for_status()
         data = resp.json()
         return [m["name"] for m in data.get("models", [])]
