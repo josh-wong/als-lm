@@ -383,7 +383,8 @@ def generate_ollama_response(ollama_url, model_name, prompt, max_tokens,
     """Generate a single response via the Ollama HTTP API.
 
     Posts to ``/api/generate`` with streaming disabled. Retries up to 3 times
-    on connection errors or timeouts with a 5-second delay between attempts.
+    on connection errors, timeouts, or server errors (HTTP 5xx) with a
+    5-second delay between attempts. Client errors (4xx) fail immediately.
 
     Args:
         ollama_url: Base URL of the Ollama server (e.g. ``http://localhost:11434``).
@@ -426,7 +427,11 @@ def generate_ollama_response(ollama_url, model_name, prompt, max_tokens,
             else:
                 return f"[ollama error: {exc}]", 0
         except requests.HTTPError as exc:
-            return f"[ollama error: HTTP {resp.status_code} - {exc}]", 0
+            if resp.status_code >= 500 and attempt < max_retries:
+                print(f"    Retry {attempt}/{max_retries} after HTTP {resp.status_code}")
+                time.sleep(5)
+            else:
+                return f"[ollama error: HTTP {resp.status_code} - {exc}]", 0
         except Exception as exc:
             return f"[ollama error: {exc}]", 0
 
@@ -546,17 +551,81 @@ def generate_responses_ollama(ollama_url, model_name, questions, max_tokens,
 def _load_existing_responses(output_path):
     """Load previously generated responses from *output_path*.
 
-    Returns a dict mapping ``question_id`` -> response dict, or an empty dict
-    if the file does not exist or cannot be parsed.
+    Returns ``(responses_dict, metadata_dict)`` where *responses_dict* maps
+    ``question_id`` -> response dict and *metadata_dict* is the saved
+    metadata block (empty dict if absent). Returns ``({}, {})`` if the file
+    does not exist or cannot be parsed.
     """
     if not os.path.isfile(output_path):
-        return {}
+        return {}, {}
     try:
         with open(output_path) as fh:
             data = json.load(fh)
-        return {r["question_id"]: r for r in data.get("responses", [])}
+        responses = {r["question_id"]: r for r in data.get("responses", [])}
+        return responses, data.get("metadata", {})
     except (json.JSONDecodeError, KeyError, OSError):
-        return {}
+        return {}, {}
+
+
+def _validate_resume_metadata(existing_metadata, args):
+    """Warn if the existing file's metadata conflicts with current arguments.
+
+    Checks inference mode, model identity, max tokens, and temperature.
+    Mismatches produce warnings but do not abort the run — the caller is
+    responsible for deciding whether to proceed.
+
+    Returns True if metadata is compatible, False if mismatches were found.
+    """
+    mismatches = []
+
+    existing_mode = existing_metadata.get("inference_mode")
+    current_mode = "ollama" if args.ollama_model else "checkpoint"
+
+    if existing_mode and existing_mode != current_mode:
+        mismatches.append(
+            f"inference mode: existing={existing_mode}, current={current_mode}"
+        )
+
+    if current_mode == "ollama":
+        existing_model = existing_metadata.get("ollama_model")
+        if existing_model and existing_model != args.ollama_model:
+            mismatches.append(
+                f"ollama model: existing={existing_model}, "
+                f"current={args.ollama_model}"
+            )
+    else:
+        existing_ckpt = existing_metadata.get("checkpoint_path")
+        if existing_ckpt and args.checkpoint:
+            current_ckpt = os.path.abspath(args.checkpoint)
+            if existing_ckpt != current_ckpt:
+                mismatches.append(
+                    f"checkpoint: existing={existing_ckpt}, "
+                    f"current={current_ckpt}"
+                )
+
+    existing_params = existing_metadata.get("generation_params", {})
+    if existing_params.get("max_tokens") is not None:
+        if existing_params["max_tokens"] != args.max_tokens:
+            mismatches.append(
+                f"max_tokens: existing={existing_params['max_tokens']}, "
+                f"current={args.max_tokens}"
+            )
+    if existing_params.get("temperature") is not None:
+        current_temp = args.temperature if args.ollama_model else 0.0
+        if existing_params["temperature"] != current_temp:
+            mismatches.append(
+                f"temperature: existing={existing_params['temperature']}, "
+                f"current={current_temp}"
+            )
+
+    if mismatches:
+        print("  WARNING: Resume file metadata does not match current arguments:")
+        for m in mismatches:
+            print(f"    - {m}")
+        print("  Proceeding anyway. The output metadata will reflect the current run.")
+        return False
+
+    return True
 
 
 def main():
@@ -572,9 +641,10 @@ def main():
     # ---- Resume logic -------------------------------------------------------
     existing_responses = {}
     if args.resume:
-        existing_responses = _load_existing_responses(args.output)
+        existing_responses, existing_metadata = _load_existing_responses(args.output)
         if existing_responses:
             print(f"  Resume mode: {len(existing_responses)} existing responses loaded")
+            _validate_resume_metadata(existing_metadata, args)
 
     # ---- Load benchmark questions --------------------------------------------
     if not os.path.isfile(args.benchmark):
