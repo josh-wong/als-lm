@@ -1,0 +1,3361 @@
+{
+  "metadata": {
+    "responses_path": "/mnt/c/Users/joshu/OneDrive/Documents/GitHub/als-lm/eval/results/als-lm-500m_q8_0/responses.json",
+    "registry_path": "/mnt/c/Users/joshu/OneDrive/Documents/GitHub/als-lm/eval/entity_registry.json",
+    "threshold": 85,
+    "timestamp": "2026-02-28T07:51:31.554011+00:00",
+    "total_responses_checked": 160,
+    "caveat": "Flagged entities may include false positives \u2014 entities that are real but absent from the training corpus. Manual review recommended for flagged items."
+  },
+  "summary": {
+    "total_entities_extracted": 128,
+    "total_flagged": 85,
+    "flagged_rate": 0.6641,
+    "by_type": {
+      "drugs": {
+        "extracted": 29,
+        "flagged": 29,
+        "rate": 1.0
+      },
+      "genes": {
+        "extracted": 99,
+        "flagged": 56,
+        "rate": 0.5657
+      },
+      "trials": {
+        "extracted": 0,
+        "flagged": 0,
+        "rate": 0.0
+      }
+    }
+  },
+  "per_question": [
+    {
+      "question_id": "DRUG-001",
+      "category": "drug_treatment",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "DRUG-002",
+      "category": "drug_treatment",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "Figure",
+          "type": "drug",
+          "in_registry": false,
+          "best_registry_match": "fatigue-prone",
+          "best_match_score": 63
+        },
+        {
+          "text": "RNA-",
+          "type": "gene",
+          "in_registry": true
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "Figure",
+          "type": "drug",
+          "context": "and the RNA-binding protein-binding protein-binding protein-binding protein-binding protein-binding protein-binding protein-binding protein-binding protein-binding protein (Figure 5-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-",
+          "best_registry_match": "fatigue-prone",
+          "best_match_score": 63
+        }
+      ]
+    },
+    {
+      "question_id": "DRUG-003",
+      "category": "drug_treatment",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": "We have a role in the most common genetic changes in the disease progression of the disease, we have been identified in AD, and tau pathology, and tau pathology, tau pathology, tau pathology, tau pathology, tau aggregation, tau pathology, tau pathology, tau pathology, tau pathology, tau pathology, tau pathology, tau pathology.",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "DRUG-004",
+      "category": "drug_treatment",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "DRUG-005",
+      "category": "drug_treatment",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": ", we have a rare neurodegenerative diseases, we have a rare diseases, and disease, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "DRUG-006",
+      "category": "drug_treatment",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "Alzheimer",
+          "type": "drug",
+          "in_registry": false,
+          "best_registry_match": "alleine",
+          "best_match_score": 62
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "Alzheimer",
+          "type": "drug",
+          "context": ", we have a rare neurodegenerative diseases, we have a rare neurodegenerative disease, and FTD, and Alzheimer's disease, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and Alzheimer's disease, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and Alzheimer's disease, and FTD, and FTD, and FTD",
+          "best_registry_match": "alleine",
+          "best_match_score": 62
+        }
+      ]
+    },
+    {
+      "question_id": "DRUG-007",
+      "category": "drug_treatment",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": "The study, we found that the role in the disease progression of the most common genetic changes in the disease progression and FTD pathology in AD pathology in AD, we identified a role in AD pathology in AD pathology in AD, and tau pathology in AD pathology, and tau pathology, and tau pathology, and tau pathology, and tau pathology.",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "DRUG-008",
+      "category": "drug_treatment",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": "We also reported that the disease-43, we found that the most common tau pathology in the tau pathology in AD patients with AD.",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "DRUG-009",
+      "category": "drug_treatment",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": "and the most common genetic diagnosis of AD pathology, we identified in AD, and tau pathology in AD, and tau pathology, and tau pathology.",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "DRUG-010",
+      "category": "drug_treatment",
+      "is_trap": true,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": "The study, we have a recent study, we found that the first study, we identified a significant differences in the disease progression of AD pathology.",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "GENE-001",
+      "category": "gene_mutation",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": ", we have been identified by the aggregation of tau pathology in the tau aggregation of tau aggregation of tau pathology in AD, tau aggregation of tau pathology, tau aggregation of tau aggregation of tau aggregation of tau pathology.",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "GENE-002",
+      "category": "gene_mutation",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": ", we have a rare disease, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, with SMA, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, with AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, with SMA, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, with SMA, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, with AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "GENE-003",
+      "category": "gene_mutation",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "RNA-43",
+          "type": "gene",
+          "in_registry": true
+        },
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": "The most common mutations in AD, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "GENE-004",
+      "category": "gene_mutation",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "TDP",
+          "type": "gene",
+          "in_registry": true
+        },
+        {
+          "text": "TDP-43",
+          "type": "gene",
+          "in_registry": true
+        }
+      ],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "GENE-005",
+      "category": "gene_mutation",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": "The results, we found that the most common genetic changes in AD pathology, and tau pathology, and tau pathology, and tau pathology, and tau pathology, tau pathology, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "GENE-006",
+      "category": "gene_mutation",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": "We have a common genetic mutations in AD pathology.",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "GENE-007",
+      "category": "gene_mutation",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "FUS",
+          "type": "gene",
+          "in_registry": true
+        },
+        {
+          "text": "SMN",
+          "type": "gene",
+          "in_registry": true
+        }
+      ],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "GENE-008",
+      "category": "gene_mutation",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "Fig",
+          "type": "drug",
+          "in_registry": false,
+          "best_registry_match": "filgotinib",
+          "best_match_score": 46
+        },
+        {
+          "text": "RNA-43",
+          "type": "gene",
+          "in_registry": true
+        },
+        {
+          "text": "RNA-",
+          "type": "gene",
+          "in_registry": true
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "Fig",
+          "type": "drug",
+          "context": "The RNA-binding protein (Fig.",
+          "best_registry_match": "filgotinib",
+          "best_match_score": 46
+        }
+      ]
+    },
+    {
+      "question_id": "GENE-009",
+      "category": "gene_mutation",
+      "is_trap": true,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "GENE-010",
+      "category": "gene_mutation",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "Alzheimer",
+          "type": "drug",
+          "in_registry": false,
+          "best_registry_match": "alleine",
+          "best_match_score": 62
+        },
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "Alzheimer",
+          "type": "drug",
+          "context": "The most common neurodegenerative diseases, we identified a rare neurodegenerative diseases, and disease, and FTD, and AD, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and FTD, and AD, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and FTD, and AD, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and",
+          "best_registry_match": "alleine",
+          "best_match_score": 62
+        },
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": "The most common neurodegenerative diseases, we identified a rare neurodegenerative diseases, and disease, and FTD, and AD, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and FTD, and AD, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and FTD, and AD, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "DIAG-001",
+      "category": "diagnostic_criteria",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "DIAG-002",
+      "category": "diagnostic_criteria",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "DIAG-003",
+      "category": "diagnostic_criteria",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "DIAG-004",
+      "category": "diagnostic_criteria",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "DIAG-005",
+      "category": "diagnostic_criteria",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": "We have a significant differences between the disease progression and AD.",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "DIAG-006",
+      "category": "diagnostic_criteria",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "DIAG-007",
+      "category": "diagnostic_criteria",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "TDP-43",
+          "type": "gene",
+          "in_registry": true
+        }
+      ],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "DIAG-008",
+      "category": "diagnostic_criteria",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "Alzheimer",
+          "type": "drug",
+          "in_registry": false,
+          "best_registry_match": "alleine",
+          "best_match_score": 62
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "Alzheimer",
+          "type": "drug",
+          "context": "The most common genetic mutations in the disease, and other neurodegenerative diseases, and disease, and Alzheimer's disease, and FTD, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer disease, and FTD, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer.",
+          "best_registry_match": "alleine",
+          "best_match_score": 62
+        }
+      ]
+    },
+    {
+      "question_id": "DIAG-009",
+      "category": "diagnostic_criteria",
+      "is_trap": true,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "DIAG-010",
+      "category": "diagnostic_criteria",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "TRIAL-001",
+      "category": "clinical_trials",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "TRIAL-002",
+      "category": "clinical_trials",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "TRIAL-003",
+      "category": "clinical_trials",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": "We identified a significant correlation between the disease and FTD patients with AD pathology in the disease progression of AD.",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "TRIAL-004",
+      "category": "clinical_trials",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "TRIAL-005",
+      "category": "clinical_trials",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "Alzheimer",
+          "type": "drug",
+          "in_registry": false,
+          "best_registry_match": "alleine",
+          "best_match_score": 62
+        },
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        },
+        {
+          "text": "PD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "pd4",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "Alzheimer",
+          "type": "drug",
+          "context": ", we have a recent study, we have a rare neurodegenerative diseases, we have a role in the disease, and FTD, and FTD, and AD, and Alzheimer's disease, and FTD, and FTD, and FTD, and FTD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD",
+          "best_registry_match": "alleine",
+          "best_match_score": 62
+        },
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": ", we have a recent study, we have a rare neurodegenerative diseases, we have a role in the disease, and FTD, and FTD, and AD, and Alzheimer's disease, and FTD, and FTD, and FTD, and FTD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        },
+        {
+          "text": "PD",
+          "type": "gene",
+          "context": ", we have a recent study, we have a rare neurodegenerative diseases, we have a role in the disease, and FTD, and FTD, and AD, and Alzheimer's disease, and FTD, and FTD, and FTD, and FTD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD",
+          "best_registry_match": "pd4",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "TRIAL-006",
+      "category": "clinical_trials",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": "The study, we have been reported that the clinical trials, we have a comprehensive studies, we have been identified in the disease progression of AD.",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "TRIAL-007",
+      "category": "clinical_trials",
+      "is_trap": true,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "TRIAL-008",
+      "category": "clinical_trials",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": "We have been reported that are known as a common genetic mutations in AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "TRIAL-009",
+      "category": "clinical_trials",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": ", we have a rare neurodegenerative diseases, we have a common genetic and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD,",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "TRIAL-010",
+      "category": "clinical_trials",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": "We found that the most common genetic mutations in AD, and tau pathology, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau,",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "MECH-001",
+      "category": "disease_mechanisms",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "MECH-002",
+      "category": "disease_mechanisms",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "Alzh",
+          "type": "drug",
+          "in_registry": false,
+          "best_registry_match": "falzone",
+          "best_match_score": 54
+        },
+        {
+          "text": "Alzheimer",
+          "type": "drug",
+          "in_registry": false,
+          "best_registry_match": "alleine",
+          "best_match_score": 62
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "Alzh",
+          "type": "drug",
+          "context": "The most common genetic diagnosis, with the disease, and FTD, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer-ALS, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease",
+          "best_registry_match": "falzone",
+          "best_match_score": 54
+        },
+        {
+          "text": "Alzheimer",
+          "type": "drug",
+          "context": "The most common genetic diagnosis, with the disease, and FTD, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer-ALS, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease",
+          "best_registry_match": "alleine",
+          "best_match_score": 62
+        }
+      ]
+    },
+    {
+      "question_id": "MECH-003",
+      "category": "disease_mechanisms",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": ", we found that the most common genetic mutations in AD, we identified a rare neurodegenerative diseases, we have a common genetic mutations in the disease, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD.",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "MECH-004",
+      "category": "disease_mechanisms",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "A\u03b2-associated",
+          "type": "drug",
+          "in_registry": false,
+          "best_registry_match": "associazione",
+          "best_match_score": 64
+        },
+        {
+          "text": "AD-43",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "pad-4",
+          "best_match_score": 80
+        },
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "A\u03b2-associated",
+          "type": "drug",
+          "context": ", we have been identified a role in AD, we investigated the aggregation of A\u03b2-associated tau pathology.",
+          "best_registry_match": "associazione",
+          "best_match_score": 64
+        },
+        {
+          "text": "AD-43",
+          "type": "gene",
+          "context": "and tau pathology in AD-43 aggregation of tau aggregation of tau pathology in AD, we found that the aggregation of tau pathology in AD, we have been reported that tau pathology in AD pathology in AD, which is a role in AD, with tau pathology in AD, and tau pathology in AD, and tau pathology.",
+          "best_registry_match": "pad-4",
+          "best_match_score": 80
+        },
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": ", we have a role of the disease progression of AD.",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "MECH-005",
+      "category": "disease_mechanisms",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        },
+        {
+          "text": "PD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "pd4",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": "The most common in the most common in the disease, and FTD, and AD, and PD, and tau pathology, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        },
+        {
+          "text": "PD",
+          "type": "gene",
+          "context": "The most common in the most common in the disease, and FTD, and AD, and PD, and tau pathology, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and",
+          "best_registry_match": "pd4",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "MECH-006",
+      "category": "disease_mechanisms",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "Figure",
+          "type": "drug",
+          "in_registry": false,
+          "best_registry_match": "fatigue-prone",
+          "best_match_score": 63
+        },
+        {
+          "text": "TDP-43-43",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "tdp-4333",
+          "best_match_score": 82
+        },
+        {
+          "text": "RNA-",
+          "type": "gene",
+          "in_registry": true
+        },
+        {
+          "text": "TDP-43",
+          "type": "gene",
+          "in_registry": true
+        },
+        {
+          "text": "TDP-43-43-",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "tdp-4333",
+          "best_match_score": 77
+        },
+        {
+          "text": "RNA-43-",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "rna-3",
+          "best_match_score": 83
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "Figure",
+          "type": "drug",
+          "context": "and the RNA-binding protein, we have a common RNA-binding protein, we investigated the RNA-binding protein-binding protein-binding protein (Figure 5).",
+          "best_registry_match": "fatigue-prone",
+          "best_match_score": 63
+        },
+        {
+          "text": "TDP-43-43",
+          "type": "gene",
+          "context": "The RNA-43-associated TDP-43-43-43 aggregation of TDP-43, we found that TDP-43-43 aggregation in the TDP-43-43-43-43-43-43-43-43 and TDP-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43, we found that TDP-43-43 aggregation of TDP-43-43-43-43-43-43-43-43-43 and TDP-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43, we found that TDP-43-43-43-43 aggregation of TDP-43-43-43-43-43-43-43-43-43 and TDP-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43 aggregation in the TDP-43-43-43-43-43-43",
+          "best_registry_match": "tdp-4333",
+          "best_match_score": 82
+        },
+        {
+          "text": "TDP-43-43-",
+          "type": "gene",
+          "context": "The RNA-43-associated TDP-43-43-43 aggregation of TDP-43, we found that TDP-43-43 aggregation in the TDP-43-43-43-43-43-43-43-43 and TDP-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43, we found that TDP-43-43 aggregation of TDP-43-43-43-43-43-43-43-43-43 and TDP-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43, we found that TDP-43-43-43-43 aggregation of TDP-43-43-43-43-43-43-43-43-43 and TDP-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43 aggregation in the TDP-43-43-43-43-43-43",
+          "best_registry_match": "tdp-4333",
+          "best_match_score": 77
+        },
+        {
+          "text": "RNA-43-",
+          "type": "gene",
+          "context": "The RNA-43-binding protein-binding protein-binding protein-binding protein-binding protein-binding protein in the RNA-binding protein-binding protein.",
+          "best_registry_match": "rna-3",
+          "best_match_score": 83
+        }
+      ]
+    },
+    {
+      "question_id": "MECH-007",
+      "category": "disease_mechanisms",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "MECH-008",
+      "category": "disease_mechanisms",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "MECH-009",
+      "category": "disease_mechanisms",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": ", we have a common genetic mutations in the disease, we identified a common genetic and FTD, we found that are associated with AD pathology, and tau pathology, and tau pathology, and tau aggregation, and tau, and tau pathology, and tau, and tau, and tau, and tau, and tau, tau, and tau, tau, and tau, tau, and tau, and tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau pathology, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau,",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "MECH-010",
+      "category": "disease_mechanisms",
+      "is_trap": true,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "TEMP-001",
+      "category": "temporal_accuracy",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "RNA-43",
+          "type": "gene",
+          "in_registry": true
+        },
+        {
+          "text": "FUS",
+          "type": "gene",
+          "in_registry": true
+        }
+      ],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "TEMP-002",
+      "category": "temporal_accuracy",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "TEMP-003",
+      "category": "temporal_accuracy",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": "The study, we have a significant differences in the disease progression of AD pathology.",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "TEMP-004",
+      "category": "temporal_accuracy",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "TDP-43",
+          "type": "gene",
+          "in_registry": true
+        },
+        {
+          "text": "RNA-43",
+          "type": "gene",
+          "in_registry": true
+        },
+        {
+          "text": "RNA-",
+          "type": "gene",
+          "in_registry": true
+        },
+        {
+          "text": "RNA-43-43-",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "rna-3",
+          "best_match_score": 66
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "RNA-43-43-",
+          "type": "gene",
+          "context": "The RNA-43-43-43-43-43-43-43-43-43-43-43, we identified a single-length TDP-43 (43) and TDP-43 (43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43",
+          "best_registry_match": "rna-3",
+          "best_match_score": 66
+        }
+      ]
+    },
+    {
+      "question_id": "TEMP-005",
+      "category": "temporal_accuracy",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "FUS",
+          "type": "gene",
+          "in_registry": true
+        }
+      ],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "TEMP-006",
+      "category": "temporal_accuracy",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "TEMP-007",
+      "category": "temporal_accuracy",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": ", we have a rare neurodegenerative diseases, we have a rare neurodegenerative diseases, and the disease, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD,",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "TEMP-008",
+      "category": "temporal_accuracy",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "TEMP-009",
+      "category": "temporal_accuracy",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "TEMP-010",
+      "category": "temporal_accuracy",
+      "is_trap": true,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "EPI-001",
+      "category": "epidemiology",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "EPI-002",
+      "category": "epidemiology",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "EPI-003",
+      "category": "epidemiology",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "EPI-004",
+      "category": "epidemiology",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "EPI-005",
+      "category": "epidemiology",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "EPI-006",
+      "category": "epidemiology",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "EPI-007",
+      "category": "epidemiology",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "EPI-008",
+      "category": "epidemiology",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": "We also found that the clinical trials, we have a more common genetic diagnosis, we have not be associated with AD pathology.",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "EPI-009",
+      "category": "epidemiology",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "EPI-010",
+      "category": "epidemiology",
+      "is_trap": true,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "CARE-001",
+      "category": "patient_care",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": "We have a comprehensive research on the study, we have been identified in the study, we have been used to identify the need for AD.",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "CARE-002",
+      "category": "patient_care",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "CARE-003",
+      "category": "patient_care",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "Supplementary Table",
+          "type": "drug",
+          "in_registry": false,
+          "best_registry_match": "lebermetastase",
+          "best_match_score": 54
+        },
+        {
+          "text": "Supplementary",
+          "type": "drug",
+          "in_registry": false,
+          "best_registry_match": "sperimentazione",
+          "best_match_score": 57
+        },
+        {
+          "text": "Figure",
+          "type": "drug",
+          "in_registry": false,
+          "best_registry_match": "fatigue-prone",
+          "best_match_score": 63
+        },
+        {
+          "text": "Table",
+          "type": "drug",
+          "in_registry": false,
+          "best_registry_match": "tableone",
+          "best_match_score": 76
+        },
+        {
+          "text": "RNA-43",
+          "type": "gene",
+          "in_registry": true
+        },
+        {
+          "text": "RNA-",
+          "type": "gene",
+          "in_registry": true
+        },
+        {
+          "text": "FUS-43-43-",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "fus-p431l",
+          "best_match_score": 63
+        },
+        {
+          "text": "RNA-43-",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "rna-3",
+          "best_match_score": 83
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "Supplementary Table",
+          "type": "drug",
+          "context": "We have been reported that the study, we have a single-based sequencing (Supplementary Table 1.5, and the most common gene expression in the RNA-specific RNA-binding protein (Figure 5).",
+          "best_registry_match": "lebermetastase",
+          "best_match_score": 54
+        },
+        {
+          "text": "Supplementary",
+          "type": "drug",
+          "context": "We have been reported that the study, we have a single-based sequencing (Supplementary Table 1.5, and the most common gene expression in the RNA-specific RNA-binding protein (Figure 5).",
+          "best_registry_match": "sperimentazione",
+          "best_match_score": 57
+        },
+        {
+          "text": "Figure",
+          "type": "drug",
+          "context": "We have been reported that the study, we have a single-based sequencing (Supplementary Table 1.5, and the most common gene expression in the RNA-specific RNA-binding protein (Figure 5).",
+          "best_registry_match": "fatigue-prone",
+          "best_match_score": 63
+        },
+        {
+          "text": "Table",
+          "type": "drug",
+          "context": "We have been reported that the study, we have a single-based sequencing (Supplementary Table 1.5, and the most common gene expression in the RNA-specific RNA-binding protein (Figure 5).",
+          "best_registry_match": "tableone",
+          "best_match_score": 76
+        },
+        {
+          "text": "FUS-43-43-",
+          "type": "gene",
+          "context": "The RNA-binding protein in the RNA-binding protein (Figure 5C) and RNA-binding protein (Figure 5A) and FUS-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-binding protein (Figure 5A) and FUS-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43 (Figure 5A) and FUS-43-43-43-43-43-43",
+          "best_registry_match": "fus-p431l",
+          "best_match_score": 63
+        },
+        {
+          "text": "RNA-43-",
+          "type": "gene",
+          "context": "and the RNA-binding protein, we identified a single-seq (Figure 5A) and RNA-binding protein (Figure 5B) and RNA-binding protein (Figure 5A) and RNA-43-binding protein (Figure 5A) and RNA-binding protein (Figure 5A) and RNA-binding protein (Figure 5).",
+          "best_registry_match": "rna-3",
+          "best_match_score": 83
+        }
+      ]
+    },
+    {
+      "question_id": "CARE-004",
+      "category": "patient_care",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "CARE-005",
+      "category": "patient_care",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "CARE-006",
+      "category": "patient_care",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "CARE-007",
+      "category": "patient_care",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "CARE-008",
+      "category": "patient_care",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "Supplementary Table",
+          "type": "drug",
+          "in_registry": false,
+          "best_registry_match": "lebermetastase",
+          "best_match_score": 54
+        },
+        {
+          "text": "Supplementary",
+          "type": "drug",
+          "in_registry": false,
+          "best_registry_match": "sperimentazione",
+          "best_match_score": 57
+        },
+        {
+          "text": "Table",
+          "type": "drug",
+          "in_registry": false,
+          "best_registry_match": "tableone",
+          "best_match_score": 76
+        },
+        {
+          "text": "S1",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "s1m",
+          "best_match_score": 80
+        },
+        {
+          "text": "FUS",
+          "type": "gene",
+          "in_registry": true
+        },
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "Supplementary Table",
+          "type": "drug",
+          "context": "We have a single-based sequencing (Supplementary Table S1).",
+          "best_registry_match": "lebermetastase",
+          "best_match_score": 54
+        },
+        {
+          "text": "Supplementary",
+          "type": "drug",
+          "context": "We have a single-based sequencing (Supplementary Table S1).",
+          "best_registry_match": "sperimentazione",
+          "best_match_score": 57
+        },
+        {
+          "text": "Table",
+          "type": "drug",
+          "context": "We have a single-based sequencing (Supplementary Table S1).",
+          "best_registry_match": "tableone",
+          "best_match_score": 76
+        },
+        {
+          "text": "S1",
+          "type": "gene",
+          "context": "We have a single-based sequencing (Supplementary Table S1).",
+          "best_registry_match": "s1m",
+          "best_match_score": 80
+        },
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": "The most common genetic variants in the disease-43, we identified in AD, and tau pathology, and tau, and tau, and tau pathology, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau,",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "CARE-009",
+      "category": "patient_care",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "CARE-010",
+      "category": "patient_care",
+      "is_trap": true,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "DRUG-011",
+      "category": "drug_treatment",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "DRUG-012",
+      "category": "drug_treatment",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "DRUG-013",
+      "category": "drug_treatment",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "DRUG-014",
+      "category": "drug_treatment",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": ", we identified in AD, we have been reported that the most common mutations in AD pathology, tau pathology, tau pathology, tau pathology, tau pathology, tau pathology, tau pathology, tau pathology, tau pathology, tau pathology, tau pathology, tau, tau, tau, tau pathology, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "DRUG-015",
+      "category": "drug_treatment",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "DRUG-016",
+      "category": "drug_treatment",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "TDP",
+          "type": "gene",
+          "in_registry": true
+        },
+        {
+          "text": "RNA-",
+          "type": "gene",
+          "in_registry": true
+        },
+        {
+          "text": "FUS",
+          "type": "gene",
+          "in_registry": true
+        },
+        {
+          "text": "TDP-43",
+          "type": "gene",
+          "in_registry": true
+        }
+      ],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "DRUG-017",
+      "category": "drug_treatment",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "Figure",
+          "type": "drug",
+          "in_registry": false,
+          "best_registry_match": "fatigue-prone",
+          "best_match_score": 63
+        },
+        {
+          "text": "RNA-",
+          "type": "gene",
+          "in_registry": true
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "Figure",
+          "type": "drug",
+          "context": "and the most common pathways, we have a common mechanisms, we have been identified a common proteins, and RNA-binding protein (Figure 5).",
+          "best_registry_match": "fatigue-prone",
+          "best_match_score": 63
+        }
+      ]
+    },
+    {
+      "question_id": "DRUG-018",
+      "category": "drug_treatment",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "DRUG-019",
+      "category": "drug_treatment",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": ", we have a recent study, we have a rare neurodegenerative disease, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and tau pathology, and tau, and tau, and tau pathology, and tau, and tau, and tau, and tau, and tau, and tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "DRUG-020",
+      "category": "drug_treatment",
+      "is_trap": true,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "GENE-011",
+      "category": "gene_mutation",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "Figure",
+          "type": "drug",
+          "in_registry": false,
+          "best_registry_match": "fatigue-prone",
+          "best_match_score": 63
+        },
+        {
+          "text": "RNA-",
+          "type": "gene",
+          "in_registry": true
+        },
+        {
+          "text": "TDP-43-43-",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "tdp-4333",
+          "best_match_score": 77
+        },
+        {
+          "text": "RNA-43-43-",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "rna-3",
+          "best_match_score": 66
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "Figure",
+          "type": "drug",
+          "context": "The RNA-associated proteins that are essential for the RNA-binding proteins, and RNA-binding proteins, and RNA-binding proteins, and RNA-binding proteins, and RNA-binding proteins, and RNA-binding proteins, and RNA-binding protein (Figure 5).",
+          "best_registry_match": "fatigue-prone",
+          "best_match_score": 63
+        },
+        {
+          "text": "TDP-43-43-",
+          "type": "gene",
+          "context": "and TDP-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43 (Figure 5A) is a TDP-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43",
+          "best_registry_match": "tdp-4333",
+          "best_match_score": 77
+        },
+        {
+          "text": "RNA-43-43-",
+          "type": "gene",
+          "context": "and the RNA-binding protein (Figure 5A) is a protein (Figure 5A) is a protein (Figure 5C) is a protein (Figure 5A) and RNA-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-binding protein (Figure 5B).",
+          "best_registry_match": "rna-3",
+          "best_match_score": 66
+        }
+      ]
+    },
+    {
+      "question_id": "GENE-012",
+      "category": "gene_mutation",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": "and the most common mechanisms of AD, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau,",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "GENE-013",
+      "category": "gene_mutation",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "Supplementary Table",
+          "type": "drug",
+          "in_registry": false,
+          "best_registry_match": "lebermetastase",
+          "best_match_score": 54
+        },
+        {
+          "text": "Supplementary",
+          "type": "drug",
+          "in_registry": false,
+          "best_registry_match": "sperimentazione",
+          "best_match_score": 57
+        },
+        {
+          "text": "Figure",
+          "type": "drug",
+          "in_registry": false,
+          "best_registry_match": "fatigue-prone",
+          "best_match_score": 63
+        },
+        {
+          "text": "Table",
+          "type": "drug",
+          "in_registry": false,
+          "best_registry_match": "tableone",
+          "best_match_score": 76
+        },
+        {
+          "text": "S1",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "s1m",
+          "best_match_score": 80
+        },
+        {
+          "text": "RNA-43-43-",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "rna-3",
+          "best_match_score": 66
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "Supplementary Table",
+          "type": "drug",
+          "context": "the model of the data, we have a comprehensive analysis, we identified a single-based sequencing (Supplementary Table S1) and the first-specific RNA-seq (Figure 5).",
+          "best_registry_match": "lebermetastase",
+          "best_match_score": 54
+        },
+        {
+          "text": "Supplementary",
+          "type": "drug",
+          "context": "the model of the data, we have a comprehensive analysis, we identified a single-based sequencing (Supplementary Table S1) and the first-specific RNA-seq (Figure 5).",
+          "best_registry_match": "sperimentazione",
+          "best_match_score": 57
+        },
+        {
+          "text": "Figure",
+          "type": "drug",
+          "context": "the model of the data, we have a comprehensive analysis, we identified a single-based sequencing (Supplementary Table S1) and the first-specific RNA-seq (Figure 5).",
+          "best_registry_match": "fatigue-prone",
+          "best_match_score": 63
+        },
+        {
+          "text": "Table",
+          "type": "drug",
+          "context": "the model of the data, we have a comprehensive analysis, we identified a single-based sequencing (Supplementary Table S1) and the first-specific RNA-seq (Figure 5).",
+          "best_registry_match": "tableone",
+          "best_match_score": 76
+        },
+        {
+          "text": "S1",
+          "type": "gene",
+          "context": "the model of the data, we have a comprehensive analysis, we identified a single-based sequencing (Supplementary Table S1) and the first-specific RNA-seq (Figure 5).",
+          "best_registry_match": "s1m",
+          "best_match_score": 80
+        },
+        {
+          "text": "RNA-43-43-",
+          "type": "gene",
+          "context": "the RNA-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43",
+          "best_registry_match": "rna-3",
+          "best_match_score": 66
+        }
+      ]
+    },
+    {
+      "question_id": "GENE-014",
+      "category": "gene_mutation",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "GENE-015",
+      "category": "gene_mutation",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "GENE-016",
+      "category": "gene_mutation",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "GENE-017",
+      "category": "gene_mutation",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "GENE-018",
+      "category": "gene_mutation",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "GENE-019",
+      "category": "gene_mutation",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "GENE-020",
+      "category": "gene_mutation",
+      "is_trap": true,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "DIAG-011",
+      "category": "diagnostic_criteria",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "DIAG-012",
+      "category": "diagnostic_criteria",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "DIAG-013",
+      "category": "diagnostic_criteria",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "DIAG-014",
+      "category": "diagnostic_criteria",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "DIAG-015",
+      "category": "diagnostic_criteria",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "DIAG-016",
+      "category": "diagnostic_criteria",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "DIAG-017",
+      "category": "diagnostic_criteria",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "RNA-43",
+          "type": "gene",
+          "in_registry": true
+        },
+        {
+          "text": "RNA-",
+          "type": "gene",
+          "in_registry": true
+        },
+        {
+          "text": "TDP-43",
+          "type": "gene",
+          "in_registry": true
+        }
+      ],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "DIAG-018",
+      "category": "diagnostic_criteria",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "DIAG-019",
+      "category": "diagnostic_criteria",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "DIAG-020",
+      "category": "diagnostic_criteria",
+      "is_trap": true,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "TRIAL-011",
+      "category": "clinical_trials",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "TRIAL-012",
+      "category": "clinical_trials",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "TRIAL-013",
+      "category": "clinical_trials",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "TRIAL-014",
+      "category": "clinical_trials",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "TRIAL-015",
+      "category": "clinical_trials",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "TDP",
+          "type": "gene",
+          "in_registry": true
+        },
+        {
+          "text": "TDP-43",
+          "type": "gene",
+          "in_registry": true
+        }
+      ],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "TRIAL-016",
+      "category": "clinical_trials",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": "The study, we have a comprehensive research on the need for AD.",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "TRIAL-017",
+      "category": "clinical_trials",
+      "is_trap": true,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "TRIAL-018",
+      "category": "clinical_trials",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "TDP-43",
+          "type": "gene",
+          "in_registry": true
+        }
+      ],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "TRIAL-019",
+      "category": "clinical_trials",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": ", we have a rare neurodegenerative diseases, we have a common mechanisms, and disease, and disease, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and tau pathology, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, tau, tau, and tau pathology, and tau, and tau, tau, tau, and tau, tau, tau, and tau, tau, tau, tau, tau, and tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "TRIAL-020",
+      "category": "clinical_trials",
+      "is_trap": true,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "MECH-011",
+      "category": "disease_mechanisms",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "RNA-",
+          "type": "gene",
+          "in_registry": true
+        }
+      ],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "MECH-012",
+      "category": "disease_mechanisms",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": ", we have a common genetic and FTD, we identified a rare neurodegenerative diseases, and AD, and tau pathology, and tau pathology, and tau pathology, and tau pathology, and tau pathology in AD, and tau pathology, and tau pathology, and tau pathology, and tau pathology, and tau pathology.",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "MECH-013",
+      "category": "disease_mechanisms",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "MECH-014",
+      "category": "disease_mechanisms",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": ", we have a common mutations in the disease, we investigated the disease, we have a common genetic and FTD, we have a common genetic and FTD, we have a common tau pathology in AD, and tau pathology, and tau pathology, and tau pathology, and tau pathology, and tau pathology, and tau pathology.",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "MECH-015",
+      "category": "disease_mechanisms",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "TDP",
+          "type": "gene",
+          "in_registry": true
+        },
+        {
+          "text": "TDP-43",
+          "type": "gene",
+          "in_registry": true
+        }
+      ],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "MECH-016",
+      "category": "disease_mechanisms",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "TDP-43",
+          "type": "gene",
+          "in_registry": true
+        }
+      ],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "MECH-017",
+      "category": "disease_mechanisms",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "TDP",
+          "type": "gene",
+          "in_registry": true
+        },
+        {
+          "text": "TDP-43",
+          "type": "gene",
+          "in_registry": true
+        }
+      ],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "MECH-018",
+      "category": "disease_mechanisms",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "MECH-019",
+      "category": "disease_mechanisms",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": ", we have been identified a rare diseases, we have a common genetic and disease, and FTD, and FTD, and AD, and tau pathology, and tau, and tau, and tau, and tau, and tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau,",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "MECH-020",
+      "category": "disease_mechanisms",
+      "is_trap": true,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "TEMP-011",
+      "category": "temporal_accuracy",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "TEMP-012",
+      "category": "temporal_accuracy",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "Supplementary Table",
+          "type": "drug",
+          "in_registry": false,
+          "best_registry_match": "lebermetastase",
+          "best_match_score": 54
+        },
+        {
+          "text": "Supplementary",
+          "type": "drug",
+          "in_registry": false,
+          "best_registry_match": "sperimentazione",
+          "best_match_score": 57
+        },
+        {
+          "text": "Figure",
+          "type": "drug",
+          "in_registry": false,
+          "best_registry_match": "fatigue-prone",
+          "best_match_score": 63
+        },
+        {
+          "text": "Table",
+          "type": "drug",
+          "in_registry": false,
+          "best_registry_match": "tableone",
+          "best_match_score": 76
+        },
+        {
+          "text": "RNA-",
+          "type": "gene",
+          "in_registry": true
+        },
+        {
+          "text": "TDP-43-43-",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "tdp-4333",
+          "best_match_score": 77
+        },
+        {
+          "text": "RNA-43-",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "rna-3",
+          "best_match_score": 83
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "Supplementary Table",
+          "type": "drug",
+          "context": "and the study, we used the first study, we performed the study, we identified a single-based sequencing (Supplementary Table 1).",
+          "best_registry_match": "lebermetastase",
+          "best_match_score": 54
+        },
+        {
+          "text": "Supplementary",
+          "type": "drug",
+          "context": "and the study, we used the first study, we performed the study, we identified a single-based sequencing (Supplementary Table 1).",
+          "best_registry_match": "sperimentazione",
+          "best_match_score": 57
+        },
+        {
+          "text": "Figure",
+          "type": "drug",
+          "context": "We have a single-type RNA-43-binding protein (Figure 5).",
+          "best_registry_match": "fatigue-prone",
+          "best_match_score": 63
+        },
+        {
+          "text": "Table",
+          "type": "drug",
+          "context": "and the study, we used the first study, we performed the study, we identified a single-based sequencing (Supplementary Table 1).",
+          "best_registry_match": "tableone",
+          "best_match_score": 76
+        },
+        {
+          "text": "TDP-43-43-",
+          "type": "gene",
+          "context": "and the RNA-binding protein-associated TDP-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-",
+          "best_registry_match": "tdp-4333",
+          "best_match_score": 77
+        },
+        {
+          "text": "RNA-43-",
+          "type": "gene",
+          "context": "We have a single-type RNA-43-binding protein (Figure 5).",
+          "best_registry_match": "rna-3",
+          "best_match_score": 83
+        }
+      ]
+    },
+    {
+      "question_id": "TEMP-013",
+      "category": "temporal_accuracy",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": "We have a common genetic mutations in the disease, we have a significant differences in the disease progression, and FTD, and AD, and tau pathology, and tau pathology, and tau pathology, and tau pathology, and tau, and tau pathology, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau pathology, and tau, and tau, and tau, tau, and tau, and tau, and tau, and tau, and tau, and tau, tau, and tau, and tau, and tau, and tau, and tau, tau, and tau, and tau, and tau, and tau, and tau, tau pathology, and tau, tau, and tau, and tau, tau, and tau, and tau, and tau, and tau, tau, and tau, and tau, tau, and tau, tau, tau, and tau, and tau, and tau, tau, and tau, and tau, tau, and tau pathology, tau, tau, tau, and tau, and tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau pathology, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "TEMP-014",
+      "category": "temporal_accuracy",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": "and the first study, we identified a rare neurodegenerative diseases, we investigated the role of the disease and FTD, we found that the disease, we have been identified in AD pathology in AD.",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "TEMP-015",
+      "category": "temporal_accuracy",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "TEMP-016",
+      "category": "temporal_accuracy",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "TEMP-017",
+      "category": "temporal_accuracy",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "TEMP-018",
+      "category": "temporal_accuracy",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "Table",
+          "type": "drug",
+          "in_registry": false,
+          "best_registry_match": "tableone",
+          "best_match_score": 76
+        },
+        {
+          "text": "Figure",
+          "type": "drug",
+          "in_registry": false,
+          "best_registry_match": "fatigue-prone",
+          "best_match_score": 63
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "Table",
+          "type": "drug",
+          "context": "The data, we will be performed using a model, we have a single-based sequencing (see Table 1).",
+          "best_registry_match": "tableone",
+          "best_match_score": 76
+        },
+        {
+          "text": "Figure",
+          "type": "drug",
+          "context": "The study, we will be performed using the data, we have a single-based sequencing (Figure 1).",
+          "best_registry_match": "fatigue-prone",
+          "best_match_score": 63
+        }
+      ]
+    },
+    {
+      "question_id": "TEMP-019",
+      "category": "temporal_accuracy",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "TDP",
+          "type": "gene",
+          "in_registry": true
+        },
+        {
+          "text": "RNA-43",
+          "type": "gene",
+          "in_registry": true
+        },
+        {
+          "text": "RNA-",
+          "type": "gene",
+          "in_registry": true
+        },
+        {
+          "text": "TDP-43",
+          "type": "gene",
+          "in_registry": true
+        }
+      ],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "TEMP-020",
+      "category": "temporal_accuracy",
+      "is_trap": true,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "EPI-011",
+      "category": "epidemiology",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "EPI-012",
+      "category": "epidemiology",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "EPI-013",
+      "category": "epidemiology",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "EPI-014",
+      "category": "epidemiology",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "EPI-015",
+      "category": "epidemiology",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "EPI-016",
+      "category": "epidemiology",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "EPI-017",
+      "category": "epidemiology",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "EPI-018",
+      "category": "epidemiology",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": "We have a rare neurodegenerative disease, we have a rare neurodegenerative disease, we have a rare neurodegenerative disease, we found that are associated with AD, and tau pathology, and tau pathology, and tau pathology, tau, tau, tau pathology, tau pathology, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau pathology, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "EPI-019",
+      "category": "epidemiology",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "EPI-020",
+      "category": "epidemiology",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "CARE-011",
+      "category": "patient_care",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "CARE-012",
+      "category": "patient_care",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "CARE-013",
+      "category": "patient_care",
+      "is_trap": false,
+      "entities_extracted": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "in_registry": false,
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ],
+      "flagged_entities": [
+        {
+          "text": "AD",
+          "type": "gene",
+          "context": ", we have a rare neurodegenerative diseases, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and tau, and tau, and tau, and tau pathology, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, tau, tau, tau, and tau, and tau, and tau pathology, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, tau, and tau, and tau, and tau, and tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau,",
+          "best_registry_match": "ad1",
+          "best_match_score": 80
+        }
+      ]
+    },
+    {
+      "question_id": "CARE-014",
+      "category": "patient_care",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "CARE-015",
+      "category": "patient_care",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "CARE-016",
+      "category": "patient_care",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "CARE-017",
+      "category": "patient_care",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "CARE-018",
+      "category": "patient_care",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "CARE-019",
+      "category": "patient_care",
+      "is_trap": false,
+      "entities_extracted": [],
+      "flagged_entities": []
+    },
+    {
+      "question_id": "CARE-020",
+      "category": "patient_care",
+      "is_trap": true,
+      "entities_extracted": [],
+      "flagged_entities": []
+    }
+  ],
+  "all_flagged": [
+    {
+      "text": "Figure",
+      "type": "drug",
+      "question_id": "DRUG-002",
+      "context": "and the RNA-binding protein-binding protein-binding protein-binding protein-binding protein-binding protein-binding protein-binding protein-binding protein-binding protein (Figure 5-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-",
+      "best_registry_match": "fatigue-prone",
+      "best_match_score": 63
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "DRUG-003",
+      "context": "We have a role in the most common genetic changes in the disease progression of the disease, we have been identified in AD, and tau pathology, and tau pathology, tau pathology, tau pathology, tau pathology, tau aggregation, tau pathology, tau pathology, tau pathology, tau pathology, tau pathology, tau pathology, tau pathology.",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "DRUG-005",
+      "context": ", we have a rare neurodegenerative diseases, we have a rare diseases, and disease, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "Alzheimer",
+      "type": "drug",
+      "question_id": "DRUG-006",
+      "context": ", we have a rare neurodegenerative diseases, we have a rare neurodegenerative disease, and FTD, and Alzheimer's disease, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and Alzheimer's disease, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and Alzheimer's disease, and FTD, and FTD, and FTD",
+      "best_registry_match": "alleine",
+      "best_match_score": 62
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "DRUG-007",
+      "context": "The study, we found that the role in the disease progression of the most common genetic changes in the disease progression and FTD pathology in AD pathology in AD, we identified a role in AD pathology in AD pathology in AD, and tau pathology in AD pathology, and tau pathology, and tau pathology, and tau pathology, and tau pathology.",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "DRUG-008",
+      "context": "We also reported that the disease-43, we found that the most common tau pathology in the tau pathology in AD patients with AD.",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "DRUG-009",
+      "context": "and the most common genetic diagnosis of AD pathology, we identified in AD, and tau pathology in AD, and tau pathology, and tau pathology.",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "DRUG-010",
+      "context": "The study, we have a recent study, we found that the first study, we identified a significant differences in the disease progression of AD pathology.",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "GENE-001",
+      "context": ", we have been identified by the aggregation of tau pathology in the tau aggregation of tau aggregation of tau pathology in AD, tau aggregation of tau pathology, tau aggregation of tau aggregation of tau aggregation of tau pathology.",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "GENE-002",
+      "context": ", we have a rare disease, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, with SMA, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, with AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, with SMA, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, with SMA, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, with AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "GENE-003",
+      "context": "The most common mutations in AD, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "GENE-005",
+      "context": "The results, we found that the most common genetic changes in AD pathology, and tau pathology, and tau pathology, and tau pathology, and tau pathology, tau pathology, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "GENE-006",
+      "context": "We have a common genetic mutations in AD pathology.",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "Fig",
+      "type": "drug",
+      "question_id": "GENE-008",
+      "context": "The RNA-binding protein (Fig.",
+      "best_registry_match": "filgotinib",
+      "best_match_score": 46
+    },
+    {
+      "text": "Alzheimer",
+      "type": "drug",
+      "question_id": "GENE-010",
+      "context": "The most common neurodegenerative diseases, we identified a rare neurodegenerative diseases, and disease, and FTD, and AD, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and FTD, and AD, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and FTD, and AD, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and",
+      "best_registry_match": "alleine",
+      "best_match_score": 62
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "GENE-010",
+      "context": "The most common neurodegenerative diseases, we identified a rare neurodegenerative diseases, and disease, and FTD, and AD, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and FTD, and AD, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and FTD, and AD, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "DIAG-005",
+      "context": "We have a significant differences between the disease progression and AD.",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "Alzheimer",
+      "type": "drug",
+      "question_id": "DIAG-008",
+      "context": "The most common genetic mutations in the disease, and other neurodegenerative diseases, and disease, and Alzheimer's disease, and FTD, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer disease, and FTD, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer.",
+      "best_registry_match": "alleine",
+      "best_match_score": 62
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "TRIAL-003",
+      "context": "We identified a significant correlation between the disease and FTD patients with AD pathology in the disease progression of AD.",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "Alzheimer",
+      "type": "drug",
+      "question_id": "TRIAL-005",
+      "context": ", we have a recent study, we have a rare neurodegenerative diseases, we have a role in the disease, and FTD, and FTD, and AD, and Alzheimer's disease, and FTD, and FTD, and FTD, and FTD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD",
+      "best_registry_match": "alleine",
+      "best_match_score": 62
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "TRIAL-005",
+      "context": ", we have a recent study, we have a rare neurodegenerative diseases, we have a role in the disease, and FTD, and FTD, and AD, and Alzheimer's disease, and FTD, and FTD, and FTD, and FTD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "PD",
+      "type": "gene",
+      "question_id": "TRIAL-005",
+      "context": ", we have a recent study, we have a rare neurodegenerative diseases, we have a role in the disease, and FTD, and FTD, and AD, and Alzheimer's disease, and FTD, and FTD, and FTD, and FTD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and tau, and PD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD, and AD",
+      "best_registry_match": "pd4",
+      "best_match_score": 80
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "TRIAL-006",
+      "context": "The study, we have been reported that the clinical trials, we have a comprehensive studies, we have been identified in the disease progression of AD.",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "TRIAL-008",
+      "context": "We have been reported that are known as a common genetic mutations in AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "TRIAL-009",
+      "context": ", we have a rare neurodegenerative diseases, we have a common genetic and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD,",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "TRIAL-010",
+      "context": "We found that the most common genetic mutations in AD, and tau pathology, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau,",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "Alzh",
+      "type": "drug",
+      "question_id": "MECH-002",
+      "context": "The most common genetic diagnosis, with the disease, and FTD, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer-ALS, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease",
+      "best_registry_match": "falzone",
+      "best_match_score": 54
+    },
+    {
+      "text": "Alzheimer",
+      "type": "drug",
+      "question_id": "MECH-002",
+      "context": "The most common genetic diagnosis, with the disease, and FTD, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer-ALS, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease, and Alzheimer's disease",
+      "best_registry_match": "alleine",
+      "best_match_score": 62
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "MECH-003",
+      "context": ", we found that the most common genetic mutations in AD, we identified a rare neurodegenerative diseases, we have a common genetic mutations in the disease, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD.",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "A\u03b2-associated",
+      "type": "drug",
+      "question_id": "MECH-004",
+      "context": ", we have been identified a role in AD, we investigated the aggregation of A\u03b2-associated tau pathology.",
+      "best_registry_match": "associazione",
+      "best_match_score": 64
+    },
+    {
+      "text": "AD-43",
+      "type": "gene",
+      "question_id": "MECH-004",
+      "context": "and tau pathology in AD-43 aggregation of tau aggregation of tau pathology in AD, we found that the aggregation of tau pathology in AD, we have been reported that tau pathology in AD pathology in AD, which is a role in AD, with tau pathology in AD, and tau pathology in AD, and tau pathology.",
+      "best_registry_match": "pad-4",
+      "best_match_score": 80
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "MECH-004",
+      "context": ", we have a role of the disease progression of AD.",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "MECH-005",
+      "context": "The most common in the most common in the disease, and FTD, and AD, and PD, and tau pathology, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "PD",
+      "type": "gene",
+      "question_id": "MECH-005",
+      "context": "The most common in the most common in the disease, and FTD, and AD, and PD, and tau pathology, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and",
+      "best_registry_match": "pd4",
+      "best_match_score": 80
+    },
+    {
+      "text": "Figure",
+      "type": "drug",
+      "question_id": "MECH-006",
+      "context": "and the RNA-binding protein, we have a common RNA-binding protein, we investigated the RNA-binding protein-binding protein-binding protein (Figure 5).",
+      "best_registry_match": "fatigue-prone",
+      "best_match_score": 63
+    },
+    {
+      "text": "TDP-43-43",
+      "type": "gene",
+      "question_id": "MECH-006",
+      "context": "The RNA-43-associated TDP-43-43-43 aggregation of TDP-43, we found that TDP-43-43 aggregation in the TDP-43-43-43-43-43-43-43-43 and TDP-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43, we found that TDP-43-43 aggregation of TDP-43-43-43-43-43-43-43-43-43 and TDP-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43, we found that TDP-43-43-43-43 aggregation of TDP-43-43-43-43-43-43-43-43-43 and TDP-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43 aggregation in the TDP-43-43-43-43-43-43",
+      "best_registry_match": "tdp-4333",
+      "best_match_score": 82
+    },
+    {
+      "text": "TDP-43-43-",
+      "type": "gene",
+      "question_id": "MECH-006",
+      "context": "The RNA-43-associated TDP-43-43-43 aggregation of TDP-43, we found that TDP-43-43 aggregation in the TDP-43-43-43-43-43-43-43-43 and TDP-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43, we found that TDP-43-43 aggregation of TDP-43-43-43-43-43-43-43-43-43 and TDP-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43, we found that TDP-43-43-43-43 aggregation of TDP-43-43-43-43-43-43-43-43-43 and TDP-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43 aggregation in the TDP-43-43-43-43-43-43",
+      "best_registry_match": "tdp-4333",
+      "best_match_score": 77
+    },
+    {
+      "text": "RNA-43-",
+      "type": "gene",
+      "question_id": "MECH-006",
+      "context": "The RNA-43-binding protein-binding protein-binding protein-binding protein-binding protein-binding protein in the RNA-binding protein-binding protein.",
+      "best_registry_match": "rna-3",
+      "best_match_score": 83
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "MECH-009",
+      "context": ", we have a common genetic mutations in the disease, we identified a common genetic and FTD, we found that are associated with AD pathology, and tau pathology, and tau pathology, and tau aggregation, and tau, and tau pathology, and tau, and tau, and tau, and tau, and tau, tau, and tau, tau, and tau, tau, and tau, and tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau pathology, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau,",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "TEMP-003",
+      "context": "The study, we have a significant differences in the disease progression of AD pathology.",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "RNA-43-43-",
+      "type": "gene",
+      "question_id": "TEMP-004",
+      "context": "The RNA-43-43-43-43-43-43-43-43-43-43-43, we identified a single-length TDP-43 (43) and TDP-43 (43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43",
+      "best_registry_match": "rna-3",
+      "best_match_score": 66
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "TEMP-007",
+      "context": ", we have a rare neurodegenerative diseases, we have a rare neurodegenerative diseases, and the disease, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and FTD,",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "EPI-008",
+      "context": "We also found that the clinical trials, we have a more common genetic diagnosis, we have not be associated with AD pathology.",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "CARE-001",
+      "context": "We have a comprehensive research on the study, we have been identified in the study, we have been used to identify the need for AD.",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "Supplementary Table",
+      "type": "drug",
+      "question_id": "CARE-003",
+      "context": "We have been reported that the study, we have a single-based sequencing (Supplementary Table 1.5, and the most common gene expression in the RNA-specific RNA-binding protein (Figure 5).",
+      "best_registry_match": "lebermetastase",
+      "best_match_score": 54
+    },
+    {
+      "text": "Supplementary",
+      "type": "drug",
+      "question_id": "CARE-003",
+      "context": "We have been reported that the study, we have a single-based sequencing (Supplementary Table 1.5, and the most common gene expression in the RNA-specific RNA-binding protein (Figure 5).",
+      "best_registry_match": "sperimentazione",
+      "best_match_score": 57
+    },
+    {
+      "text": "Figure",
+      "type": "drug",
+      "question_id": "CARE-003",
+      "context": "We have been reported that the study, we have a single-based sequencing (Supplementary Table 1.5, and the most common gene expression in the RNA-specific RNA-binding protein (Figure 5).",
+      "best_registry_match": "fatigue-prone",
+      "best_match_score": 63
+    },
+    {
+      "text": "Table",
+      "type": "drug",
+      "question_id": "CARE-003",
+      "context": "We have been reported that the study, we have a single-based sequencing (Supplementary Table 1.5, and the most common gene expression in the RNA-specific RNA-binding protein (Figure 5).",
+      "best_registry_match": "tableone",
+      "best_match_score": 76
+    },
+    {
+      "text": "FUS-43-43-",
+      "type": "gene",
+      "question_id": "CARE-003",
+      "context": "The RNA-binding protein in the RNA-binding protein (Figure 5C) and RNA-binding protein (Figure 5A) and FUS-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-binding protein (Figure 5A) and FUS-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43 (Figure 5A) and FUS-43-43-43-43-43-43",
+      "best_registry_match": "fus-p431l",
+      "best_match_score": 63
+    },
+    {
+      "text": "RNA-43-",
+      "type": "gene",
+      "question_id": "CARE-003",
+      "context": "and the RNA-binding protein, we identified a single-seq (Figure 5A) and RNA-binding protein (Figure 5B) and RNA-binding protein (Figure 5A) and RNA-43-binding protein (Figure 5A) and RNA-binding protein (Figure 5A) and RNA-binding protein (Figure 5).",
+      "best_registry_match": "rna-3",
+      "best_match_score": 83
+    },
+    {
+      "text": "Supplementary Table",
+      "type": "drug",
+      "question_id": "CARE-008",
+      "context": "We have a single-based sequencing (Supplementary Table S1).",
+      "best_registry_match": "lebermetastase",
+      "best_match_score": 54
+    },
+    {
+      "text": "Supplementary",
+      "type": "drug",
+      "question_id": "CARE-008",
+      "context": "We have a single-based sequencing (Supplementary Table S1).",
+      "best_registry_match": "sperimentazione",
+      "best_match_score": 57
+    },
+    {
+      "text": "Table",
+      "type": "drug",
+      "question_id": "CARE-008",
+      "context": "We have a single-based sequencing (Supplementary Table S1).",
+      "best_registry_match": "tableone",
+      "best_match_score": 76
+    },
+    {
+      "text": "S1",
+      "type": "gene",
+      "question_id": "CARE-008",
+      "context": "We have a single-based sequencing (Supplementary Table S1).",
+      "best_registry_match": "s1m",
+      "best_match_score": 80
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "CARE-008",
+      "context": "The most common genetic variants in the disease-43, we identified in AD, and tau pathology, and tau, and tau, and tau pathology, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau,",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "DRUG-014",
+      "context": ", we identified in AD, we have been reported that the most common mutations in AD pathology, tau pathology, tau pathology, tau pathology, tau pathology, tau pathology, tau pathology, tau pathology, tau pathology, tau pathology, tau pathology, tau, tau, tau, tau pathology, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "Figure",
+      "type": "drug",
+      "question_id": "DRUG-017",
+      "context": "and the most common pathways, we have a common mechanisms, we have been identified a common proteins, and RNA-binding protein (Figure 5).",
+      "best_registry_match": "fatigue-prone",
+      "best_match_score": 63
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "DRUG-019",
+      "context": ", we have a recent study, we have a rare neurodegenerative disease, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and tau pathology, and tau, and tau, and tau pathology, and tau, and tau, and tau, and tau, and tau, and tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "Figure",
+      "type": "drug",
+      "question_id": "GENE-011",
+      "context": "The RNA-associated proteins that are essential for the RNA-binding proteins, and RNA-binding proteins, and RNA-binding proteins, and RNA-binding proteins, and RNA-binding proteins, and RNA-binding proteins, and RNA-binding protein (Figure 5).",
+      "best_registry_match": "fatigue-prone",
+      "best_match_score": 63
+    },
+    {
+      "text": "TDP-43-43-",
+      "type": "gene",
+      "question_id": "GENE-011",
+      "context": "and TDP-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43 (Figure 5A) is a TDP-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43",
+      "best_registry_match": "tdp-4333",
+      "best_match_score": 77
+    },
+    {
+      "text": "RNA-43-43-",
+      "type": "gene",
+      "question_id": "GENE-011",
+      "context": "and the RNA-binding protein (Figure 5A) is a protein (Figure 5A) is a protein (Figure 5C) is a protein (Figure 5A) and RNA-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-binding protein (Figure 5B).",
+      "best_registry_match": "rna-3",
+      "best_match_score": 66
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "GENE-012",
+      "context": "and the most common mechanisms of AD, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau,",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "Supplementary Table",
+      "type": "drug",
+      "question_id": "GENE-013",
+      "context": "the model of the data, we have a comprehensive analysis, we identified a single-based sequencing (Supplementary Table S1) and the first-specific RNA-seq (Figure 5).",
+      "best_registry_match": "lebermetastase",
+      "best_match_score": 54
+    },
+    {
+      "text": "Supplementary",
+      "type": "drug",
+      "question_id": "GENE-013",
+      "context": "the model of the data, we have a comprehensive analysis, we identified a single-based sequencing (Supplementary Table S1) and the first-specific RNA-seq (Figure 5).",
+      "best_registry_match": "sperimentazione",
+      "best_match_score": 57
+    },
+    {
+      "text": "Figure",
+      "type": "drug",
+      "question_id": "GENE-013",
+      "context": "the model of the data, we have a comprehensive analysis, we identified a single-based sequencing (Supplementary Table S1) and the first-specific RNA-seq (Figure 5).",
+      "best_registry_match": "fatigue-prone",
+      "best_match_score": 63
+    },
+    {
+      "text": "Table",
+      "type": "drug",
+      "question_id": "GENE-013",
+      "context": "the model of the data, we have a comprehensive analysis, we identified a single-based sequencing (Supplementary Table S1) and the first-specific RNA-seq (Figure 5).",
+      "best_registry_match": "tableone",
+      "best_match_score": 76
+    },
+    {
+      "text": "S1",
+      "type": "gene",
+      "question_id": "GENE-013",
+      "context": "the model of the data, we have a comprehensive analysis, we identified a single-based sequencing (Supplementary Table S1) and the first-specific RNA-seq (Figure 5).",
+      "best_registry_match": "s1m",
+      "best_match_score": 80
+    },
+    {
+      "text": "RNA-43-43-",
+      "type": "gene",
+      "question_id": "GENE-013",
+      "context": "the RNA-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43",
+      "best_registry_match": "rna-3",
+      "best_match_score": 66
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "TRIAL-016",
+      "context": "The study, we have a comprehensive research on the need for AD.",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "TRIAL-019",
+      "context": ", we have a rare neurodegenerative diseases, we have a common mechanisms, and disease, and disease, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and tau pathology, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, tau, tau, and tau pathology, and tau, and tau, tau, tau, and tau, tau, tau, and tau, tau, tau, tau, tau, and tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "MECH-012",
+      "context": ", we have a common genetic and FTD, we identified a rare neurodegenerative diseases, and AD, and tau pathology, and tau pathology, and tau pathology, and tau pathology, and tau pathology in AD, and tau pathology, and tau pathology, and tau pathology, and tau pathology, and tau pathology.",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "MECH-014",
+      "context": ", we have a common mutations in the disease, we investigated the disease, we have a common genetic and FTD, we have a common genetic and FTD, we have a common tau pathology in AD, and tau pathology, and tau pathology, and tau pathology, and tau pathology, and tau pathology, and tau pathology.",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "MECH-019",
+      "context": ", we have been identified a rare diseases, we have a common genetic and disease, and FTD, and FTD, and AD, and tau pathology, and tau, and tau, and tau, and tau, and tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau,",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "Supplementary Table",
+      "type": "drug",
+      "question_id": "TEMP-012",
+      "context": "and the study, we used the first study, we performed the study, we identified a single-based sequencing (Supplementary Table 1).",
+      "best_registry_match": "lebermetastase",
+      "best_match_score": 54
+    },
+    {
+      "text": "Supplementary",
+      "type": "drug",
+      "question_id": "TEMP-012",
+      "context": "and the study, we used the first study, we performed the study, we identified a single-based sequencing (Supplementary Table 1).",
+      "best_registry_match": "sperimentazione",
+      "best_match_score": 57
+    },
+    {
+      "text": "Figure",
+      "type": "drug",
+      "question_id": "TEMP-012",
+      "context": "We have a single-type RNA-43-binding protein (Figure 5).",
+      "best_registry_match": "fatigue-prone",
+      "best_match_score": 63
+    },
+    {
+      "text": "Table",
+      "type": "drug",
+      "question_id": "TEMP-012",
+      "context": "and the study, we used the first study, we performed the study, we identified a single-based sequencing (Supplementary Table 1).",
+      "best_registry_match": "tableone",
+      "best_match_score": 76
+    },
+    {
+      "text": "TDP-43-43-",
+      "type": "gene",
+      "question_id": "TEMP-012",
+      "context": "and the RNA-binding protein-associated TDP-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-43-",
+      "best_registry_match": "tdp-4333",
+      "best_match_score": 77
+    },
+    {
+      "text": "RNA-43-",
+      "type": "gene",
+      "question_id": "TEMP-012",
+      "context": "We have a single-type RNA-43-binding protein (Figure 5).",
+      "best_registry_match": "rna-3",
+      "best_match_score": 83
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "TEMP-013",
+      "context": "We have a common genetic mutations in the disease, we have a significant differences in the disease progression, and FTD, and AD, and tau pathology, and tau pathology, and tau pathology, and tau pathology, and tau, and tau pathology, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau pathology, and tau, and tau, and tau, tau, and tau, and tau, and tau, and tau, and tau, and tau, tau, and tau, and tau, and tau, and tau, and tau, tau, and tau, and tau, and tau, and tau, and tau, tau pathology, and tau, tau, and tau, and tau, tau, and tau, and tau, and tau, and tau, tau, and tau, and tau, tau, and tau, tau, tau, and tau, and tau, and tau, tau, and tau, and tau, tau, and tau pathology, tau, tau, tau, and tau, and tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau pathology, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "TEMP-014",
+      "context": "and the first study, we identified a rare neurodegenerative diseases, we investigated the role of the disease and FTD, we found that the disease, we have been identified in AD pathology in AD.",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "Table",
+      "type": "drug",
+      "question_id": "TEMP-018",
+      "context": "The data, we will be performed using a model, we have a single-based sequencing (see Table 1).",
+      "best_registry_match": "tableone",
+      "best_match_score": 76
+    },
+    {
+      "text": "Figure",
+      "type": "drug",
+      "question_id": "TEMP-018",
+      "context": "The study, we will be performed using the data, we have a single-based sequencing (Figure 1).",
+      "best_registry_match": "fatigue-prone",
+      "best_match_score": 63
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "EPI-018",
+      "context": "We have a rare neurodegenerative disease, we have a rare neurodegenerative disease, we have a rare neurodegenerative disease, we found that are associated with AD, and tau pathology, and tau pathology, and tau pathology, tau, tau, tau pathology, tau pathology, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau pathology, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    },
+    {
+      "text": "AD",
+      "type": "gene",
+      "question_id": "CARE-013",
+      "context": ", we have a rare neurodegenerative diseases, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and FTD, and AD, and tau, and tau, and tau, and tau pathology, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, tau, tau, tau, and tau, and tau, and tau pathology, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, and tau, tau, and tau, and tau, and tau, and tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, and tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau, tau,",
+      "best_registry_match": "ad1",
+      "best_match_score": 80
+    }
+  ]
+}
