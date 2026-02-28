@@ -122,11 +122,17 @@ def build_header(responses_data):
         A Markdown string for the header section.
     """
     metadata = responses_data.get("metadata", {})
-    checkpoint_path = metadata.get("checkpoint_path", "unknown")
+    inference_mode = metadata.get("inference_mode", "checkpoint")
     model_config = metadata.get("model_config", {})
     gen_params = metadata.get("generation_params", {})
     total_questions = metadata.get("total_questions", 0)
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+
+    # Build the model identifier line based on inference mode
+    if inference_mode == "ollama":
+        model_label = f"- **Model:** `{metadata.get('ollama_model', 'unknown')}`"
+    else:
+        model_label = f"- **Checkpoint:** `{metadata.get('checkpoint_path', 'unknown')}`"
 
     lines = [
         "# ALS-LM hallucination evaluation report",
@@ -139,7 +145,7 @@ def build_header(responses_data):
         "## Metadata",
         "",
         f"- **Report generated:** {timestamp}",
-        f"- **Checkpoint:** `{checkpoint_path}`",
+        model_label,
     ]
 
     if model_config:

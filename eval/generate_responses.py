@@ -327,6 +327,8 @@ def is_coherent(text):
     - Empty or whitespace-only
     - Shorter than 10 characters
     - Contains a word repeated more than 5 times consecutively
+    - Contains punctuation-separated token repetition (e.g. "tau, tau, tau")
+    - Contains any 3-gram repeated 4+ times
     - More than 80% non-alphanumeric characters (token salad)
 
     Args:
@@ -346,6 +348,27 @@ def is_coherent(text):
     # Check for consecutive word repetition (same word 6+ times in a row)
     if re.search(r"(\b\w+\b)(\s+\1){5,}", stripped, re.IGNORECASE):
         return False
+
+    # Check for punctuation-separated token repetition. Strip commas,
+    # semicolons, and hyphens then re-check for consecutive words. This
+    # catches patterns like "TDP-43, TDP-43, TDP-43" and "tau, tau, tau".
+    cleaned = re.sub(r"[,;\-]+", " ", stripped)
+    cleaned = re.sub(r"\s+", " ", cleaned)
+    if re.search(r"(\b\w+\b)(\s+\1){5,}", cleaned, re.IGNORECASE):
+        return False
+
+    # Check for n-gram repetition. Build a frequency table of 3-word
+    # sliding windows. If any 3-gram appears 4+ times, the output is
+    # degenerate. This catches phrase-level loops like "protein-binding
+    # protein-binding" and "and FTD, and FTD, and FTD".
+    words = stripped.split()
+    if len(words) >= 6:
+        trigram_counts = {}
+        for i in range(len(words) - 2):
+            trigram = " ".join(words[i:i + 3]).lower()
+            trigram_counts[trigram] = trigram_counts.get(trigram, 0) + 1
+            if trigram_counts[trigram] >= 4:
+                return False
 
     # Check for token salad (>80% non-alphanumeric)
     alnum_count = sum(1 for ch in stripped if ch.isalnum())
