@@ -820,15 +820,16 @@ def _tag_from_gguf_filename(filename: str) -> str:
 
     For example, ``als-lm-500m-f16.gguf`` returns ``f16`` and
     ``als-lm-500m-q4_k_m.gguf`` returns ``q4_k_m``.
+
+    Matches against the known ``QUANT_LEVELS`` constant first for
+    reliability, then falls back to splitting on dashes.
     """
-    # Strip .gguf extension and split on last dash-separated token
     stem = filename.replace(".gguf", "")
-    # Pattern: als-lm-{size}-{tag}
-    # The tag may contain underscores (e.g., q4_k_m), so split on
-    # the size portion and take everything after it
+    for level in QUANT_LEVELS:
+        if stem.endswith("-" + level) or stem.endswith("-" + level.replace("_", "-")):
+            return level
+    # Fallback: split on dashes and rejoin from index 3
     parts = stem.split("-")
-    # Find the tag after the size part (e.g., after "500m")
-    # Format: als-lm-{size}-{tag} -> parts = ["als", "lm", size, tag...]
     if len(parts) >= 4:
         return "_".join(parts[3:])
     return stem
@@ -895,12 +896,12 @@ def stage_ollama_create(
             tag = _tag_from_gguf_filename(gguf_path.name)
             model_name = f"{base_name}:{tag}"
             modelfile_name = f"Modelfile.{tag}"
-            modelfile_path = gguf_path.parent / modelfile_name
+            modelfile_path = output_dir / modelfile_name
 
             print(f"\nRegistering model '{model_name}'...")
 
-            # Generate Modelfile for this quant level
-            gguf_relative = gguf_path.name
+            # Generate Modelfile for this quant level (path relative to output_dir)
+            gguf_relative = os.path.relpath(str(gguf_path), str(output_dir))
             generated = template.replace("{{GGUF_PATH}}", f"./{gguf_relative}")
             generated = generated.replace("{{DISCLAIMER}}", DISCLAIMER)
 
