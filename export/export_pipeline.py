@@ -749,183 +749,352 @@ def _verify_gguf_tokenizer(gguf_path: Path) -> dict:
     return {"success": True, "error": None}
 
 
-def stage_ollama_create(
-    gguf_path: Path,
-    output_dir: Path,
-    size: str = "tiny",
-) -> dict:
-    """Stage 3: Create Ollama model from GGUF file and auto-test generation.
-
-    Generates a Modelfile from the template, runs ``ollama create`` to
-    register the model, and performs a test generation to verify the full
-    pipeline end-to-end.
-
-    Args:
-        gguf_path: Path to the GGUF file from Stage 2.
-        output_dir: Directory for the generated Modelfile (e.g.,
-            ``export/output/tiny/``).
-        size: Model size qualifier for the Ollama model name.
+def _ensure_ollama_running() -> Optional[str]:
+    """Verify Ollama is installed and running. Start it if needed.
 
     Returns:
-        A dict with ``success``, ``output_path``, and ``error`` keys.
+        None on success, or an error message string on failure.
     """
-    print("\n" + "=" * 60)
-    print("Stage 3: GGUF -> Ollama")
-    print("=" * 60)
-
-    model_name = f"als-lm-{size}"
-    modelfile_path = output_dir / "Modelfile"
-
+    # Check Ollama is installed
     try:
-        # Verify Ollama is installed
-        print("\nChecking Ollama installation...")
-        try:
-            result = subprocess.run(
-                ["ollama", "--version"],
-                capture_output=True,
-                text=True,
-                timeout=10,
+        result = subprocess.run(
+            ["ollama", "--version"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        if result.returncode != 0:
+            return (
+                "Ollama not found. Install with: "
+                "curl -fsSL https://ollama.com/install.sh | sh"
             )
-            if result.returncode != 0:
-                return {
-                    "success": False,
-                    "output_path": model_name,
-                    "error": (
-                        "Ollama not found. Install with: "
-                        "curl -fsSL https://ollama.com/install.sh | sh"
-                    ),
-                }
-            print(f"  Ollama version: {result.stdout.strip() or result.stderr.strip()}")
-        except FileNotFoundError:
-            return {
-                "success": False,
-                "output_path": model_name,
-                "error": (
-                    "Ollama not found. Install with: "
-                    "curl -fsSL https://ollama.com/install.sh | sh"
-                ),
-            }
+        print(f"  Ollama version: {result.stdout.strip() or result.stderr.strip()}")
+    except FileNotFoundError:
+        return (
+            "Ollama not found. Install with: "
+            "curl -fsSL https://ollama.com/install.sh | sh"
+        )
 
-        # Check if ollama serve is running by trying to list models
-        print("  Checking if Ollama is running...")
-        ollama_started = False
-        try:
-            result = subprocess.run(
-                ["ollama", "list"],
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
-            if result.returncode != 0:
-                # Try starting ollama serve in background
-                print("  Starting ollama serve in background...")
-                subprocess.Popen(
-                    ["ollama", "serve"],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                )
-                ollama_started = True
-                time.sleep(5)
-        except Exception:
-            # Try starting ollama serve in background
+    # Check if ollama serve is running by trying to list models
+    print("  Checking if Ollama is running...")
+    try:
+        result = subprocess.run(
+            ["ollama", "list"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        if result.returncode != 0:
             print("  Starting ollama serve in background...")
             subprocess.Popen(
                 ["ollama", "serve"],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )
-            ollama_started = True
             time.sleep(5)
+    except Exception:
+        print("  Starting ollama serve in background...")
+        subprocess.Popen(
+            ["ollama", "serve"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        time.sleep(5)
 
-        # Generate Modelfile from template
-        print("\nGenerating Modelfile from template...")
+    return None
+
+
+def _tag_from_gguf_filename(filename: str) -> str:
+    """Extract the quantization tag from a GGUF filename.
+
+    For example, ``als-lm-500m-f16.gguf`` returns ``f16`` and
+    ``als-lm-500m-q4_k_m.gguf`` returns ``q4_k_m``.
+    """
+    # Strip .gguf extension and split on last dash-separated token
+    stem = filename.replace(".gguf", "")
+    # Pattern: als-lm-{size}-{tag}
+    # The tag may contain underscores (e.g., q4_k_m), so split on
+    # the size portion and take everything after it
+    parts = stem.split("-")
+    # Find the tag after the size part (e.g., after "500m")
+    # Format: als-lm-{size}-{tag} -> parts = ["als", "lm", size, tag...]
+    if len(parts) >= 4:
+        return "_".join(parts[3:])
+    return stem
+
+
+def stage_ollama_create(
+    gguf_paths: list[Path],
+    output_dir: Path,
+    size: str = "500m",
+) -> dict:
+    """Stage 3: Register multiple GGUF models in Ollama with size:tag naming.
+
+    For each GGUF file, generates a Modelfile from the template and runs
+    ``ollama create`` to register the model. After all models are registered,
+    copies Q8_0 as the default (latest) tag so that ``ollama run als-lm-{size}``
+    uses the Q8_0 quantization.
+
+    Args:
+        gguf_paths: List of Paths to GGUF files from Stage 2 (F16, Q8_0,
+            Q4_K_M).
+        output_dir: Directory for the generated Modelfiles (e.g.,
+            ``export/output/500m/``).
+        size: Model size qualifier for the Ollama model name.
+
+    Returns:
+        A dict with ``success``, ``output_path``, ``models`` (list of
+        registered model names), and ``error`` keys.
+    """
+    print("\n" + "=" * 60)
+    print("Stage 3: GGUF -> Ollama (multi-model registration)")
+    print("=" * 60)
+
+    base_name = f"als-lm-{size}"
+    registered_models = []
+
+    try:
+        # Verify Ollama is installed and running
+        print("\nChecking Ollama installation...")
+        err = _ensure_ollama_running()
+        if err is not None:
+            return {
+                "success": False,
+                "output_path": base_name,
+                "models": [],
+                "error": err,
+            }
+
+        # Read the Modelfile template once
         if not MODELFILE_TEMPLATE.is_file():
             return {
                 "success": False,
-                "output_path": model_name,
+                "output_path": base_name,
+                "models": [],
                 "error": f"Modelfile template not found: {MODELFILE_TEMPLATE}",
             }
 
         with open(MODELFILE_TEMPLATE) as f:
             template = f.read()
 
-        # Use relative path from Modelfile location to GGUF file
-        gguf_relative = os.path.relpath(str(gguf_path), str(output_dir))
-        generated = template.replace("{{GGUF_PATH}}", f"./{gguf_relative}")
-        generated = generated.replace("{{DISCLAIMER}}", DISCLAIMER)
-
         output_dir.mkdir(parents=True, exist_ok=True)
-        with open(modelfile_path, "w") as f:
-            f.write(generated)
-        print(f"  Modelfile written to: {modelfile_path}")
 
-        # Run ollama create
-        print(f"\nCreating Ollama model '{model_name}'...")
-        result = subprocess.run(
-            ["ollama", "create", model_name, "-f", str(modelfile_path)],
-            capture_output=True,
-            text=True,
-            timeout=120,
-        )
+        # Register each GGUF as a separate Ollama model
+        for gguf_path in gguf_paths:
+            tag = _tag_from_gguf_filename(gguf_path.name)
+            model_name = f"{base_name}:{tag}"
+            modelfile_name = f"Modelfile.{tag}"
+            modelfile_path = gguf_path.parent / modelfile_name
 
-        if result.stdout:
-            print(f"  {result.stdout.strip()}")
-        if result.stderr:
-            print(f"  {result.stderr.strip()}")
+            print(f"\nRegistering model '{model_name}'...")
 
-        if result.returncode != 0:
-            return {
-                "success": False,
-                "output_path": model_name,
-                "error": (
-                    f"ollama create failed (exit code {result.returncode}). "
-                    f"stderr: {result.stderr[:500]}"
-                ),
-            }
+            # Generate Modelfile for this quant level
+            gguf_relative = os.path.relpath(str(gguf_path), str(gguf_path.parent))
+            generated = template.replace("{{GGUF_PATH}}", f"./{gguf_relative}")
+            generated = generated.replace("{{DISCLAIMER}}", DISCLAIMER)
 
-        # Auto-test: run a single generation prompt
-        print(f"\nAuto-test: running '{model_name}' with test prompt...")
-        test_prompt = "ALS is a disease that"
-        try:
+            with open(modelfile_path, "w") as f:
+                f.write(generated)
+            print(f"  Modelfile written to: {modelfile_path}")
+
+            # Run ollama create
             result = subprocess.run(
-                ["ollama", "run", model_name, test_prompt],
+                ["ollama", "create", model_name, "-f", str(modelfile_path)],
                 capture_output=True,
                 text=True,
-                timeout=30,
+                timeout=120,
             )
-            generated_text = result.stdout.strip()
-            if generated_text:
-                print(f"  Generated text: {generated_text[:200]}")
-                print("\n  Auto-test PASSED (model generated text)")
-            else:
-                print("  WARNING: Model generated no text, but ollama run succeeded")
-                if result.stderr:
-                    print(f"  stderr: {result.stderr[:200]}")
-        except subprocess.TimeoutExpired:
-            print("  WARNING: Generation timed out after 30 seconds")
-            print("  This may be normal for a first run (model loading)")
+
+            if result.stdout:
+                print(f"  {result.stdout.strip()}")
+            if result.stderr:
+                print(f"  {result.stderr.strip()}")
+
+            if result.returncode != 0:
+                return {
+                    "success": False,
+                    "output_path": base_name,
+                    "models": registered_models,
+                    "error": (
+                        f"ollama create failed for {model_name} "
+                        f"(exit code {result.returncode}). "
+                        f"stderr: {result.stderr[:500]}"
+                    ),
+                }
+
+            registered_models.append(model_name)
+            print(f"  Registered: {model_name}")
+
+        # Copy Q8_0 as the default (latest) tag
+        q8_model = f"{base_name}:q8_0"
+        latest_model = f"{base_name}:latest"
+        print(f"\nCopying {q8_model} as default tag ({latest_model})...")
+        result = subprocess.run(
+            ["ollama", "cp", q8_model, latest_model],
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        if result.returncode != 0:
+            print(f"  WARNING: Failed to copy {q8_model} to {latest_model}: {result.stderr[:200]}")
+        else:
+            print(f"  Default tag set: ollama run {base_name} uses Q8_0")
 
         print(f"\n  Stage 3 PASSED")
-        print(f"  Run the model with: ollama run {model_name}")
+        print(f"  Run the default model with: ollama run {base_name}")
         return {
             "success": True,
-            "output_path": model_name,
+            "output_path": base_name,
+            "models": registered_models,
             "error": None,
         }
 
     except Exception as e:
         return {
             "success": False,
-            "output_path": model_name,
+            "output_path": base_name,
+            "models": registered_models,
             "error": str(e),
         }
 
 
-def print_summary(results: dict, size: str = "tiny") -> None:
+def smoke_test_models(
+    size: str = "500m",
+    output_dir: Optional[Path] = None,
+) -> dict:
+    """Run smoke tests against all registered Ollama models for a given size.
+
+    Tests each quantization level (F16, Q8_0, Q4_K_M) with a set of diverse
+    ALS prompts. Collects all outputs, computes pass/fail per model, and saves
+    results to a file including a file size comparison table.
+
+    All models are tested even if one fails (no fail-fast), since the
+    comparison data is valuable for evaluation.
+
+    Args:
+        size: Model size qualifier (e.g., "500m").
+        output_dir: Directory for the results file. Defaults to
+            ``export/output/{size}/``.
+
+    Returns:
+        A dict with ``success``, ``results`` (per-model results), and
+        ``output_file`` keys.
+    """
+    print("\n" + "=" * 60)
+    print("Stage 4: Smoke Test Suite")
+    print("=" * 60)
+
+    if output_dir is None:
+        output_dir = PROJECT_ROOT / "export" / "output" / size
+
+    base_name = f"als-lm-{size}"
+    gguf_dir = output_dir / "gguf"
+    results_file = output_dir / "smoke_test_results.txt"
+    model_results = {}
+    any_failure = False
+
+    for tag in QUANT_LEVELS:
+        model_name = f"{base_name}:{tag}"
+        print(f"\nTesting {model_name}...")
+        model_results[tag] = {"prompts": {}, "passed": True}
+
+        for prompt in SMOKE_TEST_PROMPTS:
+            print(f"  Prompt: \"{prompt}\"")
+            try:
+                result = subprocess.run(
+                    ["ollama", "run", model_name, prompt],
+                    capture_output=True,
+                    text=True,
+                    timeout=60,
+                )
+                generated_text = result.stdout.strip()
+                if len(generated_text) >= 10:
+                    print(f"    Response: {generated_text[:100]}...")
+                    model_results[tag]["prompts"][prompt] = generated_text
+                else:
+                    print(f"    FAIL: Response too short ({len(generated_text)} chars)")
+                    model_results[tag]["prompts"][prompt] = generated_text or "(empty)"
+                    model_results[tag]["passed"] = False
+                    any_failure = True
+            except subprocess.TimeoutExpired:
+                print(f"    FAIL: Timed out after 60 seconds")
+                model_results[tag]["prompts"][prompt] = "(timeout)"
+                model_results[tag]["passed"] = False
+                any_failure = True
+            except Exception as e:
+                print(f"    FAIL: {e}")
+                model_results[tag]["prompts"][prompt] = f"(error: {e})"
+                model_results[tag]["passed"] = False
+                any_failure = True
+
+    # Collect file sizes for comparison table
+    file_sizes = {}
+    for tag in QUANT_LEVELS:
+        gguf_path = gguf_dir / f"als-lm-{size}-{tag}.gguf"
+        if gguf_path.is_file():
+            file_sizes[tag] = gguf_path.stat().st_size / 1024 / 1024
+        else:
+            file_sizes[tag] = 0.0
+
+    f16_size = file_sizes.get("f16", 1.0)  # Avoid division by zero
+
+    # Write results file
+    output_dir.mkdir(parents=True, exist_ok=True)
+    with open(results_file, "w") as f:
+        f.write(f"ALS-LM Smoke Test Results\n")
+        f.write(f"Model: {base_name}\n")
+        f.write(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write(f"{'=' * 70}\n\n")
+
+        for tag in QUANT_LEVELS:
+            status = "PASS" if model_results[tag]["passed"] else "FAIL"
+            f.write(f"Model: {base_name}:{tag} [{status}]\n")
+            f.write(f"{'-' * 50}\n")
+            for prompt, response in model_results[tag]["prompts"].items():
+                truncated = response[:500] if len(response) > 500 else response
+                f.write(f"\n  Prompt: \"{prompt}\"\n")
+                f.write(f"  Response: {truncated}\n")
+            f.write(f"\n")
+
+        # File size comparison table
+        f.write(f"\nFile Size Comparison\n")
+        f.write(f"{'=' * 55}\n")
+        f.write(f"{'Model':<30} {'Size (MB)':>10} {'Compression':>12}\n")
+        f.write(f"{'-' * 55}\n")
+        for tag in QUANT_LEVELS:
+            model_label = f"als-lm-{size}-{tag}.gguf"
+            ratio = file_sizes[tag] / f16_size if f16_size > 0 else 0
+            f.write(f"{model_label:<30} {file_sizes[tag]:>10.1f} {ratio:>11.2f}x\n")
+        f.write(f"{'-' * 55}\n")
+
+        # Overall summary
+        f.write(f"\nOverall Summary\n")
+        f.write(f"{'=' * 40}\n")
+        for tag in QUANT_LEVELS:
+            status = "PASS" if model_results[tag]["passed"] else "FAIL"
+            f.write(f"  {base_name}:{tag:<10} {status}\n")
+
+    print(f"\n  Smoke test results saved to: {results_file}")
+
+    # Print summary
+    print("\n  Smoke Test Summary:")
+    for tag in QUANT_LEVELS:
+        status = "PASS" if model_results[tag]["passed"] else "FAIL"
+        print(f"    {base_name}:{tag:<10} {status}")
+
+    return {
+        "success": not any_failure,
+        "results": model_results,
+        "output_file": str(results_file),
+    }
+
+
+def print_summary(results: dict, size: str = "500m") -> None:
     """Print a summary table of all pipeline stages.
 
-    Shows pass/fail status and output path for each stage. Uses simple
-    ASCII formatting for terminal compatibility.
+    Shows pass/fail status and output path for each stage, including
+    per-quant Ollama models and smoke test results. Uses simple ASCII
+    formatting for terminal compatibility.
 
     Args:
         results: Dict mapping stage names to result dicts.
@@ -938,33 +1107,84 @@ def print_summary(results: dict, size: str = "tiny") -> None:
     )
     print("+" + "-" * 34 + "+" + "-" * 8 + "+" + "-" * 48 + "+")
 
-    stages = [
-        ("1. PyTorch -> HuggingFace", "hf_convert"),
-        ("2. HuggingFace -> GGUF", "gguf_convert"),
-        ("3. GGUF -> Ollama", "ollama_create"),
-    ]
+    # Stage 1
+    if "hf_convert" in results:
+        r = results["hf_convert"]
+        status = "PASS" if r["success"] else "FAIL"
+        output = r.get("output_path", "") or ""
+        if len(output) > 46:
+            output = "..." + output[-43:]
+        print("| {:<32} | {:<6} | {:<46} |".format(
+            "1. PyTorch -> HuggingFace", status, output
+        ))
 
-    all_passed = True
-    for display_name, key in stages:
-        if key in results:
-            r = results[key]
-            status = "PASS" if r["success"] else "FAIL"
-            if not r["success"]:
-                all_passed = False
-            output = r["output_path"] or ""
-            # Truncate long paths
-            if len(output) > 46:
-                output = "..." + output[-43:]
-        else:
-            status = "SKIP"
-            output = ""
+    # Stage 2 (multi-quant)
+    if "gguf_convert" in results:
+        r = results["gguf_convert"]
+        status = "PASS" if r["success"] else "FAIL"
+        paths = r.get("output_paths", [])
+        # Show count of GGUF files
+        output = f"{len(paths)} GGUF files" if paths else ""
+        print("| {:<32} | {:<6} | {:<46} |".format(
+            "2. HuggingFace -> GGUF", status, output
+        ))
+        # Show each quant level as sub-row
+        for p in paths:
+            name = Path(p).name
+            sub_status = "PASS" if Path(p).is_file() else "MISS"
+            if Path(p).is_file():
+                size_mb = Path(p).stat().st_size / 1024 / 1024
+                detail = f"{name} ({size_mb:.0f} MB)"
+            else:
+                detail = name
+            print("| {:<32} | {:<6} | {:<46} |".format(
+                f"   {name}", sub_status, detail
+            ))
 
-        print(
-            "| {:<32} | {:<6} | {:<46} |".format(display_name, status, output)
-        )
+    # Stage 3
+    if "ollama_create" in results:
+        r = results["ollama_create"]
+        status = "PASS" if r["success"] else "FAIL"
+        models = r.get("models", [])
+        output = r.get("output_path", "") or ""
+        if models:
+            output = f"{len(models)} models registered"
+        print("| {:<32} | {:<6} | {:<46} |".format(
+            "3. GGUF -> Ollama", status, output
+        ))
+        for model in models:
+            print("| {:<32} | {:<6} | {:<46} |".format(
+                f"   {model}", "PASS", model
+            ))
+
+    # Stage 4 (smoke test)
+    if "smoke_test" in results:
+        r = results["smoke_test"]
+        status = "PASS" if r["success"] else "FAIL"
+        model_results = r.get("results", {})
+        output = r.get("output_file", "") or ""
+        if len(output) > 46:
+            output = "..." + output[-43:]
+        print("| {:<32} | {:<6} | {:<46} |".format(
+            "4. Smoke Tests", status, output
+        ))
+        for tag, mr in model_results.items():
+            sub_status = "PASS" if mr["passed"] else "FAIL"
+            prompts_passed = sum(
+                1 for resp in mr["prompts"].values()
+                if len(resp) >= 10 and not resp.startswith("(")
+            )
+            detail = f"{prompts_passed}/{len(mr['prompts'])} prompts passed"
+            print("| {:<32} | {:<6} | {:<46} |".format(
+                f"   als-lm-{size}:{tag}", sub_status, detail
+            ))
 
     print("+" + "-" * 34 + "+" + "-" * 8 + "+" + "-" * 48 + "+")
 
+    all_passed = all(
+        r.get("success", False)
+        for r in results.values()
+    )
     if all_passed:
         print(f"\nAll stages passed. Run the model with:")
         print(f"  ollama run als-lm-{size}")
@@ -978,8 +1198,8 @@ def main() -> None:
         epilog=(
             "Examples:\n"
             "  python -m export.export_pipeline\n"
-            "  python -m export.export_pipeline --checkpoint checkpoints/tiny/step_1999.pt\n"
-            "  python -m export.export_pipeline --size tiny --skip-ollama\n"
+            "  python -m export.export_pipeline --checkpoint checkpoints/500M_20260227_192113/best/best.pt --size 500m\n"
+            "  python -m export.export_pipeline --size 500m --skip-ollama\n"
         ),
     )
     parser.add_argument(
@@ -991,13 +1211,13 @@ def main() -> None:
     parser.add_argument(
         "--size",
         type=str,
-        default="tiny",
-        help="Model size qualifier (default: tiny). Used for output paths and Ollama model name.",
+        default="500m",
+        help="Model size qualifier (default: 500m). Used for output paths and Ollama model name.",
     )
     parser.add_argument(
         "--skip-ollama",
         action="store_true",
-        help="Skip the Ollama stage (useful if Ollama is not installed).",
+        help="Skip the Ollama and smoke test stages (useful if Ollama is not installed).",
     )
     args = parser.parse_args()
 
@@ -1069,6 +1289,7 @@ def main() -> None:
         results["ollama_create"] = {
             "success": True,
             "output_path": f"als-lm-{args.size} (skipped)",
+            "models": [],
             "error": None,
         }
     else:
@@ -1080,11 +1301,15 @@ def main() -> None:
         if not results["ollama_create"]["success"]:
             print(f"\nERROR: Stage 3 failed: {results['ollama_create']['error']}")
 
+        # Stage 4: Smoke tests (only if Ollama registration succeeded)
+        if results["ollama_create"]["success"]:
+            results["smoke_test"] = smoke_test_models(args.size, output_base)
+
     # Print summary
     print_summary(results, args.size)
 
     # Exit with appropriate code
-    if all(r["success"] for r in results.values()):
+    if all(r.get("success", False) for r in results.values()):
         sys.exit(0)
     else:
         sys.exit(1)
