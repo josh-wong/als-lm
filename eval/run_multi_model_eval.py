@@ -41,11 +41,11 @@ import requests
 # ---------------------------------------------------------------------------
 
 MODELS = [
-    {"name": "als-lm-500m:f16", "id": "f16", "tag": "f16",
+    {"name": "als-lm-500m:f16", "id": "f16",
      "fs_id": "als-lm-500m_f16"},
-    {"name": "als-lm-500m:q8_0", "id": "q8_0", "tag": "q8_0",
+    {"name": "als-lm-500m:q8_0", "id": "q8_0",
      "fs_id": "als-lm-500m_q8_0"},
-    {"name": "als-lm-500m:q4_k_m", "id": "q4_k_m", "tag": "q4_k_m",
+    {"name": "als-lm-500m:q4_k_m", "id": "q4_k_m",
      "fs_id": "als-lm-500m_q4_k_m"},
 ]
 

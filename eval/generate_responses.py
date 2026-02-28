@@ -326,7 +326,7 @@ def is_coherent(text):
 
     - Empty or whitespace-only
     - Shorter than 10 characters
-    - Contains a word repeated more than 5 times consecutively
+    - Contains a word repeated 6 or more times consecutively
     - Contains punctuation-separated token repetition (e.g. "tau, tau, tau")
     - Contains any 3-gram repeated 4+ times
     - More than 80% non-alphanumeric characters (token salad)
@@ -685,7 +685,6 @@ def main():
             "inference_mode": "ollama",
             "ollama_model": args.ollama_model,
             "ollama_url": args.ollama_url,
-            "model_name": args.ollama_model,
             "generation_params": {
                 "max_tokens": args.max_tokens,
                 "temperature": args.temperature,
