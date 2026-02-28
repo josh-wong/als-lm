@@ -164,12 +164,18 @@ def build_llama_quantize() -> Path:
 
 
 def find_latest_checkpoint(checkpoints_dir: Optional[Path] = None) -> Path:
-    """Auto-detect the latest training checkpoint by step number.
+    """Auto-detect the latest training checkpoint.
 
     Scans the checkpoints directory for run directories (pattern:
-    ``{config}_{timestamp}/``), finds all ``step_*.pt`` files within each,
-    and returns the checkpoint with the highest step number from the most
-    recently modified run directory.
+    ``{config}_{timestamp}/``), sorted by modification time (newest first).
+    Within each run directory, checks for checkpoints in this priority order:
+
+    1. ``best/best.pt`` -- best checkpoint saved during training
+    2. ``step_*.pt`` -- standalone step checkpoint files (small models)
+
+    This handles both production checkpoints (which store ``best/best.pt``
+    and DeepSpeed step subdirectories) and small-model checkpoints (which
+    store standalone ``step_N.pt`` files directly in the run directory).
 
     Args:
         checkpoints_dir: Directory to scan. Defaults to ``checkpoints/``
@@ -208,6 +214,12 @@ def find_latest_checkpoint(checkpoints_dir: Optional[Path] = None) -> Path:
 
     # Search the most recently modified run directory first
     for run_dir in run_dirs:
+        # Priority 1: best/best.pt (production training saves best checkpoint here)
+        best_pt = run_dir / "best" / "best.pt"
+        if best_pt.is_file():
+            return best_pt
+
+        # Priority 2: step_*.pt files directly in run directory (small models)
         pt_files = list(run_dir.glob("step_*.pt"))
         if pt_files:
             # Sort by step number extracted from filename
@@ -219,7 +231,7 @@ def find_latest_checkpoint(checkpoints_dir: Optional[Path] = None) -> Path:
             return pt_files[0]
 
     raise FileNotFoundError(
-        f"No step_*.pt checkpoint files found in any run directory under {checkpoints_dir}"
+        f"No checkpoint files found in any run directory under {checkpoints_dir}"
     )
 
 
