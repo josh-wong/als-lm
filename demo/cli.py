@@ -14,7 +14,10 @@ pipeline (``python -m export.export_pipeline``) to register models.
 """
 
 import json
-import readline  # noqa: F401 — enhances input() with history on Linux/macOS
+try:
+    import readline  # noqa: F401 — enhances input() with history/editing
+except ImportError:
+    pass  # Unavailable on native Windows; input() still works without it
 import sys
 import time
 from typing import Any, Dict, List, Optional, Tuple
