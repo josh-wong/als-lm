@@ -96,15 +96,19 @@ def _select_model(models: List[Dict[str, Any]]) -> Optional[str]:
     """Display a numbered menu and return the selected model name."""
     print(f"\n{BOLD}Available ALS-LM models:{RESET}\n")
 
+    # Pick a single default: prefer als-lm-500m:q8_0, then first :q8_0, then first model
     default_idx = 0
+    for i, m in enumerate(models):
+        if m["name"] == "als-lm-500m:q8_0":
+            default_idx = i
+            break
+        if ":q8_0" in m["name"] and default_idx == 0:
+            default_idx = i
+
     for i, m in enumerate(models):
         name = m["name"]
         size_str = _format_size(m["size"])
-        # Mark Q8_0 or :latest as the default
-        is_default = ":q8_0" in name or ":latest" in name
-        if is_default:
-            default_idx = i
-        tag = "  [default]" if is_default else ""
+        tag = "  [default]" if i == default_idx else ""
         print(f"  {i + 1}. {name:<25} ({size_str}){tag}")
 
     print()
