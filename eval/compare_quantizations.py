@@ -324,6 +324,8 @@ def build_summary_judgment(
     acc_meaningful = threshold_judgments["accuracy_meaningful"]
     fab_meaningful = threshold_judgments["fabrication_meaningful"]
 
+    n_models = len(overall_accuracy)
+
     if not acc_meaningful and not fab_meaningful:
         judgment = (
             "Quantization does not meaningfully affect evaluation quality. "
@@ -331,13 +333,12 @@ def build_summary_judgment(
             f"{threshold_judgments['accuracy_max_diff']:.4f} (threshold: "
             f"{ACCURACY_THRESHOLD}), and the maximum fabrication rate difference "
             f"is {threshold_judgments['fabrication_max_diff']:.4f} (threshold: "
-            f"{FABRICATION_THRESHOLD}). All three quantization levels produce "
+            f"{FABRICATION_THRESHOLD}). All {n_models} quantization levels produce "
             "statistically indistinguishable results on this benchmark, "
-            "confirming that the model's near-zero accuracy and high fabrication "
-            "rates are properties of the model itself rather than artifacts of "
-            "quantization. The most aggressively quantized variant (Q4_K_M) is "
-            "recommended for deployment as it offers the smallest file size "
-            "with no measurable quality loss."
+            "confirming that the model's evaluation behavior is a property of "
+            "the model itself rather than an artifact of quantization. The most "
+            "aggressively quantized variant is recommended for deployment as it "
+            "offers the smallest file size with no measurable quality loss."
         )
     elif acc_meaningful and not fab_meaningful:
         judgment = (
@@ -406,17 +407,46 @@ def generate_markdown_report(
     add()
     acc_vals = [overall_accuracy[m]["mean_accuracy"] for m in model_names]
     fab_vals = [fabrication_rates[m]["flagged_rate"] for m in model_names]
-    add(
-        f"All three quantization levels (F16, Q8_0, Q4_K_M) produce near-identical "
-        f"evaluation results. Mean accuracy ranges from {min(acc_vals):.4f} to "
+    label_list = ", ".join(labels[m] for m in model_names)
+    acc_meaningful = threshold_judgments["accuracy_meaningful"]
+    fab_meaningful = threshold_judgments["fabrication_meaningful"]
+
+    tldr = (
+        f"Compared {len(model_names)} quantization levels ({label_list}). "
+        f"Mean accuracy ranges from {min(acc_vals):.4f} to "
         f"{max(acc_vals):.4f}, and fabrication rates range from "
         f"{min(fab_vals):.1%} to {max(fab_vals):.1%}. "
-        f"Neither metric exceeds the pre-defined thresholds for meaningful "
-        f"degradation (>{ACCURACY_THRESHOLD:.0%} accuracy, "
-        f">{FABRICATION_THRESHOLD:.0%} fabrication rate). "
-        f"The model's near-zero factual accuracy is a property of its "
-        f"architecture and training, not an artifact of quantization."
     )
+    if not acc_meaningful and not fab_meaningful:
+        tldr += (
+            f"Neither metric exceeds the pre-defined thresholds for meaningful "
+            f"degradation (>{ACCURACY_THRESHOLD:.0%} accuracy, "
+            f">{FABRICATION_THRESHOLD:.0%} fabrication rate). "
+            f"The model's evaluation behavior is consistent across all "
+            f"quantization levels tested."
+        )
+    elif acc_meaningful and fab_meaningful:
+        tldr += (
+            f"Both metrics exceed the pre-defined thresholds for meaningful "
+            f"degradation (accuracy diff: "
+            f"{threshold_judgments['accuracy_max_diff']:.4f}, threshold: "
+            f"{ACCURACY_THRESHOLD:.0%}; fabrication diff: "
+            f"{threshold_judgments['fabrication_max_diff']:.1%}, threshold: "
+            f"{FABRICATION_THRESHOLD:.0%})."
+        )
+    elif acc_meaningful:
+        tldr += (
+            f"Accuracy difference ({threshold_judgments['accuracy_max_diff']:.4f}) "
+            f"exceeds the {ACCURACY_THRESHOLD:.0%} threshold, but fabrication "
+            f"rates remain stable."
+        )
+    else:
+        tldr += (
+            f"Fabrication rate difference "
+            f"({threshold_judgments['fabrication_max_diff']:.1%}) exceeds the "
+            f"{FABRICATION_THRESHOLD:.0%} threshold, but accuracy remains stable."
+        )
+    add(tldr)
     add()
 
     # Overall accuracy table
@@ -443,11 +473,19 @@ def generate_markdown_report(
     add(row_pass)
     add(row_hedge)
     add()
-    add(
-        f"The maximum accuracy difference across models is "
-        f"{threshold_judgments['accuracy_max_diff']:.4f}, well below the "
-        f"{ACCURACY_THRESHOLD:.0%} threshold for meaningful degradation."
-    )
+    acc_diff = threshold_judgments["accuracy_max_diff"]
+    if acc_diff > ACCURACY_THRESHOLD:
+        add(
+            f"The maximum accuracy difference across models is "
+            f"{acc_diff:.4f}, exceeding the "
+            f"{ACCURACY_THRESHOLD:.0%} threshold for meaningful degradation."
+        )
+    else:
+        add(
+            f"The maximum accuracy difference across models is "
+            f"{acc_diff:.4f}, below the "
+            f"{ACCURACY_THRESHOLD:.0%} threshold for meaningful degradation."
+        )
     add()
 
     # Per-category accuracy table
@@ -486,10 +524,16 @@ def generate_markdown_report(
             f"{', '.join(c.replace('_', ' ') for c in flagged_categories)}."
         )
     else:
+        max_cat_diff = max(
+            max(per_category[cat][m] for m in model_names)
+            - min(per_category[cat][m] for m in model_names)
+            for cat in CATEGORIES
+        )
         add(
-            "No category exceeds the 5% accuracy difference threshold. "
-            "The minor variations (all below 1.3%) reflect stochastic differences "
-            "in which questions each quantized model happens to partially answer."
+            f"No category exceeds the {ACCURACY_THRESHOLD:.0%} accuracy difference "
+            f"threshold. The maximum per-category difference is "
+            f"{max_cat_diff:.1%}, reflecting stochastic variation in which "
+            "questions each quantized model happens to partially answer."
         )
     add()
 
@@ -562,23 +606,47 @@ def generate_markdown_report(
     add()
 
     fab_max_diff = threshold_judgments["fabrication_max_diff"]
-    add(
-        f"The maximum fabrication rate difference is "
-        f"{fab_max_diff:.4f} ({fab_max_diff:.1%}), below the "
-        f"{FABRICATION_THRESHOLD:.0%} threshold. "
-        "All models fabricate at comparable rates. The 100% drug fabrication rate "
-        "across all models indicates the model never produces recognized drug names, "
-        "regardless of quantization level."
-    )
+    if fab_max_diff > FABRICATION_THRESHOLD:
+        fab_commentary = (
+            f"The maximum fabrication rate difference is "
+            f"{fab_max_diff:.4f} ({fab_max_diff:.1%}), exceeding the "
+            f"{FABRICATION_THRESHOLD:.0%} threshold."
+        )
+    else:
+        fab_commentary = (
+            f"The maximum fabrication rate difference is "
+            f"{fab_max_diff:.4f} ({fab_max_diff:.1%}), below the "
+            f"{FABRICATION_THRESHOLD:.0%} threshold. "
+            "All models fabricate at comparable rates."
+        )
+
+    # Note any entity types with 100% fabrication across all models
+    uniform_types = []
+    for etype in ["drugs", "genes", "trials"]:
+        rates = [fabrication_rates[m]["by_type"][etype]["rate"] for m in model_names]
+        if all(r >= 1.0 for r in rates):
+            uniform_types.append(etype)
+    if uniform_types:
+        fab_commentary += (
+            f" The {', '.join(uniform_types)} fabrication rate is 100% across "
+            f"all models, indicating the model never produces recognized "
+            f"{'/'.join(uniform_types)} names regardless of quantization level."
+        )
+    add(fab_commentary)
     add()
 
     # Taxonomy distribution
     add("## Failure taxonomy distribution")
     add()
+    # Derive question count from first model's taxonomy counts
+    first_model = model_names[0]
+    total_taxonomy_questions = sum(
+        taxonomy_dist[first_model][mode]["count"] for mode in TAXONOMY_MODES
+    )
     add(
-        "Distribution of failure modes across the 7 taxonomy categories "
-        "for each quantization level. Counts represent the number of questions "
-        "(out of 160) classified into each mode."
+        f"Distribution of failure modes across the {len(TAXONOMY_MODES)} taxonomy "
+        f"categories for each quantization level. Counts represent the number of "
+        f"questions (out of {total_taxonomy_questions}) classified into each mode."
     )
     add()
     header = f"| {'Failure mode':<28} |"
@@ -596,12 +664,28 @@ def generate_markdown_report(
             row += f" {td['count']:>10} | {td['pct']:>9.1f}% |"
         add(row)
     add()
-    add(
-        "The dominant failure modes are consistent across all quantization levels: "
-        "confident fabrication, plausible blending, and degenerate output together "
-        "account for the vast majority of responses. No model produces responses "
-        "classified as accurate, boundary confusion, or accurate but misleading."
+    # Identify dominant modes (present in all models with >10% share)
+    dominant = []
+    zero_modes = []
+    for mode in TAXONOMY_MODES:
+        pcts = [taxonomy_dist[m][mode]["pct"] for m in model_names]
+        if all(p > 10.0 for p in pcts):
+            dominant.append(mode.replace("_", " "))
+        if all(taxonomy_dist[m][mode]["count"] == 0 for m in model_names):
+            zero_modes.append(mode.replace("_", " "))
+
+    commentary = (
+        "The dominant failure modes are consistent across all quantization levels"
     )
+    if dominant:
+        commentary += f": {', '.join(dominant)} each exceed 10% in every model"
+    commentary += "."
+    if zero_modes:
+        commentary += (
+            f" No model produces responses classified as "
+            f"{', '.join(zero_modes)}."
+        )
+    add(commentary)
     add()
 
     # Severity distribution
@@ -630,8 +714,8 @@ def generate_markdown_report(
     add(
         f"Out of {dis['total_questions']} questions evaluated by all models, "
         f"{dis['agreed']} received the same primary taxonomy classification "
-        f"across all three quantization levels, and {dis['disagreed']} had at "
-        f"least one model disagree on the failure mode."
+        f"across all {len(model_names)} quantization levels, and "
+        f"{dis['disagreed']} had at least one model disagree on the failure mode."
     )
     add()
     if dis["disagreed"] > 0:
@@ -706,6 +790,7 @@ def build_json_output(
     model_names: list[str],
     overall_accuracy: dict,
     per_category: dict,
+    per_difficulty: dict,
     fabrication_rates: dict,
     taxonomy_dist: dict,
     severity_dist: dict,
@@ -725,6 +810,7 @@ def build_json_output(
         },
         "overall_accuracy": overall_accuracy,
         "per_category_accuracy": per_category,
+        "per_difficulty_accuracy": per_difficulty,
         "fabrication_rates": fabrication_rates,
         "taxonomy_distribution": taxonomy_dist,
         "severity_distribution": severity_dist,
@@ -863,6 +949,7 @@ def main() -> int:
         model_names,
         overall_accuracy,
         per_category,
+        per_difficulty,
         fabrication_rates,
         taxonomy_dist,
         severity_dist,
