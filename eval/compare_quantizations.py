@@ -520,7 +520,7 @@ def generate_markdown_report(
     add()
     if flagged_categories:
         add(
-            f"Categories exceeding the 5% threshold: "
+            f"Categories exceeding the {ACCURACY_THRESHOLD:.0%} threshold: "
             f"{', '.join(c.replace('_', ' ') for c in flagged_categories)}."
         )
     else:
