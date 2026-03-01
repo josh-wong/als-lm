@@ -31,8 +31,9 @@ from tqdm import tqdm
 
 from rag.chunker import chunk_document, count_tokens, extract_metadata
 
-# Batch size for ChromaDB insertions (well under 41,666 hard limit)
-BATCH_SIZE = 500
+# Batch size for ChromaDB insertions (well under 41,666 hard limit).
+# Larger batches reduce embedding call overhead for large corpora.
+BATCH_SIZE = 5000
 
 # Files to exclude from indexing (root-level processed directory artifacts)
 EXCLUDE_FILES = {"train.txt", "val.txt", "pipeline.log", "rejected.jsonl"}
@@ -44,6 +45,21 @@ SOURCE_DIRS = [
     "educational",
     "wikipedia",
 ]
+
+
+def _collection_names(client: chromadb.PersistentClient) -> list[str]:
+    """Get collection names from a ChromaDB client.
+
+    ChromaDB 1.x list_collections() returns Collection objects, not strings.
+    This helper extracts the name strings for comparison.
+    """
+    collections = client.list_collections()
+    if not collections:
+        return []
+    # Handle both Collection objects and raw strings
+    if hasattr(collections[0], "name"):
+        return [c.name for c in collections]
+    return list(collections)
 
 
 def compute_overlap(chunk_size: int) -> int:
@@ -68,13 +84,40 @@ def discover_corpus_files(corpus_dir: Path) -> list[Path]:
     return files
 
 
+def _get_embedding_function():
+    """Get the ONNX MiniLM embedding function for pre-computing embeddings."""
+    from chromadb.utils.embedding_functions import ONNXMiniLM_L6_V2
+    return ONNXMiniLM_L6_V2()
+
+
+# Module-level embedding function (lazy-initialized to avoid import cost)
+_embedding_fn = None
+
+
+def _embed_texts(texts: list[str]) -> list[list[float]]:
+    """Pre-compute embeddings for a batch of texts."""
+    global _embedding_fn
+    if _embedding_fn is None:
+        _embedding_fn = _get_embedding_function()
+    raw = _embedding_fn(texts)
+    # Convert numpy arrays to lists for ChromaDB
+    return [e.tolist() if hasattr(e, "tolist") else list(e) for e in raw]
+
+
 def flush_batch(collection, batch: list[dict]) -> None:
-    """Flush a batch of chunks to a ChromaDB collection."""
+    """Flush a batch of chunks to a ChromaDB collection.
+
+    Pre-computes embeddings before insertion to separate embedding time
+    from HNSW index update time, allowing larger effective batch sizes.
+    """
     if not batch:
         return
+    documents = [c["text"] for c in batch]
+    embeddings = _embed_texts(documents)
     collection.add(
         ids=[c["id"] for c in batch],
-        documents=[c["text"] for c in batch],
+        documents=documents,
+        embeddings=embeddings,
         metadatas=[c["metadata"] for c in batch],
     )
 
@@ -103,21 +146,49 @@ def run_index(args: argparse.Namespace) -> None:
     client = chromadb.PersistentClient(path=db_path)
 
     # Check for existing collection
-    existing_collections = client.list_collections()
+    existing_collections = _collection_names(client)
+    indexed_doc_ids = set()
+
     if collection_name in existing_collections:
         existing = client.get_collection(collection_name)
         existing_count = existing.count()
-        print(
-            f"WARNING: Collection '{collection_name}' already exists with "
-            f"{existing_count} chunks. It will be dropped and rebuilt."
-        )
-        client.delete_collection(collection_name)
 
-    # Create collection (no embedding_function arg = ChromaDB default ONNX MiniLM)
-    collection = client.get_or_create_collection(
-        name=collection_name,
-        metadata={"chunk_size": chunk_size, "embedding_model": embedding_name},
-    )
+        if args.resume:
+            print(
+                f"RESUME: Collection '{collection_name}' has {existing_count} "
+                f"chunks. Skipping already-indexed documents."
+            )
+            collection = existing
+            # Retrieve indexed doc_ids by paginating through collection
+            if existing_count > 0:
+                page_size = 10000
+                offset = 0
+                while offset < existing_count:
+                    batch_limit = min(page_size, existing_count - offset)
+                    result = existing.get(
+                        include=["metadatas"],
+                        limit=batch_limit,
+                        offset=offset,
+                    )
+                    for m in result["metadatas"]:
+                        if m:
+                            indexed_doc_ids.add(m.get("doc_id"))
+                    offset += batch_limit
+                print(f"  Found {len(indexed_doc_ids)} already-indexed documents")
+        else:
+            print(
+                f"WARNING: Collection '{collection_name}' already exists with "
+                f"{existing_count} chunks. It will be dropped and rebuilt."
+            )
+            client.delete_collection(collection_name)
+            collection = None
+
+    if not args.resume or collection is None:
+        # Create collection (no embedding_function arg = ChromaDB default ONNX MiniLM)
+        collection = client.get_or_create_collection(
+            name=collection_name,
+            metadata={"chunk_size": chunk_size, "embedding_model": embedding_name},
+        )
 
     # Discover corpus files
     files = discover_corpus_files(corpus_dir)
@@ -156,6 +227,11 @@ def run_index(args: argparse.Namespace) -> None:
 
         # Extract metadata from file path
         meta = extract_metadata(filepath)
+
+        # Skip already-indexed documents when resuming
+        if meta["doc_id"] in indexed_doc_ids:
+            continue
+
         total_docs += 1
 
         # Build chunk records with compound IDs
@@ -202,8 +278,10 @@ def run_index(args: argparse.Namespace) -> None:
     print(f"  Documents:        {total_docs:,}")
     if skipped_empty:
         print(f"  Skipped (empty):  {skipped_empty}")
-    print(f"  Total chunks:     {total_chunks:,}")
+    print(f"  New chunks:       {total_chunks:,}")
     print(f"  Stored in DB:     {stored_count:,}")
+    if indexed_doc_ids:
+        print(f"  Resumed from:     {len(indexed_doc_ids)} previously indexed docs")
 
     if token_counts:
         print(f"  Token stats:")
@@ -240,7 +318,7 @@ def run_query(args: argparse.Namespace) -> None:
     client = chromadb.PersistentClient(path=db_path)
 
     # Check collection exists
-    existing = client.list_collections()
+    existing = _collection_names(client)
     if collection_name not in existing:
         print(f"ERROR: Collection '{collection_name}' not found.")
         print(f"Available collections: {existing}")
@@ -342,6 +420,11 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=5,
         help="Number of results for query mode (default: 5)",
+    )
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Resume an interrupted indexing run (skip already-indexed documents)",
     )
     parser.add_argument(
         "--verbose",
