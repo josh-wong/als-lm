@@ -57,3 +57,4 @@ rapidfuzz==3.14.3
 # RAG comparison (v0.6.0)
 chromadb==1.5.2
 nltk>=3.9
+sentence-transformers>=4.1
