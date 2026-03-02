@@ -30,7 +30,7 @@ SOURCE_TYPE_MAP = {
 DOC_ID_PATTERNS = [
     (r"pubmed-PMC(\d+)", lambda m: f"PMC{m.group(1)}"),
     (r"clinicaltrials-(NCT\d+)", lambda m: m.group(1)),
-    (r"bookshelf-(\d+)-(.+?)(?:-[a-f0-9]+)?$", lambda m: f"NBK{m.group(1)}"),
+    (r"bookshelf-(\d+)-(.+?)(?:-[a-f0-9]+)?$", lambda m: f"NBK{m.group(1)}-{m.group(2)}"),
     (r"wikipedia-(.+)$", lambda m: f"wiki:{m.group(1)}"),
 ]
 
