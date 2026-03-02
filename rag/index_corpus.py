@@ -202,6 +202,7 @@ def run_index(args: argparse.Namespace) -> None:
     # Check for existing collection
     existing_collections = _collection_names(client)
     indexed_doc_ids = set()
+    collection = None
 
     if collection_name in existing_collections:
         resume_ef = EMBEDDING_CONFIGS[embedding_name]["get_function"]()
