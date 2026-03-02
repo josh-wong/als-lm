@@ -91,49 +91,44 @@ def discover_corpus_files(corpus_dir: Path) -> list[Path]:
 
 
 def _get_minilm_function():
-    """Get the ONNX MiniLM embedding function (ChromaDB built-in).
+    """Get the MiniLM embedding function via sentence-transformers on GPU.
 
-    This is the same model ChromaDB uses by default, but returned
-    explicitly for pre-computing embeddings during indexing.
+    Uses all-MiniLM-L6-v2 (22M params, 384d) as the general-purpose
+    embedding model. Runs on CUDA for fast indexing.
     """
-    from chromadb.utils.embedding_functions import ONNXMiniLM_L6_V2
-    return ONNXMiniLM_L6_V2()
+    from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
+    return SentenceTransformerEmbeddingFunction(
+        model_name="all-MiniLM-L6-v2",
+        device="cuda",
+    )
 
 
 def _get_pubmedbert_function():
-    """Get the PubMedBERT embedding function via sentence-transformers.
+    """Get the PubMedBERT embedding function via sentence-transformers on GPU.
 
     Uses NeuML/pubmedbert-base-embeddings (110M params, 768d) for
-    biomedical-domain embeddings. Runs on CPU to avoid GPU contention
-    with Ollama during RAG evaluation.
+    biomedical-domain embeddings. Runs on CUDA for fast indexing.
     """
     from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
     return SentenceTransformerEmbeddingFunction(
         model_name="NeuML/pubmedbert-base-embeddings",
-        device="cpu",
+        device="cuda",
     )
 
 
 # Embedding model configurations. Each model specifies a factory function
-# (lazy lambda to avoid loading PyTorch/ONNX at import time), its output
-# dimensionality, and whether it is ChromaDB's built-in default.
-#
-# The `is_default` flag controls whether the EF is passed to
-# get_collection()/get_or_create_collection(). ChromaDB 1.x raises a
-# ValueError if you pass an explicit EF to a collection that was created
-# with the built-in default, because it sees "onnx_mini_lm_l6_v2" vs
-# "default" as a conflict. To avoid this, we omit the EF argument for
-# the default model and only pass it for non-default models.
+# (lazy import to avoid loading PyTorch at import time) and its output
+# dimensionality. Both models use sentence-transformers on CUDA for fast
+# indexing. The embedding function is always passed explicitly to ChromaDB
+# for collection creation and querying.
 EMBEDDING_CONFIGS = {
     "minilm": {
         "get_function": _get_minilm_function,
         "dimensions": 384,
-        "is_default": True,
     },
     "pubmedbert": {
         "get_function": _get_pubmedbert_function,
         "dimensions": 768,
-        "is_default": False,
     },
 }
 
@@ -209,16 +204,8 @@ def run_index(args: argparse.Namespace) -> None:
     indexed_doc_ids = set()
 
     if collection_name in existing_collections:
-        # Get the existing collection. For non-default models (e.g. PubMedBERT),
-        # we must pass the embedding function so ChromaDB knows the dimensions.
-        # For the default model (MiniLM), we omit it to avoid the ChromaDB 1.x
-        # conflict between "onnx_mini_lm_l6_v2" and "default" persisted config.
-        config = EMBEDDING_CONFIGS[embedding_name]
-        if config["is_default"]:
-            existing = client.get_collection(collection_name)
-        else:
-            resume_ef = config["get_function"]()
-            existing = client.get_collection(collection_name, embedding_function=resume_ef)
+        resume_ef = EMBEDDING_CONFIGS[embedding_name]["get_function"]()
+        existing = client.get_collection(collection_name, embedding_function=resume_ef)
         existing_count = existing.count()
 
         if args.resume:
@@ -255,16 +242,11 @@ def run_index(args: argparse.Namespace) -> None:
     ef = _init_embedding(embedding_name)
 
     if not args.resume or collection is None:
-        # Create collection. For non-default models (PubMedBERT), pass the
-        # embedding function so ChromaDB stores the correct config. For the
-        # default model (MiniLM), omit the EF to use ChromaDB's built-in.
-        create_kwargs = {
-            "name": collection_name,
-            "metadata": {"chunk_size": chunk_size, "embedding_model": embedding_name},
-        }
-        if not EMBEDDING_CONFIGS[embedding_name]["is_default"]:
-            create_kwargs["embedding_function"] = ef
-        collection = client.get_or_create_collection(**create_kwargs)
+        collection = client.get_or_create_collection(
+            name=collection_name,
+            embedding_function=ef,
+            metadata={"chunk_size": chunk_size, "embedding_model": embedding_name},
+        )
 
     # Discover corpus files
     files = discover_corpus_files(corpus_dir)
@@ -412,16 +394,10 @@ def run_query(args: argparse.Namespace) -> None:
         sys.exit(1)
 
     # Get collection with correct embedding function for the model.
-    # CRITICAL: For non-default models (PubMedBERT, 768d), must pass the
-    # same embedding function used during indexing. For the default model
-    # (MiniLM), omit the EF to avoid ChromaDB 1.x conflict between
-    # "onnx_mini_lm_l6_v2" and "default" persisted config.
-    config = EMBEDDING_CONFIGS[query_embedding]
-    if config["is_default"]:
-        collection = client.get_collection(collection_name)
-    else:
-        ef = config["get_function"]()
-        collection = client.get_collection(collection_name, embedding_function=ef)
+    # CRITICAL: Must pass the same embedding function used during indexing
+    # to avoid dimension mismatch errors (MiniLM=384d, PubMedBERT=768d).
+    ef = EMBEDDING_CONFIGS[query_embedding]["get_function"]()
+    collection = client.get_collection(collection_name, embedding_function=ef)
     total_chunks = collection.count()
 
     # Run query
