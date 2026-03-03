@@ -763,19 +763,20 @@ def append_retrieval_analysis(report_path, questions, responses):
         category_stats[cat]["total_facts"] += hit["total_facts"]
         category_stats[cat]["found_facts"] += hit["found_facts"]
 
-    # Load scores.json for retrieval-vs-generation correlation
+    # Load scores.json for retrieval-vs-generation correlation.
+    # The scores schema uses per_question with accuracy_binary (0/1).
     scores_path = os.path.join(os.path.dirname(report_path), "scores.json")
     category_accuracy = {}
     if os.path.isfile(scores_path):
         try:
             with open(scores_path) as f:
                 scores_data = json.load(f)
-            for entry in scores_data.get("scores", []):
+            for entry in scores_data.get("per_question", []):
                 cat = entry.get("category", "unknown")
                 if cat not in category_accuracy:
                     category_accuracy[cat] = {"correct": 0, "total": 0}
                 category_accuracy[cat]["total"] += 1
-                if entry.get("correct", False):
+                if entry.get("accuracy_binary", 0) == 1:
                     category_accuracy[cat]["correct"] += 1
         except (json.JSONDecodeError, KeyError, OSError):
             pass
@@ -1209,10 +1210,12 @@ def main():
                 try:
                     with open(scores_path) as f:
                         scores = json.load(f)
-                    score_list = scores.get("scores", [])
+                    # scores.json uses per_question with accuracy_binary
+                    score_list = scores.get("per_question", [])
                     if score_list:
                         correct = sum(
-                            1 for s in score_list if s.get("correct", False)
+                            1 for s in score_list
+                            if s.get("accuracy_binary", 0) == 1
                         )
                         accuracy_str = f"{correct}/{len(score_list)} " \
                                        f"({correct / len(score_list):.1%})"
