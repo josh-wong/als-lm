@@ -30,10 +30,19 @@ Usage examples::
 
 import argparse
 import json
+import os
 import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+
+# Ensure the project root is on sys.path so that imports from eval/ resolve
+# correctly when running as `python rag/compare_approaches.py`.
+_project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+
+from eval.utils import find_project_root
 
 try:
     from rapidfuzz import fuzz
@@ -97,26 +106,6 @@ REQUIRED_FILES = ["scores.json", "fabrications.json", "taxonomy.json", "response
 
 # Fuzzy matching threshold for key_fact presence in chunks
 FUZZY_THRESHOLD = 80
-
-
-# ---------------------------------------------------------------------------
-# Project root discovery
-# ---------------------------------------------------------------------------
-
-def find_project_root() -> Path:
-    """Locate the project root relative to this script's location.
-
-    The script lives at rag/compare_approaches.py, so parent.parent gives
-    the project root. Validates by checking that eval/ exists.
-    """
-    root = Path(__file__).resolve().parent.parent
-    if not (root / "eval").is_dir():
-        print(
-            f"WARNING: Could not verify project root at {root} "
-            f"(eval/ directory not found).",
-            file=sys.stderr,
-        )
-    return root
 
 
 # ---------------------------------------------------------------------------
