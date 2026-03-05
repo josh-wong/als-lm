@@ -771,10 +771,9 @@ def generate_markdown_report(
     for name in approach_names:
         row_acc += f" {overall_accuracy[name]['mean_accuracy']:>{col_w}.4f} |"
         pr = overall_accuracy[name]['binary_pass_rate']
-        if isinstance(pr, float) and pr <= 1.0:
-            row_pass += f" {pr:>{col_w}.1%} |"
-        else:
-            row_pass += f" {pr:>{col_w}} |"
+        # Normalize to float for consistent percentage display
+        pr_float = float(pr) if not isinstance(pr, float) else pr
+        row_pass += f" {pr_float:>{col_w}.1%} |"
         row_hedge += f" {overall_accuracy[name]['hedging']:>{col_w}} |"
     add(row_acc)
     add(row_pass)
