@@ -183,7 +183,7 @@ def save_responses(output_path, responses, metadata):
         "metadata": metadata,
         "responses": responses,
     }
-    with open(output_path, "w") as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         json.dump(output, f, indent=2)
 
 
