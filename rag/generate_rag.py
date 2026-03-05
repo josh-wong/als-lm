@@ -923,15 +923,13 @@ def main():
                 PROJECT_ROOT, report_suffix=config_name
             )
 
-            # 6. Append retrieval analysis
+            # 6. Append retrieval analysis (use in-memory responses)
             if success:
                 report_path = os.path.join(
                     output_dir, f"hallucination_eval_{config_name}.md"
                 )
-                with open(responses_path) as f:
-                    resp_data = json.load(f)
                 append_retrieval_analysis(
-                    report_path, questions, resp_data["responses"]
+                    report_path, questions, responses
                 )
                 print(f"  Retrieval analysis appended to report")
         else:
