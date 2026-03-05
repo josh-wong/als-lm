@@ -114,6 +114,9 @@ def chunk_document(
     if not paragraphs:
         return []
 
+    # Token cost of the "\n\n" separator between paragraphs in a chunk
+    separator_tokens = count_tokens("\n\n")
+
     chunks = []
     current_chunk_parts = []
     current_token_count = 0
@@ -123,9 +126,10 @@ def chunk_document(
 
         if para_tokens <= max_tokens:
             # Paragraph fits -- try to add to current chunk
-            if current_token_count + para_tokens <= max_tokens:
+            join_cost = separator_tokens if current_chunk_parts else 0
+            if current_token_count + join_cost + para_tokens <= max_tokens:
                 current_chunk_parts.append(para)
-                current_token_count += para_tokens
+                current_token_count += join_cost + para_tokens
             else:
                 # Flush current chunk and start new one
                 if current_chunk_parts:
