@@ -705,6 +705,10 @@ def main():
 
     # --- Pre-flight checks ---------------------------------------------------
 
+    if fuzz is None:
+        print("\n  ERROR: rapidfuzz is required. Install with: pip install rapidfuzz")
+        sys.exit(1)
+
     print("  Pre-flight checks:")
     available_models = check_ollama_running(args.ollama_url)
     print(f"    Ollama server: OK ({len(available_models)} models available)")

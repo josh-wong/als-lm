@@ -136,7 +136,8 @@ def discover_approaches(
     """
     approaches = []
 
-    # From-scratch: single known directory
+    # From-scratch: default to the Q4_K_M quantised export (the only
+    # GGUF variant evaluated so far).  Override with --from-scratch-dir.
     scratch_path = from_scratch_dir or (
         project_root / "eval" / "results" / "als-lm-500m_q4_k_m"
     )
@@ -1513,6 +1514,13 @@ def main() -> int:
     if args.verbose:
         print("Cross-Approach Comparison Script")
         print()
+
+    if fuzz is None:
+        print(
+            "ERROR: rapidfuzz is required. Install with: pip install rapidfuzz",
+            file=sys.stderr,
+        )
+        return 1
 
     # 1. Find project root
     project_root = find_project_root()
