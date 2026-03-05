@@ -35,11 +35,9 @@ Usage examples::
 import argparse
 import json
 import os
-import subprocess
 import sys
 import time
 from datetime import datetime, timezone
-from pathlib import Path
 
 # Ensure the project root is on sys.path so that imports from eval/ resolve
 # correctly when running as `python rag/generate_baseline.py`.
@@ -49,8 +47,13 @@ if _project_root not in sys.path:
 
 from eval.generate_responses import is_coherent
 from eval.utils import find_project_root, resolve_default_paths, relativize_path
-
-import requests
+from rag.ollama_utils import (
+    check_ollama_running,
+    check_model_available,
+    generate_chat_response,
+    save_responses,
+    run_eval_stages,
+)
 
 # Project root and default paths
 PROJECT_ROOT = find_project_root()
@@ -155,285 +158,6 @@ def parse_args():
 
 
 # ---------------------------------------------------------------------------
-# Pre-flight checks
-# ---------------------------------------------------------------------------
-
-def check_ollama_running(ollama_url, timeout=10):
-    """Verify the Ollama server is reachable.
-
-    Args:
-        ollama_url: Base URL of the Ollama server.
-        timeout: Connection timeout in seconds.
-
-    Returns:
-        List of available model names, or exits on failure.
-    """
-    tags_url = f"{ollama_url.rstrip('/')}/api/tags"
-    try:
-        resp = requests.get(tags_url, timeout=timeout)
-        resp.raise_for_status()
-        data = resp.json()
-        models = [m["name"] for m in data.get("models", [])]
-        return models
-    except requests.ConnectionError:
-        print(f"ERROR: Cannot connect to Ollama at {ollama_url}")
-        print("  Is Ollama running? Start it with: ollama serve")
-        sys.exit(1)
-    except requests.Timeout:
-        print(f"ERROR: Ollama server at {ollama_url} timed out")
-        sys.exit(1)
-    except Exception as exc:
-        print(f"ERROR: Unexpected error checking Ollama: {exc}")
-        sys.exit(1)
-
-
-def check_model_available(ollama_url, model_name, available_models):
-    """Verify the requested model is pulled in Ollama.
-
-    Args:
-        ollama_url: Base URL of the Ollama server.
-        model_name: Requested model tag.
-        available_models: List of available model names from /api/tags.
-    """
-    if model_name in available_models:
-        return
-
-    # Check without tag suffix (e.g., "llama3.1:8b" matches "llama3.1:8b")
-    # Also try matching base name
-    base_name = model_name.split(":")[0]
-    for m in available_models:
-        if m == model_name or m.startswith(f"{base_name}:"):
-            return
-
-    print(f"ERROR: Model '{model_name}' not found in Ollama")
-    print(f"  Available models: {', '.join(available_models) if available_models else '(none)'}")
-    print(f"  Pull it with: ollama pull {model_name}")
-    sys.exit(1)
-
-
-# ---------------------------------------------------------------------------
-# Response generation via /api/chat
-# ---------------------------------------------------------------------------
-
-def generate_chat_response(ollama_url, model_name, system_prompt, user_message,
-                           max_tokens, timeout):
-    """Generate a single response via the Ollama /api/chat endpoint.
-
-    Uses the chat completions API (not /api/generate) so the model's native
-    instruction template is applied. Retries up to 3 times on connection
-    errors, timeouts, or 5xx HTTP errors with a 5-second delay.
-
-    Args:
-        ollama_url: Base URL of the Ollama server.
-        model_name: Ollama model tag.
-        system_prompt: System message content.
-        user_message: User message content (the benchmark question).
-        max_tokens: Maximum tokens to generate.
-        timeout: Request timeout in seconds.
-
-    Returns:
-        (response_text, tokens_generated) on success, or
-        ("[chat error: <details>]", 0) on permanent failure.
-    """
-    url = f"{ollama_url.rstrip('/')}/api/chat"
-    payload = {
-        "model": model_name,
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_message},
-        ],
-        "stream": False,
-        "options": {
-            "temperature": 0.0,
-            "num_predict": max_tokens,
-        },
-    }
-
-    max_retries = 3
-    for attempt in range(1, max_retries + 1):
-        try:
-            resp = requests.post(url, json=payload, timeout=timeout)
-            resp.raise_for_status()
-            data = resp.json()
-            response_text = data.get("message", {}).get("content", "")
-            tokens_generated = data.get("eval_count", 0)
-            if tokens_generated == 0 and response_text:
-                # Fallback: estimate from word count
-                tokens_generated = len(response_text.split())
-            return response_text, tokens_generated
-        except (requests.ConnectionError, requests.Timeout) as exc:
-            if attempt < max_retries:
-                print(f"    Retry {attempt}/{max_retries} after error: {exc}")
-                time.sleep(5)
-            else:
-                return f"[chat error: {exc}]", 0
-        except requests.HTTPError as exc:
-            if resp.status_code >= 500 and attempt < max_retries:
-                print(f"    Retry {attempt}/{max_retries} after HTTP {resp.status_code}")
-                time.sleep(5)
-            else:
-                return f"[chat error: HTTP {resp.status_code} - {exc}]", 0
-        except Exception as exc:
-            return f"[chat error: {exc}]", 0
-
-    return "[chat error: max retries exceeded]", 0
-
-
-# ---------------------------------------------------------------------------
-# Incremental save
-# ---------------------------------------------------------------------------
-
-def save_responses(output_path, responses, metadata):
-    """Write responses and metadata to a JSON file.
-
-    Args:
-        output_path: Path to the output JSON file.
-        responses: List of response dicts.
-        metadata: Metadata dict.
-    """
-    output = {
-        "metadata": metadata,
-        "responses": responses,
-    }
-    with open(output_path, "w") as f:
-        json.dump(output, f, indent=2)
-
-
-# ---------------------------------------------------------------------------
-# Eval stage orchestration
-# ---------------------------------------------------------------------------
-
-EVAL_STAGES = [
-    {
-        "name": "score",
-        "display": "Scoring responses",
-        "script": "eval/score_responses.py",
-        "build_args": lambda paths: [
-            "--responses", paths["responses"],
-            "--benchmark", paths["benchmark"],
-            "--output", paths["scores"],
-        ],
-    },
-    {
-        "name": "fabrications",
-        "display": "Detecting fabrications",
-        "script": "eval/detect_fabrications.py",
-        "build_args": lambda paths: [
-            "--responses", paths["responses"],
-            "--registry", paths["registry"],
-            "--output", paths["fabrications"],
-        ],
-    },
-    {
-        "name": "taxonomy",
-        "display": "Classifying taxonomy",
-        "script": "eval/classify_taxonomy.py",
-        "build_args": lambda paths: [
-            "--scores", paths["scores"],
-            "--fabrications", paths["fabrications"],
-            "--responses", paths["responses"],
-            "--benchmark", paths["benchmark"],
-            "--output", paths["taxonomy"],
-        ],
-    },
-    {
-        "name": "samples",
-        "display": "Curating samples",
-        "script": "eval/curate_samples.py",
-        "build_args": lambda paths: [
-            "--scores", paths["scores"],
-            "--fabrications", paths["fabrications"],
-            "--responses", paths["responses"],
-            "--benchmark", paths["benchmark"],
-            "--taxonomy", paths["taxonomy"],
-            "--output", paths["samples"],
-        ],
-    },
-    {
-        "name": "report",
-        "display": "Generating report",
-        "script": "eval/generate_report.py",
-        "build_args": lambda paths: [
-            "--scores", paths["scores"],
-            "--fabrications", paths["fabrications"],
-            "--taxonomy", paths["taxonomy"],
-            "--samples", paths["samples"],
-            "--responses", paths["responses"],
-            "--output", paths["report"],
-        ],
-    },
-]
-
-
-def run_eval_stages(output_dir, benchmark_path, registry_path):
-    """Invoke evaluation stages 2-6 via subprocess.
-
-    Each stage is a separate Python script invoked with explicit file path
-    arguments. This avoids argparse/sys.argv conflicts from direct imports
-    and provides subprocess isolation for memory management.
-
-    Args:
-        output_dir: Directory containing responses.json and for all output.
-        benchmark_path: Absolute path to benchmark questions JSON.
-        registry_path: Absolute path to entity registry JSON.
-
-    Returns:
-        True if all stages succeeded, False otherwise.
-    """
-    # Build file path map for all stages
-    paths = {
-        "responses": os.path.join(output_dir, "responses.json"),
-        "benchmark": benchmark_path,
-        "registry": registry_path,
-        "scores": os.path.join(output_dir, "scores.json"),
-        "fabrications": os.path.join(output_dir, "fabrications.json"),
-        "taxonomy": os.path.join(output_dir, "taxonomy.json"),
-        "samples": os.path.join(output_dir, "samples.json"),
-        "report": os.path.join(output_dir, "hallucination_eval_baseline.md"),
-    }
-
-    total = len(EVAL_STAGES)
-    pipeline_start = time.time()
-
-    for i, stage in enumerate(EVAL_STAGES, 1):
-        stage_name = stage["name"]
-        script_path = str(PROJECT_ROOT / stage["script"])
-        args = stage["build_args"](paths)
-
-        print(f"  [{i}/{total}] {stage['display']}...", end="", flush=True)
-        t0 = time.time()
-
-        result = subprocess.run(
-            [sys.executable, script_path] + args,
-            capture_output=True,
-            text=True,
-        )
-
-        elapsed = time.time() - t0
-
-        if result.returncode != 0:
-            print(f" FAILED ({elapsed:.1f}s)")
-            print(f"\n  ERROR in stage '{stage_name}':")
-            if result.stderr:
-                for line in result.stderr.strip().split("\n"):
-                    print(f"    {line}")
-            else:
-                print("    (no stderr output)")
-            if result.stdout:
-                print(f"\n  Stage stdout (last 10 lines):")
-                for line in result.stdout.strip().split("\n")[-10:]:
-                    print(f"    {line}")
-            return False
-
-        print(f" done ({elapsed:.1f}s)")
-
-    pipeline_elapsed = time.time() - pipeline_start
-    print(f"\n  Evaluation pipeline complete ({pipeline_elapsed:.1f}s total)")
-    print(f"  Report: {paths['report']}")
-    return True
-
-
-# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -490,7 +214,7 @@ def main():
             if not args.skip_eval:
                 print("\n  Skipping generation, running evaluation stages...\n")
                 success = run_eval_stages(output_dir, benchmark_path,
-                                          registry_path)
+                                          registry_path, PROJECT_ROOT)
                 if not success:
                     sys.exit(1)
                 return
@@ -617,7 +341,7 @@ def main():
         return
 
     print("\n  Running evaluation stages 2-6...\n")
-    success = run_eval_stages(output_dir, benchmark_path, registry_path)
+    success = run_eval_stages(output_dir, benchmark_path, registry_path, PROJECT_ROOT)
     if not success:
         print("\n  ERROR: Evaluation pipeline failed")
         sys.exit(1)
