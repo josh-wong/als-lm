@@ -59,6 +59,7 @@ from eval.utils import relativize_path
 from eval.utils import find_project_root, resolve_default_paths
 from rag.chunker import count_tokens
 from rag.ollama_utils import (
+    DEFAULT_SYSTEM_PROMPT,
     check_ollama_running,
     check_model_available,
     generate_chat_response,
@@ -76,13 +77,8 @@ except ImportError:
 PROJECT_ROOT = find_project_root()
 DEFAULTS = resolve_default_paths(PROJECT_ROOT)
 
-# Default system prompt: identical to baseline (Phase 15) so the ONLY variable
-# between baseline and RAG is whether retrieved chunks are injected into the
-# user message.
-DEFAULT_SYSTEM_PROMPT = (
-    "Answer the following question about ALS (amyotrophic lateral sclerosis) "
-    "based on your knowledge. Be concise and factual."
-)
+# The canonical DEFAULT_SYSTEM_PROMPT is imported from rag.ollama_utils
+# to ensure baseline and RAG use the exact same prompt.
 
 # ---------------------------------------------------------------------------
 # Collection and template configurations

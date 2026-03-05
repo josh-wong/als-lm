@@ -48,6 +48,7 @@ if _project_root not in sys.path:
 from eval.generate_responses import is_coherent
 from eval.utils import find_project_root, resolve_default_paths, relativize_path
 from rag.ollama_utils import (
+    DEFAULT_SYSTEM_PROMPT,
     check_ollama_running,
     check_model_available,
     generate_chat_response,
@@ -59,14 +60,8 @@ from rag.ollama_utils import (
 PROJECT_ROOT = find_project_root()
 DEFAULTS = resolve_default_paths(PROJECT_ROOT)
 
-# Default system prompt: minimal factual instruction without domain knowledge
-# injection. This exact prompt will be reused in the Phase 16 RAG pipeline so
-# the ONLY variable between baseline and RAG is whether retrieved chunks are
-# injected into the user message.
-DEFAULT_SYSTEM_PROMPT = (
-    "Answer the following question about ALS (amyotrophic lateral sclerosis) "
-    "based on your knowledge. Be concise and factual."
-)
+# Re-export for backwards compatibility with --system-prompt default
+# The canonical definition lives in rag.ollama_utils.
 
 
 # ---------------------------------------------------------------------------

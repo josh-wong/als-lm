@@ -17,6 +17,14 @@ from pathlib import Path
 
 import requests
 
+# Default system prompt: minimal factual instruction without domain knowledge
+# injection. Shared between baseline and RAG scripts so the ONLY variable
+# between them is whether retrieved chunks are injected into the user message.
+DEFAULT_SYSTEM_PROMPT = (
+    "Answer the following question about ALS (amyotrophic lateral sclerosis) "
+    "based on your knowledge. Be concise and factual."
+)
+
 
 # ---------------------------------------------------------------------------
 # Pre-flight checks
