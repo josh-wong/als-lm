@@ -376,15 +376,28 @@ def build_config_list(args):
     return configs
 
 
-def is_config_complete(output_dir, total_questions):
-    """Check if a config's responses.json exists and has all questions."""
+def is_config_complete(output_dir, total_questions, question_ids=None):
+    """Check if a config's responses.json exists and has all questions.
+
+    Args:
+        output_dir: Directory containing responses.json.
+        total_questions: Expected number of questions.
+        question_ids: Optional set of expected question IDs. When provided,
+            validates that every expected ID is present (not just count).
+    """
     responses_path = os.path.join(output_dir, "responses.json")
     if not os.path.isfile(responses_path):
         return False
     try:
         with open(responses_path) as f:
             data = json.load(f)
-        return len(data.get("responses", [])) >= total_questions
+        responses = data.get("responses", [])
+        if len(responses) < total_questions:
+            return False
+        if question_ids is not None:
+            found_ids = {r["question_id"] for r in responses}
+            return question_ids.issubset(found_ids)
+        return True
     except (json.JSONDecodeError, KeyError, OSError):
         return False
 
@@ -729,6 +742,7 @@ def main():
     with open(benchmark_path) as f:
         questions = json.load(f)
     total_questions = len(questions)
+    question_ids = {q["id"] for q in questions}
     print(f"\n  Benchmark: {total_questions} questions loaded")
 
     # --- Build config list ---------------------------------------------------
@@ -776,7 +790,7 @@ def main():
         print(f"{'=' * 60}")
 
         # 1. Skip if complete (resume mode)
-        if args.resume and is_config_complete(output_dir, total_questions):
+        if args.resume and is_config_complete(output_dir, total_questions, question_ids):
             print(f"  SKIP: Config already complete ({total_questions} responses)")
 
             # Still run eval + retrieval analysis if not skipping eval
