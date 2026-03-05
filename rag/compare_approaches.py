@@ -236,6 +236,11 @@ def load_approach_data(approach: dict) -> dict:
     # Normalize responses: unwrap {"responses": [...]} envelope if present
     resp = data["responses"]
     if isinstance(resp, dict) and "responses" in resp:
+        if not isinstance(resp["responses"], list):
+            raise ValueError(
+                f"'responses' key in {approach['path']}/responses.json is not a "
+                f"list: got {type(resp['responses']).__name__}"
+            )
         data["responses"] = resp["responses"]
     elif not isinstance(resp, list):
         raise ValueError(
