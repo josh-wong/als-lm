@@ -119,6 +119,7 @@ def generate_chat_response(ollama_url, model_name, system_prompt, user_message,
     }
 
     max_retries = 3
+    resp = None
     for attempt in range(1, max_retries + 1):
         try:
             resp = requests.post(url, json=payload, timeout=timeout)
@@ -137,7 +138,7 @@ def generate_chat_response(ollama_url, model_name, system_prompt, user_message,
             else:
                 return f"[chat error: {exc}]", 0
         except requests.HTTPError as exc:
-            if resp.status_code >= 500 and attempt < max_retries:
+            if resp is not None and resp.status_code >= 500 and attempt < max_retries:
                 print(f"    Retry {attempt}/{max_retries} after HTTP {resp.status_code}")
                 time.sleep(5)
             else:
