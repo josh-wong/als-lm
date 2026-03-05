@@ -17,7 +17,14 @@ set -euo pipefail
 DB_PATH="${1:-data/chromadb}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
-PYTHON="${PROJECT_DIR}/.venv/bin/python"
+
+# Prefer $VIRTUAL_ENV if set (e.g. from `source .venv/bin/activate`),
+# otherwise fall back to the conventional .venv location.
+if [ -n "${VIRTUAL_ENV:-}" ] && [ -x "${VIRTUAL_ENV}/bin/python" ]; then
+    PYTHON="${VIRTUAL_ENV}/bin/python"
+else
+    PYTHON="${PROJECT_DIR}/.venv/bin/python"
+fi
 
 if [ ! -x "$PYTHON" ]; then
     echo "ERROR: Python not found at $PYTHON"
