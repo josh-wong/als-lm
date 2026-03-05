@@ -89,5 +89,5 @@ def relativize_path(path_str):
         project_root = find_project_root()
         rel = abs_path.relative_to(project_root)
         return str(rel)
-    except (ValueError, SystemExit):
+    except ValueError:
         return str(path_str)
