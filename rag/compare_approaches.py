@@ -44,6 +44,7 @@ if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
 
 from eval.utils import find_project_root
+from rag import FUZZY_THRESHOLD
 
 try:
     from rapidfuzz import fuzz
@@ -99,10 +100,6 @@ DISPLAY_NAMES = {
 
 # Required JSON files per approach directory
 REQUIRED_FILES = ["scores.json", "fabrications.json", "taxonomy.json", "responses.json"]
-
-# Fuzzy matching threshold for key_fact presence in chunks
-FUZZY_THRESHOLD = 80
-
 
 # ---------------------------------------------------------------------------
 # Data loading

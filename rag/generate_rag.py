@@ -57,6 +57,7 @@ if _project_root not in sys.path:
 from eval.generate_responses import is_coherent
 from eval.utils import relativize_path
 from eval.utils import find_project_root, resolve_default_paths
+from rag import FUZZY_THRESHOLD
 from rag.chunker import count_tokens
 from rag.ollama_utils import (
     DEFAULT_SYSTEM_PROMPT,
@@ -422,7 +423,7 @@ def load_partial_responses(output_dir):
 # Retrieval analysis
 # ---------------------------------------------------------------------------
 
-def compute_hit_rate(questions, responses, threshold=80):
+def compute_hit_rate(questions, responses, threshold=FUZZY_THRESHOLD):
     """Compute retrieval hit rate using fuzzy matching of key_facts.
 
     For each question, checks whether each key_fact appears in the
