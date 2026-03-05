@@ -72,6 +72,12 @@ def resolve_default_paths(project_root):
 _cached_project_root = None
 
 
+def _reset_cache():
+    """Reset the cached project root (for testing only)."""
+    global _cached_project_root
+    _cached_project_root = None
+
+
 def relativize_path(path_str):
     """Convert an absolute path to a project-relative path for JSON metadata.
 
