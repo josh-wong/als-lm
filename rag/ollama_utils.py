@@ -142,7 +142,7 @@ def generate_chat_response(ollama_url, model_name, system_prompt, user_message,
                 time.sleep(5)
             else:
                 return f"[chat error: HTTP {resp.status_code} - {exc}]", 0
-        except Exception as exc:
+        except (json.JSONDecodeError, KeyError, ValueError, OSError) as exc:
             return f"[chat error: {exc}]", 0
 
     return "[chat error: max retries exceeded]", 0
