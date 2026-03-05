@@ -30,6 +30,7 @@ Usage examples::
 
 import argparse
 import json
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -1121,8 +1122,9 @@ def generate_markdown_report(
         for name in approach_names:
             resp_entry = response_map.get(qid, {}).get(name, {})
             resp_text = resp_entry.get("response", "(no response)")
-            # Full untruncated text
+            # Full untruncated text, collapse consecutive blank lines
             resp_clean = resp_text.strip()
+            resp_clean = re.sub(r'\n{3,}', '\n\n', resp_clean)
             add(f"**{display[name]}:**")
             add()
             add(f"> {resp_clean}")
