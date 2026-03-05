@@ -113,6 +113,11 @@ def chunk_document(
     Returns a list of dicts with 'text' and 'token_count' keys.
     Token counts are computed on the final text (after overlap) to avoid drift.
     """
+    if max_tokens <= 0:
+        raise ValueError(f"max_tokens must be positive, got {max_tokens}")
+    if overlap_tokens < 0:
+        raise ValueError(f"overlap_tokens must be non-negative, got {overlap_tokens}")
+
     paragraphs = split_into_paragraphs(text)
 
     if not paragraphs:
