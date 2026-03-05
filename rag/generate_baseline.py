@@ -48,7 +48,7 @@ if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
 
 from eval.generate_responses import is_coherent
-from eval.utils import find_project_root, resolve_default_paths
+from eval.utils import find_project_root, resolve_default_paths, relativize_path
 
 import requests
 
@@ -647,7 +647,7 @@ def _build_metadata(args, total_questions, completed_questions):
             "max_tokens": args.max_tokens,
             "temperature": 0.0,
         },
-        "benchmark_path": str(args.benchmark),
+        "benchmark_path": relativize_path(str(args.benchmark)),
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "total_questions": total_questions,
         "completed_questions": completed_questions,

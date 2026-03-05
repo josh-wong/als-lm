@@ -1,10 +1,10 @@
 {
   "metadata": {
-    "scores_path": "/mnt/c/Users/joshu/OneDrive/Documents/GitHub/als-lm/eval/results/als-lm-500m_q4_k_m/scores.json",
-    "fabrications_path": "/mnt/c/Users/joshu/OneDrive/Documents/GitHub/als-lm/eval/results/als-lm-500m_q4_k_m/fabrications.json",
-    "responses_path": "/mnt/c/Users/joshu/OneDrive/Documents/GitHub/als-lm/eval/results/als-lm-500m_q4_k_m/responses.json",
-    "benchmark_path": "/mnt/c/Users/joshu/OneDrive/Documents/GitHub/als-lm/eval/questions.json",
-    "taxonomy_path": "/mnt/c/Users/joshu/OneDrive/Documents/GitHub/als-lm/eval/results/als-lm-500m_q4_k_m/taxonomy.json",
+    "scores_path": "eval/results/als-lm-500m_q4_k_m/scores.json",
+    "fabrications_path": "eval/results/als-lm-500m_q4_k_m/fabrications.json",
+    "responses_path": "eval/results/als-lm-500m_q4_k_m/responses.json",
+    "benchmark_path": "eval/questions.json",
+    "taxonomy_path": "eval/results/als-lm-500m_q4_k_m/taxonomy.json",
     "timestamp": "2026-02-28T07:55:03.202704+00:00",
     "selection_criteria": {
       "best": "Top 10 by accuracy_proportional",

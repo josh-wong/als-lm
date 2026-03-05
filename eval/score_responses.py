@@ -49,7 +49,7 @@ if _project_root not in sys.path:
 
 # Auto-discover project root for default paths
 try:
-    from eval.utils import find_project_root, resolve_default_paths
+    from eval.utils import find_project_root, resolve_default_paths, relativize_path
     _PROJECT_ROOT = find_project_root()
     _DEFAULTS = resolve_default_paths(_PROJECT_ROOT)
 except ImportError:
@@ -443,8 +443,8 @@ def main():
     # Build output
     output = {
         "metadata": {
-            "responses_path": args.responses,
-            "benchmark_path": args.benchmark,
+            "responses_path": relativize_path(args.responses),
+            "benchmark_path": relativize_path(args.benchmark),
             "threshold": args.threshold,
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "total_questions": len(benchmark),

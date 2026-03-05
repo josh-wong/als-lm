@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "responses_path": "/mnt/c/Users/joshu/OneDrive/Documents/GitHub/als-lm/eval/results/als-lm-500m_f16/responses.json",
-    "benchmark_path": "/mnt/c/Users/joshu/OneDrive/Documents/GitHub/als-lm/eval/questions.json",
+    "responses_path": "eval/results/als-lm-500m_f16/responses.json",
+    "benchmark_path": "eval/questions.json",
     "threshold": 80,
     "timestamp": "2026-02-28T07:46:31.100048+00:00",
     "total_questions": 160,

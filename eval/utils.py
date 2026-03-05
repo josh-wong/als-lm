@@ -67,3 +67,27 @@ def resolve_default_paths(project_root):
         "benchmark": project_root / "eval" / "questions.json",
         "registry": project_root / "eval" / "entity_registry.json",
     }
+
+
+def relativize_path(path_str):
+    """Convert an absolute path to a project-relative path for JSON metadata.
+
+    Strips the project root prefix so that stored paths are portable across
+    machines. If the path is not under the project root, returns it unchanged.
+
+    Args:
+        path_str: A path string (absolute or relative).
+
+    Returns:
+        A string with the project-relative path (e.g., ``eval/questions.json``)
+        or the original string if it cannot be made relative.
+    """
+    if path_str is None:
+        return None
+    try:
+        abs_path = Path(path_str).resolve()
+        project_root = find_project_root()
+        rel = abs_path.relative_to(project_root)
+        return str(rel)
+    except (ValueError, SystemExit):
+        return str(path_str)

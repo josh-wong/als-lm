@@ -57,6 +57,7 @@ if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
 
 from eval.generate_responses import is_coherent
+from eval.utils import relativize_path
 from eval.utils import find_project_root, resolve_default_paths
 from rag.chunker import count_tokens
 
@@ -234,8 +235,8 @@ def parse_args():
     parser.add_argument(
         "--chroma-db",
         type=str,
-        default=str(PROJECT_ROOT / "data" / "chromadb"),
-        help="ChromaDB persistent storage path (default: data/chromadb)",
+        default=os.environ.get("ALS_CHROMADB_PATH", str(PROJECT_ROOT / "data" / "chromadb")),
+        help="ChromaDB persistent storage path (env: ALS_CHROMADB_PATH, default: data/chromadb)",
     )
     parser.add_argument(
         "--resume",
@@ -901,7 +902,7 @@ def _build_metadata(args, config, total_questions, completed_questions,
             "template": config["template"],
             "top_k": args.top_k,
         },
-        "benchmark_path": str(args.benchmark),
+        "benchmark_path": relativize_path(str(args.benchmark)),
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "total_questions": total_questions,
         "completed_questions": completed_questions,
