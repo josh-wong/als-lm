@@ -188,8 +188,9 @@ def chunk_document(
 
             # Remaining sentences become start of next chunk
             if sent_parts:
-                current_chunk_parts = [" ".join(sent_parts)]
-                current_token_count = sent_token_count
+                merged = " ".join(sent_parts)
+                current_chunk_parts = [merged]
+                current_token_count = count_tokens(merged)
 
     # Flush remaining content
     if current_chunk_parts:
