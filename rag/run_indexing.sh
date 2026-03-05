@@ -1,5 +1,5 @@
 #!/bin/bash
-# Run full corpus indexing for all three collections (GPU-accelerated).
+# Run full corpus indexing for all four collections (GPU-accelerated).
 #
 # This script indexes the 35K-document ALS corpus into ChromaDB using
 # sentence-transformers on CUDA for fast embedding computation.
@@ -29,34 +29,44 @@ echo "  Python: $PYTHON"
 echo "  Start time: $(date)"
 echo ""
 
-echo "--- Step 1/6: 500-token MiniLM indexing ---"
+echo "--- Step 1/8: 500-token MiniLM indexing ---"
 "$PYTHON" rag/index_corpus.py --chunk-size 500 --embedding minilm \
     --db-path "$DB_PATH" --resume --verbose
 echo ""
 
-echo "--- Step 2/6: Validate 500-token MiniLM collection ---"
+echo "--- Step 2/8: Validate 500-token MiniLM collection ---"
 "$PYTHON" rag/index_corpus.py --query "What gene mutations are associated with ALS?" \
     --collection als_500_minilm --db-path "$DB_PATH"
 echo ""
 
-echo "--- Step 3/6: 200-token MiniLM indexing ---"
+echo "--- Step 3/8: 200-token MiniLM indexing ---"
 "$PYTHON" rag/index_corpus.py --chunk-size 200 --embedding minilm \
     --db-path "$DB_PATH" --resume --verbose
 echo ""
 
-echo "--- Step 4/6: Validate 200-token MiniLM collection ---"
+echo "--- Step 4/8: Validate 200-token MiniLM collection ---"
 "$PYTHON" rag/index_corpus.py --query "What are the symptoms of ALS?" \
     --collection als_200_minilm --db-path "$DB_PATH"
 echo ""
 
-echo "--- Step 5/6: 500-token PubMedBERT indexing ---"
+echo "--- Step 5/8: 500-token PubMedBERT indexing ---"
 "$PYTHON" rag/index_corpus.py --chunk-size 500 --embedding pubmedbert \
     --db-path "$DB_PATH" --resume --verbose
 echo ""
 
-echo "--- Step 6/6: Validate 500-token PubMedBERT collection ---"
+echo "--- Step 6/8: Validate 500-token PubMedBERT collection ---"
 "$PYTHON" rag/index_corpus.py --query "What gene mutations are associated with ALS?" \
     --collection als_500_pubmedbert --db-path "$DB_PATH"
+echo ""
+
+echo "--- Step 7/8: 200-token PubMedBERT indexing ---"
+"$PYTHON" rag/index_corpus.py --chunk-size 200 --embedding pubmedbert \
+    --db-path "$DB_PATH" --resume --verbose
+echo ""
+
+echo "--- Step 8/8: Validate 200-token PubMedBERT collection ---"
+"$PYTHON" rag/index_corpus.py --query "What are the symptoms of ALS?" \
+    --collection als_200_pubmedbert --db-path "$DB_PATH"
 echo ""
 
 echo "============================================================"
