@@ -62,10 +62,11 @@ def check_model_available(ollama_url, model_name, available_models):
     if model_name in available_models:
         return
 
+    # Only match base_name:latest as a fallback (e.g. "llama3.1" matches
+    # "llama3.1:latest" but NOT "llama3.1:70b")
     base_name = model_name.split(":")[0]
-    for m in available_models:
-        if m == model_name or m.startswith(f"{base_name}:"):
-            return
+    if f"{base_name}:latest" in available_models:
+        return
 
     print(f"ERROR: Model '{model_name}' not found in Ollama")
     print(f"  Available models: {', '.join(available_models) if available_models else '(none)'}")
