@@ -117,6 +117,10 @@ def chunk_document(
         raise ValueError(f"max_tokens must be positive, got {max_tokens}")
     if overlap_tokens < 0:
         raise ValueError(f"overlap_tokens must be non-negative, got {overlap_tokens}")
+    if overlap_tokens >= max_tokens:
+        raise ValueError(
+            f"overlap_tokens ({overlap_tokens}) must be less than max_tokens ({max_tokens})"
+        )
 
     paragraphs = split_into_paragraphs(text)
 
