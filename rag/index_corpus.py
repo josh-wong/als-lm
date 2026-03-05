@@ -91,29 +91,41 @@ def discover_corpus_files(corpus_dir: Path) -> list[Path]:
     return files
 
 
+def _get_embedding_device():
+    """Return 'cuda' if available, otherwise 'cpu'."""
+    try:
+        import torch
+        return "cuda" if torch.cuda.is_available() else "cpu"
+    except ImportError:
+        return "cpu"
+
+
 def _get_minilm_function():
-    """Get the MiniLM embedding function via sentence-transformers on GPU.
+    """Get the MiniLM embedding function via sentence-transformers.
 
     Uses all-MiniLM-L6-v2 (22M params, 384d) as the general-purpose
-    embedding model. Runs on CUDA for fast indexing.
+    embedding model. Prefers CUDA when available, falls back to CPU.
     """
     from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
+    device = _get_embedding_device()
     return SentenceTransformerEmbeddingFunction(
         model_name="all-MiniLM-L6-v2",
-        device="cuda",
+        device=device,
     )
 
 
 def _get_pubmedbert_function():
-    """Get the PubMedBERT embedding function via sentence-transformers on GPU.
+    """Get the PubMedBERT embedding function via sentence-transformers.
 
     Uses NeuML/pubmedbert-base-embeddings (110M params, 768d) for
-    biomedical-domain embeddings. Runs on CUDA for fast indexing.
+    biomedical-domain embeddings. Prefers CUDA when available, falls
+    back to CPU.
     """
     from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
+    device = _get_embedding_device()
     return SentenceTransformerEmbeddingFunction(
         model_name="NeuML/pubmedbert-base-embeddings",
-        device="cuda",
+        device=device,
     )
 
 
