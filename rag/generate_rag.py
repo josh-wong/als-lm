@@ -307,6 +307,11 @@ def retrieve_and_build_prompt(collection, question_text, template_name, top_k):
     else:
         # Custom template string -- must contain {context_block} and {question}
         template = template_name
+        if "{context_block}" not in template or "{question}" not in template:
+            raise ValueError(
+                "Custom template must contain {context_block} and {question} "
+                f"placeholders. Got: {template[:80]}..."
+            )
 
     user_message = template.format(
         context_block=context_block,
