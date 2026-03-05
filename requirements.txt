@@ -58,3 +58,6 @@ rapidfuzz==3.14.3
 chromadb==1.5.2
 nltk==3.9.3
 sentence-transformers==5.2.3
+
+# Testing
+pytest==8.3.5
