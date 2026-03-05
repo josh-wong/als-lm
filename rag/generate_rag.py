@@ -390,7 +390,7 @@ def is_config_complete(output_dir, total_questions, question_ids=None):
     if not os.path.isfile(responses_path):
         return False
     try:
-        with open(responses_path) as f:
+        with open(responses_path, encoding="utf-8") as f:
             data = json.load(f)
         responses = data.get("responses", [])
         if len(responses) < total_questions:
@@ -412,7 +412,7 @@ def load_partial_responses(output_dir):
     if not os.path.isfile(responses_path):
         return {}
     try:
-        with open(responses_path) as f:
+        with open(responses_path, encoding="utf-8") as f:
             data = json.load(f)
         return {r["question_id"]: r for r in data.get("responses", [])}
     except (json.JSONDecodeError, KeyError, OSError):
@@ -546,7 +546,7 @@ def append_retrieval_analysis(report_path, questions, responses):
     category_accuracy = {}
     if os.path.isfile(scores_path):
         try:
-            with open(scores_path) as f:
+            with open(scores_path, encoding="utf-8") as f:
                 scores_data = json.load(f)
             for entry in scores_data.get("per_question", []):
                 cat = entry.get("category", "unknown")
@@ -650,7 +650,7 @@ def append_retrieval_analysis(report_path, questions, responses):
     lines.append("")
 
     # Append to report
-    with open(report_path, "a") as f:
+    with open(report_path, "a", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
 
@@ -744,7 +744,7 @@ def main():
 
     # --- Load benchmark questions --------------------------------------------
 
-    with open(benchmark_path) as f:
+    with open(benchmark_path, encoding="utf-8") as f:
         questions = json.load(f)
     total_questions = len(questions)
     question_ids = {q["id"] for q in questions}
@@ -810,7 +810,7 @@ def main():
                         args.project_root, report_suffix=config_name
                     )
                     if success:
-                        with open(responses_path) as f:
+                        with open(responses_path, encoding="utf-8") as f:
                             saved_responses = json.load(f)["responses"]
                         append_retrieval_analysis(
                             report_path, questions, saved_responses
@@ -991,7 +991,7 @@ def main():
 
             if os.path.isfile(scores_path):
                 try:
-                    with open(scores_path) as f:
+                    with open(scores_path, encoding="utf-8") as f:
                         scores = json.load(f)
                     # scores.json uses per_question with accuracy_binary
                     score_list = scores.get("per_question", [])
@@ -1007,7 +1007,7 @@ def main():
 
             if os.path.isfile(responses_path):
                 try:
-                    with open(responses_path) as f:
+                    with open(responses_path, encoding="utf-8") as f:
                         resp_data = json.load(f)
                     resps = resp_data.get("responses", [])
 

@@ -216,7 +216,7 @@ def main():
 
     if args.resume and os.path.isfile(responses_path):
         try:
-            with open(responses_path) as f:
+            with open(responses_path, encoding="utf-8") as f:
                 data = json.load(f)
             existing_responses = {
                 r["question_id"]: r for r in data.get("responses", [])
@@ -228,7 +228,7 @@ def main():
 
     # --- Load benchmark questions --------------------------------------------
 
-    with open(benchmark_path) as f:
+    with open(benchmark_path, encoding="utf-8") as f:
         questions = json.load(f)
     total_questions = len(questions)
     print(f"\n  Benchmark: {total_questions} questions loaded")
