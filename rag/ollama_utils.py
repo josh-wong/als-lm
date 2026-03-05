@@ -38,7 +38,10 @@ def check_ollama_running(ollama_url, timeout=10):
         timeout: Connection timeout in seconds.
 
     Returns:
-        List of available model names, or exits on failure.
+        List of available model names.
+
+    Raises:
+        RuntimeError: If the server cannot be reached or returns an error.
     """
     tags_url = f"{ollama_url.rstrip('/')}/api/tags"
     try:
@@ -48,15 +51,14 @@ def check_ollama_running(ollama_url, timeout=10):
         models = [m["name"] for m in data.get("models", [])]
         return models
     except requests.ConnectionError:
-        print(f"ERROR: Cannot connect to Ollama at {ollama_url}")
-        print("  Is Ollama running? Start it with: ollama serve")
-        sys.exit(1)
+        raise RuntimeError(
+            f"Cannot connect to Ollama at {ollama_url}. "
+            "Is Ollama running? Start it with: ollama serve"
+        )
     except requests.Timeout:
-        print(f"ERROR: Ollama server at {ollama_url} timed out")
-        sys.exit(1)
+        raise RuntimeError(f"Ollama server at {ollama_url} timed out")
     except Exception as exc:
-        print(f"ERROR: Unexpected error checking Ollama: {exc}")
-        sys.exit(1)
+        raise RuntimeError(f"Unexpected error checking Ollama: {exc}") from exc
 
 
 def check_model_available(ollama_url, model_name, available_models):
@@ -66,6 +68,9 @@ def check_model_available(ollama_url, model_name, available_models):
         ollama_url: Base URL of the Ollama server.
         model_name: Requested model tag.
         available_models: List of available model names from /api/tags.
+
+    Raises:
+        RuntimeError: If the model is not available.
     """
     if model_name in available_models:
         return
@@ -76,10 +81,12 @@ def check_model_available(ollama_url, model_name, available_models):
     if f"{base_name}:latest" in available_models:
         return
 
-    print(f"ERROR: Model '{model_name}' not found in Ollama")
-    print(f"  Available models: {', '.join(available_models) if available_models else '(none)'}")
-    print(f"  Pull it with: ollama pull {model_name}")
-    sys.exit(1)
+    models_str = ", ".join(available_models) if available_models else "(none)"
+    raise RuntimeError(
+        f"Model '{model_name}' not found in Ollama. "
+        f"Available models: {models_str}. "
+        f"Pull it with: ollama pull {model_name}"
+    )
 
 
 # ---------------------------------------------------------------------------

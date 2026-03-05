@@ -70,8 +70,7 @@ from rag.ollama_utils import (
 try:
     from rapidfuzz import fuzz
 except ImportError:
-    print("ERROR: rapidfuzz is required. Install with: pip install rapidfuzz")
-    sys.exit(1)
+    fuzz = None
 
 # Project root and default paths
 PROJECT_ROOT = find_project_root()
@@ -418,6 +417,11 @@ def compute_hit_rate(questions, responses, threshold=80):
 
     Returns (hit_rate, found_count, total_facts, per_question_hits).
     """
+    if fuzz is None:
+        raise ImportError(
+            "rapidfuzz is required for hit rate computation. "
+            "Install with: pip install rapidfuzz"
+        )
     total_facts = 0
     found_count = 0
     per_question_hits = []

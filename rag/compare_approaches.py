@@ -48,12 +48,7 @@ from eval.utils import find_project_root
 try:
     from rapidfuzz import fuzz
 except ImportError:
-    print(
-        "ERROR: rapidfuzz is required for failure decomposition.\n"
-        "Install with: pip install rapidfuzz",
-        file=sys.stderr,
-    )
-    sys.exit(1)
+    fuzz = None
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -322,6 +317,11 @@ def classify_failure(key_facts: list[str], chunks: list[str], threshold: int = F
     the failure is a generation failure (retrieval found relevant info, model
     still got it wrong). If no key_facts are found, it is a retrieval failure.
     """
+    if fuzz is None:
+        raise ImportError(
+            "rapidfuzz is required for failure decomposition. "
+            "Install with: pip install rapidfuzz"
+        )
     if not chunks or not key_facts:
         return "retrieval_failure"
 
