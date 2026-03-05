@@ -157,8 +157,10 @@ def generate_chat_response(ollama_url, model_name, system_prompt, user_message,
             if resp is not None and resp.status_code >= 500 and attempt < max_retries:
                 print(f"    Retry {attempt}/{max_retries} after HTTP {resp.status_code}")
                 time.sleep(5)
-            else:
+            elif resp is not None:
                 return f"[chat error: HTTP {resp.status_code} - {exc}]", 0
+            else:
+                return f"[chat error: {exc}]", 0
         except (json.JSONDecodeError, KeyError, ValueError, OSError) as exc:
             return f"[chat error: {exc}]", 0
 
