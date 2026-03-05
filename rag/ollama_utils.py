@@ -128,8 +128,8 @@ def generate_chat_response(ollama_url, model_name, system_prompt, user_message,
             response_text = data.get("message", {}).get("content", "")
             tokens_generated = data.get("eval_count", 0)
             if tokens_generated == 0 and response_text:
-                # Fallback: estimate from word count
-                tokens_generated = len(response_text.split())
+                # Fallback: estimate from word count with BPE multiplier
+                tokens_generated = int(len(response_text.split()) * 1.3)
             return response_text, tokens_generated
         except (requests.ConnectionError, requests.Timeout) as exc:
             if attempt < max_retries:
