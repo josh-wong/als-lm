@@ -371,11 +371,11 @@ def run_index(args: argparse.Namespace) -> None:
 
     expected_total = total_chunks + pre_existing_chunks
     if stored_count != expected_total:
-        print(
-            f"\n  WARNING: Chunk count mismatch! "
-            f"Expected {expected_total} ({pre_existing_chunks} pre-existing + "
-            f"{total_chunks} new), stored {stored_count}. "
-            f"Possible duplicate IDs."
+        raise RuntimeError(
+            f"Chunk count mismatch: expected {expected_total} "
+            f"({pre_existing_chunks} pre-existing + {total_chunks} new), "
+            f"but ChromaDB reports {stored_count}. "
+            f"Possible duplicate chunk IDs or data corruption."
         )
 
     print()
