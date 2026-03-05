@@ -22,6 +22,7 @@ Usage:
 """
 
 import argparse
+import os
 import statistics
 import sys
 import time
@@ -473,8 +474,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--db-path",
         type=str,
-        default="data/chromadb",
-        help="ChromaDB persistent storage path (default: data/chromadb)",
+        default=os.environ.get("ALS_CHROMADB_PATH", "data/chromadb"),
+        help="ChromaDB persistent storage path (env: ALS_CHROMADB_PATH, default: data/chromadb)",
     )
     parser.add_argument(
         "--query",
