@@ -12,8 +12,7 @@ import re
 import nltk
 import tiktoken
 
-# Download sentence tokenizer data (idempotent, ~2MB on first run)
-nltk.download("punkt_tab", quiet=True)
+_nltk_initialized = False
 
 # Module-level tiktoken encoder (cl100k_base is model-agnostic standard for RAG)
 enc = tiktoken.get_encoding("cl100k_base")
@@ -52,7 +51,12 @@ def split_paragraph_into_sentences(paragraph: str) -> list[str]:
     """Split a paragraph into sentences using NLTK.
 
     Handles medical abbreviations (Dr., et al., Fig. 1, p<0.05) correctly.
+    Downloads the punkt_tab data on first call (~2MB, idempotent).
     """
+    global _nltk_initialized
+    if not _nltk_initialized:
+        nltk.download("punkt_tab", quiet=True)
+        _nltk_initialized = True
     return nltk.sent_tokenize(paragraph)
 
 
