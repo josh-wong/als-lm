@@ -16,9 +16,9 @@ logger = logging.getLogger(__name__)
 def find_project_root():
     """Locate the project root by walking up from this file's directory.
 
-    Looks for a directory containing an ``eval/`` subdirectory with a
-    ``questions.json`` file (the benchmark). Starts from the directory
-    containing this module and walks toward the filesystem root.
+    Looks for a directory containing an ``eval/`` subdirectory. Starts
+    from the directory containing this module and walks toward the
+    filesystem root.
 
     Returns:
         A ``pathlib.Path`` pointing to the project root.
@@ -69,11 +69,17 @@ def resolve_default_paths(project_root):
     }
 
 
+_cached_project_root = None
+
+
 def relativize_path(path_str):
     """Convert an absolute path to a project-relative path for JSON metadata.
 
     Strips the project root prefix so that stored paths are portable across
     machines. If the path is not under the project root, returns it unchanged.
+
+    Caches the project root on first call to avoid repeated filesystem walks
+    during incremental saves.
 
     Args:
         path_str: A path string (absolute or relative).
@@ -82,12 +88,14 @@ def relativize_path(path_str):
         A string with the project-relative path (e.g., ``eval/questions.json``)
         or the original string if it cannot be made relative.
     """
+    global _cached_project_root
     if path_str is None:
         return None
     try:
         abs_path = Path(path_str).resolve()
-        project_root = find_project_root()
-        rel = abs_path.relative_to(project_root)
+        if _cached_project_root is None:
+            _cached_project_root = find_project_root()
+        rel = abs_path.relative_to(_cached_project_root)
         return str(rel)
     except ValueError:
         return str(path_str)
