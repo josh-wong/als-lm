@@ -1191,7 +1191,8 @@ def generate_markdown_report(
             resp_clean = re.sub(r'\n{3,}', '\n\n', resp_clean)
             add(f"**{display[name]}:**")
             add()
-            add(f"> {resp_clean}")
+            resp_quoted = "\n".join(f"> {line}" for line in resp_clean.split("\n"))
+            add(resp_quoted)
             add()
 
         # Retrieved chunks for RAG approaches
