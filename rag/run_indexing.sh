@@ -19,6 +19,12 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 PYTHON="${PROJECT_DIR}/.venv/bin/python"
 
+if [ ! -x "$PYTHON" ]; then
+    echo "ERROR: Python not found at $PYTHON"
+    echo "  Create the venv with: python -m venv .venv && .venv/bin/pip install -r requirements.txt"
+    exit 1
+fi
+
 cd "$PROJECT_DIR"
 
 echo "============================================================"
