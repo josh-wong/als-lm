@@ -118,8 +118,9 @@ def chunk_document(
     if not paragraphs:
         return []
 
-    # Token cost of the "\n\n" separator between paragraphs in a chunk
+    # Token cost of separators used when joining parts within a chunk
     separator_tokens = count_tokens("\n\n")
+    space_tokens = count_tokens(" ")
 
     chunks = []
     current_chunk_parts = []
@@ -161,9 +162,10 @@ def chunk_document(
 
             for sent in sentences:
                 sent_tokens = count_tokens(sent)
-                if sent_token_count + sent_tokens <= max_tokens:
+                join_cost = space_tokens if sent_parts else 0
+                if sent_token_count + join_cost + sent_tokens <= max_tokens:
                     sent_parts.append(sent)
-                    sent_token_count += sent_tokens
+                    sent_token_count += join_cost + sent_tokens
                 else:
                     if sent_parts:
                         chunk_text = " ".join(sent_parts)
