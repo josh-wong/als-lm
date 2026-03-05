@@ -212,6 +212,9 @@ def run_index(args: argparse.Namespace) -> None:
     # Initialize ChromaDB
     client = chromadb.PersistentClient(path=db_path)
 
+    # Initialize embedding function once (reused for both resume check and indexing)
+    ef = _init_embedding(embedding_name)
+
     # Check for existing collection
     existing_collections = _collection_names(client)
     indexed_doc_ids = set()
@@ -219,8 +222,7 @@ def run_index(args: argparse.Namespace) -> None:
     pre_existing_chunks = 0
 
     if collection_name in existing_collections:
-        resume_ef = EMBEDDING_CONFIGS[embedding_name]["get_function"]()
-        existing = client.get_collection(collection_name, embedding_function=resume_ef)
+        existing = client.get_collection(collection_name, embedding_function=ef)
         existing_count = existing.count()
 
         if args.resume:
@@ -253,9 +255,6 @@ def run_index(args: argparse.Namespace) -> None:
             )
             client.delete_collection(collection_name)
             collection = None
-
-    # Initialize embedding function for this run
-    ef = _init_embedding(embedding_name)
 
     if not args.resume or collection is None:
         collection = client.get_or_create_collection(
