@@ -72,10 +72,6 @@ try:
 except ImportError:
     fuzz = None
 
-# Project root and default paths
-PROJECT_ROOT = find_project_root()
-DEFAULTS = resolve_default_paths(PROJECT_ROOT)
-
 # The canonical DEFAULT_SYSTEM_PROMPT is imported from rag.ollama_utils
 # to ensure baseline and RAG use the exact same prompt.
 
@@ -140,6 +136,9 @@ def _get_query_embedding_function(embedding_name):
 
 def parse_args():
     """Parse command-line arguments for RAG generation and evaluation."""
+    project_root = find_project_root()
+    defaults = resolve_default_paths(project_root)
+
     parser = argparse.ArgumentParser(
         description=(
             "Generate RAG-augmented responses from an Ollama model using "
@@ -189,19 +188,19 @@ def parse_args():
     parser.add_argument(
         "--benchmark",
         type=str,
-        default=str(DEFAULTS["benchmark"]),
-        help=f"Path to benchmark questions JSON (default: {DEFAULTS['benchmark']})",
+        default=str(defaults["benchmark"]),
+        help=f"Path to benchmark questions JSON (default: {defaults['benchmark']})",
     )
     parser.add_argument(
         "--registry",
         type=str,
-        default=str(DEFAULTS["registry"]),
-        help=f"Path to entity registry JSON (default: {DEFAULTS['registry']})",
+        default=str(defaults["registry"]),
+        help=f"Path to entity registry JSON (default: {defaults['registry']})",
     )
     parser.add_argument(
         "--output-base",
         type=str,
-        default=str(PROJECT_ROOT / "rag" / "results"),
+        default=str(project_root / "rag" / "results"),
         help="Parent directory for per-config output subdirs (default: rag/results)",
     )
     parser.add_argument(
@@ -233,7 +232,7 @@ def parse_args():
     parser.add_argument(
         "--chroma-db",
         type=str,
-        default=os.environ.get("ALS_CHROMADB_PATH", str(PROJECT_ROOT / "data" / "chromadb")),
+        default=os.environ.get("ALS_CHROMADB_PATH", str(project_root / "data" / "chromadb")),
         help="ChromaDB persistent storage path (env: ALS_CHROMADB_PATH, default: data/chromadb)",
     )
     parser.add_argument(
@@ -255,7 +254,9 @@ def parse_args():
             "Only matching configs will be run."
         ),
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+    args.project_root = project_root
+    return args
 
 
 # ---------------------------------------------------------------------------
@@ -787,7 +788,7 @@ def main():
                     print("\n  Running evaluation stages...\n")
                     success = run_eval_stages(
                         output_dir, benchmark_path, registry_path,
-                        PROJECT_ROOT, report_suffix=config_name
+                        args.project_root, report_suffix=config_name
                     )
                     if success:
                         with open(responses_path) as f:
@@ -828,6 +829,7 @@ def main():
         questions_to_run = [
             q for q in questions if q["id"] not in existing_responses
         ]
+        responses = list(existing_responses.values())
 
         if not questions_to_run:
             print("  All questions already completed.")
@@ -835,7 +837,6 @@ def main():
             print(f"\n  Generating {len(questions_to_run)} responses "
                   f"(top-k={args.top_k}, num_ctx={args.num_ctx})...\n")
 
-            responses = list(existing_responses.values())
             gen_start = time.time()
 
             for i, question in enumerate(questions_to_run):
@@ -920,7 +921,7 @@ def main():
             print("\n  Running evaluation stages...\n")
             success = run_eval_stages(
                 output_dir, benchmark_path, registry_path,
-                PROJECT_ROOT, report_suffix=config_name
+                args.project_root, report_suffix=config_name
             )
 
             # 6. Append retrieval analysis (use in-memory responses)

@@ -56,20 +56,15 @@ from rag.ollama_utils import (
     run_eval_stages,
 )
 
-# Project root and default paths
-PROJECT_ROOT = find_project_root()
-DEFAULTS = resolve_default_paths(PROJECT_ROOT)
-
-# Re-export for backwards compatibility with --system-prompt default
-# The canonical definition lives in rag.ollama_utils.
-
-
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
 def parse_args():
     """Parse command-line arguments for baseline generation and evaluation."""
+    project_root = find_project_root()
+    defaults = resolve_default_paths(project_root)
+
     parser = argparse.ArgumentParser(
         description=(
             "Generate no-retrieval baseline responses from an Ollama model "
@@ -119,19 +114,19 @@ def parse_args():
     parser.add_argument(
         "--benchmark",
         type=str,
-        default=str(DEFAULTS["benchmark"]),
-        help=f"Path to benchmark questions JSON (default: {DEFAULTS['benchmark']})",
+        default=str(defaults["benchmark"]),
+        help=f"Path to benchmark questions JSON (default: {defaults['benchmark']})",
     )
     parser.add_argument(
         "--registry",
         type=str,
-        default=str(DEFAULTS["registry"]),
-        help=f"Path to entity registry JSON (default: {DEFAULTS['registry']})",
+        default=str(defaults["registry"]),
+        help=f"Path to entity registry JSON (default: {defaults['registry']})",
     )
     parser.add_argument(
         "--output-dir",
         type=str,
-        default=str(PROJECT_ROOT / "rag" / "results" / "baseline"),
+        default=str(project_root / "rag" / "results" / "baseline"),
         help="Output directory for all artifacts (default: rag/results/baseline)",
     )
     parser.add_argument(
@@ -149,7 +144,9 @@ def parse_args():
         action="store_true",
         help="Regenerate responses even if responses.json already exists",
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+    args.project_root = project_root
+    return args
 
 
 # ---------------------------------------------------------------------------
@@ -209,7 +206,7 @@ def main():
             if not args.skip_eval:
                 print("\n  Skipping generation, running evaluation stages...\n")
                 success = run_eval_stages(output_dir, benchmark_path,
-                                          registry_path, PROJECT_ROOT)
+                                          registry_path, args.project_root)
                 if not success:
                     sys.exit(1)
                 return
@@ -336,7 +333,8 @@ def main():
         return
 
     print("\n  Running evaluation stages 2-6...\n")
-    success = run_eval_stages(output_dir, benchmark_path, registry_path, PROJECT_ROOT)
+    success = run_eval_stages(output_dir, benchmark_path, registry_path,
+                              args.project_root)
     if not success:
         print("\n  ERROR: Evaluation pipeline failed")
         sys.exit(1)
