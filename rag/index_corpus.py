@@ -288,6 +288,9 @@ def run_index(args: argparse.Namespace) -> None:
                 print(f"\n  WARNING: Could not read {filepath}: {e}")
             continue
 
+        if "\ufffd" in text and verbose:
+            print(f"\n  WARNING: {filepath.name} has encoding errors (replacement characters inserted)")
+
         if not text.strip():
             skipped_empty += 1
             continue
