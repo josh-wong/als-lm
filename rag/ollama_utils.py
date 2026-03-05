@@ -76,9 +76,16 @@ def check_model_available(ollama_url, model_name, available_models):
         return
 
     # Only match base_name:latest as a fallback (e.g. "llama3.1" matches
-    # "llama3.1:latest" but NOT "llama3.1:70b")
+    # "llama3.1:latest" but NOT "llama3.1:70b"). Warn when using the
+    # fallback since :latest may not be the expected model size.
     base_name = model_name.split(":")[0]
-    if f"{base_name}:latest" in available_models:
+    latest_tag = f"{base_name}:latest"
+    if latest_tag in available_models:
+        print(
+            f"  WARNING: Exact model '{model_name}' not found. "
+            f"Using '{latest_tag}' instead. Verify this is the intended "
+            f"model size to avoid invalidating experiment results."
+        )
         return
 
     models_str = ", ".join(available_models) if available_models else "(none)"
