@@ -1028,9 +1028,10 @@ def main():
                         output_dir, benchmark_path, registry_path, config_name
                     )
                     if success:
+                        with open(responses_path) as f:
+                            saved_responses = json.load(f)["responses"]
                         append_retrieval_analysis(
-                            report_path, questions,
-                            json.load(open(responses_path))["responses"]
+                            report_path, questions, saved_responses
                         )
 
             skipped_configs.append(config_name)
