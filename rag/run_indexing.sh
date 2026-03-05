@@ -87,7 +87,7 @@ echo "ALL INDEXING COMPLETE"
 echo "============================================================"
 echo "  End time: $(date)"
 
-# Print collection summary
+# Print collection summary (best-effort, don't fail the script)
 ALS_CHROMADB_PATH="$DB_PATH" "$PYTHON" -c "
 import os, chromadb
 client = chromadb.PersistentClient(path=os.environ['ALS_CHROMADB_PATH'])
@@ -95,4 +95,4 @@ for c in client.list_collections():
     name = c.name if hasattr(c, 'name') else c
     coll = client.get_collection(name)
     print(f'  {name}: {coll.count():,} chunks')
-"
+" || echo "  (collection summary unavailable)"

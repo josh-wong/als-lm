@@ -269,8 +269,9 @@ def run_index(args: argparse.Namespace) -> None:
     print()
 
     if not files:
-        print("ERROR: No corpus files found. Check --corpus-dir path.")
-        sys.exit(1)
+        raise FileNotFoundError(
+            "No corpus files found. Check --corpus-dir path."
+        )
 
     # Process files with progress bar
     start_time = time.time()
@@ -409,9 +410,10 @@ def run_query(args: argparse.Namespace) -> None:
     # Check collection exists
     existing = _collection_names(client)
     if collection_name not in existing:
-        print(f"ERROR: Collection '{collection_name}' not found.")
-        print(f"Available collections: {existing}")
-        sys.exit(1)
+        raise ValueError(
+            f"Collection '{collection_name}' not found. "
+            f"Available collections: {existing}"
+        )
 
     # Get collection with correct embedding function for the model.
     # CRITICAL: Must pass the same embedding function used during indexing
