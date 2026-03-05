@@ -207,12 +207,44 @@ def load_approach_data(approach: dict) -> dict:
     """Load all 4 JSON result files for a single approach.
 
     Returns a dict with keys: scores, fabrications, taxonomy, responses.
+    Validates that expected top-level keys exist in each file to fail early
+    with clear messages instead of cryptic KeyErrors during metric computation.
+
+    Raises:
+        ValueError: If a required key is missing from any JSON file.
     """
+    # Expected top-level keys per file (only the keys accessed by metric functions)
+    required_keys = {
+        "scores": [("aggregate", "scores.json")],
+        "fabrications": [("summary", "fabrications.json")],
+        "taxonomy": [("distribution", "taxonomy.json"), ("per_question", "taxonomy.json")],
+    }
+
     data = {}
     for filename in REQUIRED_FILES:
         filepath = approach["path"] / filename
         with open(filepath, "r", encoding="utf-8") as f:
             data[filename.replace(".json", "")] = json.load(f)
+
+    # Validate required keys
+    for file_key, checks in required_keys.items():
+        for key, source_file in checks:
+            if key not in data[file_key]:
+                raise ValueError(
+                    f"Missing '{key}' in {source_file} for approach "
+                    f"'{approach['name']}' at {approach['path']}"
+                )
+
+    # Normalize responses: unwrap {"responses": [...]} envelope if present
+    resp = data["responses"]
+    if isinstance(resp, dict) and "responses" in resp:
+        data["responses"] = resp["responses"]
+    elif not isinstance(resp, list):
+        raise ValueError(
+            f"Unexpected responses format in {approach['path']}/responses.json: "
+            f"expected list or dict with 'responses' key, got {type(resp).__name__}"
+        )
+
     return data
 
 
@@ -1142,13 +1174,10 @@ def generate_markdown_report(
     )
     add()
 
-    # Build response lookup
+    # Build response lookup (responses already normalized by load_approach_data)
     response_map = {}
     for name in approach_names:
-        resp_list = all_data[name]["responses"]
-        if isinstance(resp_list, dict) and "responses" in resp_list:
-            resp_list = resp_list["responses"]
-        for entry in resp_list:
+        for entry in all_data[name]["responses"]:
             qid = entry["question_id"]
             if qid not in response_map:
                 response_map[qid] = {}
@@ -1353,13 +1382,10 @@ def build_json_output(
     approach_types = {a["name"]: a["approach_type"] for a in approaches}
     question_map = {q["id"]: q for q in questions}
 
-    # Build response lookup for deep-dives
+    # Build response lookup for deep-dives (responses already normalized)
     response_map = {}
     for name in approach_names:
-        resp_list = all_data[name]["responses"]
-        if isinstance(resp_list, dict) and "responses" in resp_list:
-            resp_list = resp_list["responses"]
-        for entry in resp_list:
+        for entry in all_data[name]["responses"]:
             qid = entry["question_id"]
             if qid not in response_map:
                 response_map[qid] = {}
@@ -1576,12 +1602,7 @@ def main() -> int:
             failure_decomposition[name] = None
             continue
 
-        responses_data = all_data[name]["responses"]
-        if isinstance(responses_data, dict) and "responses" in responses_data:
-            responses_list = responses_data["responses"]
-        else:
-            responses_list = responses_data
-
+        responses_list = all_data[name]["responses"]
         scores_per_q = all_data[name]["scores"]["per_question"]
         decomp = compute_failure_decomposition(
             questions, responses_list, scores_per_q,
