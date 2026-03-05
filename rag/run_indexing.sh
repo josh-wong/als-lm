@@ -75,9 +75,9 @@ echo "============================================================"
 echo "  End time: $(date)"
 
 # Print collection summary
-"$PYTHON" -c "
-import chromadb
-client = chromadb.PersistentClient(path='$DB_PATH')
+ALS_DB_PATH="$DB_PATH" "$PYTHON" -c "
+import os, chromadb
+client = chromadb.PersistentClient(path=os.environ['ALS_DB_PATH'])
 for c in client.list_collections():
     name = c.name if hasattr(c, 'name') else c
     coll = client.get_collection(name)
