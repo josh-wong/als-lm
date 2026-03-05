@@ -32,6 +32,7 @@ import argparse
 import json
 import os
 import re
+import statistics
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -717,19 +718,73 @@ def generate_markdown_report(
     worst_rag_name = min(rag_names, key=lambda n: overall_accuracy.get(n, {}).get("mean_accuracy", 0)) if rag_names else None
     worst_rag_acc = overall_accuracy.get(worst_rag_name, {}).get("mean_accuracy", 0) if worst_rag_name else 0
 
-    tldr = (
-        f"Compared 6 approaches across {question_count} ALS benchmark questions. "
-        f"The bare Llama 3.1 8B baseline ({baseline_acc:.1%} accuracy) outperforms "
-        f"all 4 RAG configurations (best: {display.get(best_rag_name, 'N/A')} at "
-        f"{best_rag_acc:.1%}, worst: {display.get(worst_rag_name, 'N/A')} at "
-        f"{worst_rag_acc:.1%}), indicating that retrieval does not help and sometimes "
-        f"hurts. The from-scratch ALS-LM ({als_lm_acc:.1%}) produces predominantly "
-        f"incoherent output. Embedding model choice is the single biggest lever: "
-        f"PubMedBERT-based configs achieve 6-7x higher accuracy than MiniLM-based "
-        f"configs, with {display.get(worst_rag_name, 'N/A')} showing "
-        f"{taxonomy_dist.get(worst_rag_name, {}).get('degenerate', {}).get('pct', 0):.0f}% "
-        f"degenerate responses."
-    )
+    # Build TL;DR dynamically from computed metrics
+    n_approaches = len(approach_names)
+    n_rag = len(rag_names)
+    tldr_parts = [
+        f"Compared {n_approaches} approaches across {question_count} ALS benchmark questions.",
+    ]
+
+    # Baseline vs RAG comparison (only if both exist)
+    if baseline_acc > 0 and best_rag_name:
+        if baseline_acc > best_rag_acc:
+            tldr_parts.append(
+                f"The baseline ({baseline_acc:.1%} accuracy) outperforms "
+                f"all {n_rag} RAG configurations (best: "
+                f"{display.get(best_rag_name, 'N/A')} at {best_rag_acc:.1%}), "
+                f"indicating that retrieval does not improve accuracy on this benchmark."
+            )
+        elif best_rag_acc > baseline_acc:
+            tldr_parts.append(
+                f"The best RAG configuration ({display.get(best_rag_name, 'N/A')} "
+                f"at {best_rag_acc:.1%}) outperforms the baseline "
+                f"({baseline_acc:.1%}), showing retrieval augmentation provides "
+                f"measurable benefit."
+            )
+        else:
+            tldr_parts.append(
+                f"The baseline and best RAG configuration tie at "
+                f"{baseline_acc:.1%} accuracy."
+            )
+
+    # ALS-LM commentary (only if present)
+    if "als_lm" in overall_accuracy:
+        als_degen = taxonomy_dist.get("als_lm", {}).get("degenerate", {}).get("pct", 0)
+        if als_lm_acc < 0.05 and als_degen > 20:
+            tldr_parts.append(
+                f"The from-scratch ALS-LM ({als_lm_acc:.1%}) produces predominantly "
+                f"incoherent output ({als_degen:.0f}% degenerate)."
+            )
+        else:
+            tldr_parts.append(
+                f"The from-scratch ALS-LM achieves {als_lm_acc:.1%} accuracy."
+            )
+
+    # Embedding model comparison (only if both exist among RAG configs)
+    minilm_rag = [n for n in rag_names if "minilm" in n]
+    pubmedbert_rag = [n for n in rag_names if "pubmedbert" in n]
+    if minilm_rag and pubmedbert_rag:
+        avg_minilm = statistics.mean(
+            overall_accuracy.get(n, {}).get("mean_accuracy", 0) for n in minilm_rag
+        )
+        avg_pubmedbert = statistics.mean(
+            overall_accuracy.get(n, {}).get("mean_accuracy", 0) for n in pubmedbert_rag
+        )
+        if avg_pubmedbert > 0 and avg_minilm > 0:
+            ratio = avg_pubmedbert / avg_minilm
+            if ratio > 1.5:
+                tldr_parts.append(
+                    f"PubMedBERT-based configs average {avg_pubmedbert:.1%} accuracy "
+                    f"vs {avg_minilm:.1%} for MiniLM ({ratio:.1f}x), making embedding "
+                    f"model choice the single biggest lever."
+                )
+            elif ratio < 0.67:
+                tldr_parts.append(
+                    f"MiniLM-based configs ({avg_minilm:.1%}) outperform "
+                    f"PubMedBERT ({avg_pubmedbert:.1%}) on this benchmark."
+                )
+
+    tldr = " ".join(tldr_parts)
     add(tldr)
     add()
 
@@ -770,17 +825,17 @@ def generate_markdown_report(
     add(row_hedge)
     add()
 
-    # Note the 500-MiniLM outlier
-    if "rag_500_minilm" in approach_names:
-        minilm_acc = overall_accuracy.get("rag_500_minilm", {}).get("mean_accuracy", 0)
-        minilm_degen = taxonomy_dist.get("rag_500_minilm", {}).get("degenerate", {}).get("pct", 0)
-        add(
-            f"The {display.get('rag_500_minilm', '500-MiniLM')} configuration is a "
-            f"significant outlier at {minilm_acc:.1%} accuracy with "
-            f"{minilm_degen:.0f}% degenerate responses. Large MiniLM chunks flood "
-            f"the context window with irrelevant text, causing repetitive output."
-        )
-        add()
+    # Flag any approach with high degenerate rate as an outlier
+    for name in approach_names:
+        degen_pct = taxonomy_dist.get(name, {}).get("degenerate", {}).get("pct", 0)
+        acc = overall_accuracy.get(name, {}).get("mean_accuracy", 0)
+        if degen_pct > 20 and approach_types.get(name) == "rag":
+            add(
+                f"The {display.get(name, name)} configuration shows "
+                f"{acc:.1%} accuracy with {degen_pct:.0f}% degenerate responses, "
+                f"suggesting context pollution from low-relevance retrieved chunks."
+            )
+            add()
 
     # -----------------------------------------------------------------------
     # Per-category breakdown
@@ -818,11 +873,20 @@ def generate_markdown_report(
         leader_counts[best] = leader_counts.get(best, 0) + 1
 
     top_leader = max(leader_counts, key=leader_counts.get)
+
+    # Find strongest and weakest categories by mean accuracy across approaches
+    cat_means = {
+        cat: statistics.mean(per_category[cat].get(n, 0.0) for n in approach_names)
+        for cat in CATEGORIES
+    }
+    strongest_cat = max(cat_means, key=cat_means.get).replace("_", " ")
+    weakest_cat = min(cat_means, key=cat_means.get).replace("_", " ")
+
     add(
         f"The {display[top_leader]} approach leads in {leader_counts[top_leader]} "
-        f"of {len(CATEGORIES)} categories. Drug treatment is the strongest "
-        f"category across most approaches, while disease mechanisms and "
-        f"epidemiology are consistently the weakest."
+        f"of {len(CATEGORIES)} categories. {strongest_cat.title()} is the strongest "
+        f"category by mean accuracy across approaches, while {weakest_cat} "
+        f"is the weakest."
     )
     add()
 
@@ -858,17 +922,22 @@ def generate_markdown_report(
     add(row_rate)
     add()
 
-    # Commentary on fabrication patterns
-    als_lm_ext = fabrication_rates.get("als_lm", {}).get("total_extracted", 0)
-    baseline_ext = fabrication_rates.get("baseline", {}).get("total_extracted", 0)
-    add(
-        f"The from-scratch ALS-LM extracts far fewer entities ({als_lm_ext}) than "
-        f"the baseline ({baseline_ext}) because its responses are largely "
-        f"incoherent text that does not contain recognizable entity names. Higher "
-        f"entity counts in baseline and RAG approaches reflect more fluent, "
-        f"substantive responses, but also more opportunities for fabrication."
-    )
-    add()
+    # Commentary on fabrication patterns — derive from data
+    entity_counts = {
+        name: fabrication_rates[name]["total_extracted"] for name in approach_names
+    }
+    min_ext_name = min(entity_counts, key=entity_counts.get)
+    max_ext_name = max(entity_counts, key=entity_counts.get)
+    if entity_counts[max_ext_name] > 3 * entity_counts.get(min_ext_name, 1):
+        add(
+            f"{display[min_ext_name]} extracts far fewer entities "
+            f"({entity_counts[min_ext_name]}) than "
+            f"{display[max_ext_name]} ({entity_counts[max_ext_name]}). "
+            f"Lower entity counts may reflect less fluent responses, while higher "
+            f"counts indicate more substantive output but also more opportunities "
+            f"for fabrication."
+        )
+        add()
 
     # -----------------------------------------------------------------------
     # Taxonomy distribution
@@ -917,13 +986,19 @@ def generate_markdown_report(
             )
     add()
 
-    add(
-        "The from-scratch ALS-LM has a more distributed failure profile with "
-        "significant degenerate output, while baseline and RAG approaches "
-        "concentrate in confident fabrication. This reflects fundamentally "
-        "different failure mechanisms: the from-scratch model lacks language "
-        "competence, while the larger models fabricate confidently."
-    )
+    # Derive cross-approach taxonomy observation from data
+    dominant_modes = {}
+    for name in approach_names:
+        dominant_modes[name] = max(
+            TAXONOMY_MODES, key=lambda m: taxonomy_dist[name][m]["pct"]
+        )
+    distinct_dominant = set(dominant_modes.values())
+    if len(distinct_dominant) > 1:
+        add(
+            f"The approaches exhibit {len(distinct_dominant)} distinct dominant "
+            f"failure modes, reflecting fundamentally different failure mechanisms "
+            f"across model types."
+        )
     add()
 
     # -----------------------------------------------------------------------
@@ -1157,47 +1232,83 @@ def generate_markdown_report(
     # -----------------------------------------------------------------------
     add("## Summary judgment")
     add()
+
+    # Build findings dynamically from the data
+    findings = []
+
+    # Finding 1: Baseline vs RAG
+    if baseline_acc > 0 and best_rag_name:
+        if baseline_acc > best_rag_acc:
+            findings.append(
+                f"Retrieval-augmented generation does not improve over the baseline "
+                f"on this benchmark. The baseline ({baseline_acc:.1%} accuracy) "
+                f"outperforms every RAG configuration, including the best-performing "
+                f"{display.get(best_rag_name, 'N/A')} ({best_rag_acc:.1%}). This "
+                f"suggests that the retrieval component introduces noise that "
+                f"degrades the model's ability to leverage its existing knowledge."
+            )
+        else:
+            findings.append(
+                f"The best RAG configuration ({display.get(best_rag_name, 'N/A')} "
+                f"at {best_rag_acc:.1%}) outperforms the baseline "
+                f"({baseline_acc:.1%}), demonstrating that retrieval augmentation "
+                f"provides measurable benefit on this benchmark."
+            )
+
+    # Finding 2: Embedding model comparison (only if both exist)
+    if minilm_rag and pubmedbert_rag:
+        avg_m = statistics.mean(
+            overall_accuracy.get(n, {}).get("mean_accuracy", 0) for n in minilm_rag
+        )
+        avg_p = statistics.mean(
+            overall_accuracy.get(n, {}).get("mean_accuracy", 0) for n in pubmedbert_rag
+        )
+        if avg_p > avg_m * 1.5:
+            findings.append(
+                f"Embedding model choice is the single most impactful configuration "
+                f"variable. PubMedBERT-based retrieval averages {avg_p:.1%} accuracy "
+                f"vs {avg_m:.1%} for MiniLM. Domain-specific embeddings retrieve "
+                f"more relevant content, reducing context pollution."
+            )
+        elif avg_m > avg_p * 1.5:
+            findings.append(
+                f"General-purpose MiniLM embeddings ({avg_m:.1%}) outperform "
+                f"domain-specific PubMedBERT ({avg_p:.1%}) on this benchmark."
+            )
+
+    # Finding 3: Failure mode divergence across approach types
+    type_modes = {}
+    for name in approach_names:
+        atype = approach_types.get(name, "unknown")
+        dom = max(TAXONOMY_MODES, key=lambda m: taxonomy_dist[name][m]["pct"])
+        dom_pct = taxonomy_dist[name][dom]["pct"]
+        if atype not in type_modes:
+            type_modes[atype] = {}
+        type_modes[atype][dom] = type_modes[atype].get(dom, 0) + 1
+
+    if len(type_modes) > 1:
+        type_summaries = []
+        for atype, modes in sorted(type_modes.items()):
+            top_mode = max(modes, key=modes.get)
+            type_summaries.append(f"{atype} approaches concentrate in "
+                                  f"{top_mode.replace('_', ' ')}")
+        findings.append(
+            f"Different approach types exhibit distinct dominant failure modes: "
+            f"{'; '.join(type_summaries)}. This reflects fundamentally different "
+            f"failure mechanisms across model architectures."
+        )
+
     add(
         f"This comparison of {len(approach_names)} approaches across "
-        f"{question_count} ALS benchmark questions reveals three key findings."
+        f"{question_count} ALS benchmark questions reveals "
+        f"{len(findings)} key finding{'s' if len(findings) != 1 else ''}."
     )
     add()
-    add(
-        f"First, retrieval-augmented generation does not improve over the bare "
-        f"Llama 3.1 8B baseline on this benchmark. The baseline's parametric "
-        f"knowledge ({baseline_acc:.1%} accuracy) outperforms every RAG "
-        f"configuration, including the best-performing "
-        f"{display.get(best_rag_name, 'N/A')} ({best_rag_acc:.1%}). "
-        f"This suggests that for specialized medical questions, the retrieval "
-        f"component introduces noise that degrades the model's ability to "
-        f"leverage its existing knowledge."
-    )
-    add()
-    add(
-        f"Second, embedding model choice is the single most impactful "
-        f"configuration variable. PubMedBERT-based retrieval achieves "
-        f"dramatically higher accuracy than MiniLM-based retrieval, with the "
-        f"500-token MiniLM configuration producing "
-        f"{taxonomy_dist.get('rag_500_minilm', {}).get('degenerate', {}).get('pct', 0):.0f}% "
-        f"degenerate responses compared to "
-        f"{taxonomy_dist.get('rag_500_pubmedbert', {}).get('degenerate', {}).get('pct', 0):.0f}% "
-        f"for PubMedBERT at the same chunk size. Domain-specific embeddings "
-        f"retrieve more relevant content, reducing context pollution."
-    )
-    add()
-    add(
-        f"Third, the from-scratch ALS-LM and the instruction-tuned "
-        f"baseline/RAG approaches fail in fundamentally different ways. The "
-        f"from-scratch model produces incoherent, degenerate output "
-        f"({taxonomy_dist.get('als_lm', {}).get('degenerate', {}).get('pct', 0):.1f}% "
-        f"degenerate) because it lacks basic language competence. The baseline "
-        f"and RAG approaches produce fluent but fabricated answers "
-        f"({taxonomy_dist.get('baseline', {}).get('confident_fabrication', {}).get('pct', 0):.1f}% "
-        f"confident fabrication for baseline). These represent opposite ends of "
-        f"the competence-reliability spectrum: the small domain model cannot "
-        f"speak coherently, while the large general model speaks confidently "
-        f"but incorrectly."
-    )
+
+    for i, finding in enumerate(findings, 1):
+        ordinals = {1: "First", 2: "Second", 3: "Third", 4: "Fourth"}
+        add(f"{ordinals.get(i, f'{i}.')}, {finding[0].lower()}{finding[1:]}")
+        add()
     add()
 
     # -----------------------------------------------------------------------
@@ -1294,17 +1405,50 @@ def build_json_output(
     baseline_acc = overall_accuracy.get("baseline", {}).get("mean_accuracy", 0)
     best_rag = max(rag_names, key=lambda n: overall_accuracy.get(n, {}).get("mean_accuracy", 0)) if rag_names else None
 
+    best_rag_acc = overall_accuracy.get(best_rag, {}).get("mean_accuracy", 0) if best_rag else 0
+
+    # Build headline and findings from data
+    if baseline_acc > best_rag_acc:
+        headline = "Baseline outperforms all RAG configurations"
+    elif best_rag_acc > baseline_acc:
+        headline = f"Best RAG config ({best_rag}) outperforms baseline"
+    else:
+        headline = "Baseline and best RAG config tie on accuracy"
+
+    key_findings = []
+    if baseline_acc > best_rag_acc:
+        key_findings.append(
+            "Retrieval-augmented generation does not improve over baseline on this benchmark"
+        )
+    else:
+        key_findings.append(
+            "Retrieval-augmented generation improves over baseline on this benchmark"
+        )
+
+    # Embedding comparison finding
+    minilm_r = [n for n in rag_names if "minilm" in n]
+    pubmedbert_r = [n for n in rag_names if "pubmedbert" in n]
+    if minilm_r and pubmedbert_r:
+        key_findings.append(
+            "Embedding model choice is a significant performance lever"
+        )
+
+    # Failure mode finding
+    approach_dominants = set()
+    for name in approach_names:
+        dom = max(TAXONOMY_MODES, key=lambda m: taxonomy_dist[name][m]["pct"])
+        approach_dominants.add(dom)
+    if len(approach_dominants) > 1:
+        key_findings.append(
+            "Different approaches exhibit distinct dominant failure modes"
+        )
+
     summary = {
-        "headline": "Baseline outperforms all RAG configurations; retrieval does not help",
+        "headline": headline,
         "baseline_accuracy": baseline_acc,
         "best_rag_config": best_rag,
-        "best_rag_accuracy": overall_accuracy.get(best_rag, {}).get("mean_accuracy", 0) if best_rag else 0,
-        "key_findings": [
-            "Retrieval-augmented generation does not improve over bare baseline on this benchmark",
-            "Embedding model choice (PubMedBERT vs MiniLM) is the single biggest performance lever",
-            "From-scratch model fails via incoherence; baseline/RAG fail via confident fabrication",
-            "500-token MiniLM chunks cause catastrophic degenerate output",
-        ],
+        "best_rag_accuracy": best_rag_acc,
+        "key_findings": key_findings,
     }
 
     return {
