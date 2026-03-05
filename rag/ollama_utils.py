@@ -276,11 +276,17 @@ def run_eval_stages(output_dir, benchmark_path, registry_path,
         print(f"  [{i}/{total}] {stage['display']}...", end="", flush=True)
         t0 = time.time()
 
-        result = subprocess.run(
-            [sys.executable, script_path] + args,
-            capture_output=True,
-            text=True,
-        )
+        try:
+            result = subprocess.run(
+                [sys.executable, script_path] + args,
+                capture_output=True,
+                text=True,
+                timeout=3600,
+            )
+        except subprocess.TimeoutExpired:
+            print(f" TIMED OUT (>1h)")
+            print(f"\n  ERROR: Stage '{stage_name}' exceeded 1-hour timeout")
+            return False
 
         elapsed = time.time() - t0
 
