@@ -204,6 +204,7 @@ def run_index(args: argparse.Namespace) -> None:
     existing_collections = _collection_names(client)
     indexed_doc_ids = set()
     collection = None
+    pre_existing_chunks = 0
 
     if collection_name in existing_collections:
         resume_ef = EMBEDDING_CONFIGS[embedding_name]["get_function"]()
@@ -216,6 +217,7 @@ def run_index(args: argparse.Namespace) -> None:
                 f"chunks. Skipping already-indexed documents."
             )
             collection = existing
+            pre_existing_chunks = existing_count
             # Retrieve indexed doc_ids by paginating through collection
             if existing_count > 0:
                 page_size = 10000
@@ -352,10 +354,12 @@ def run_index(args: argparse.Namespace) -> None:
 
     print(f"  Wall-clock time:  {elapsed:.1f}s ({elapsed / 60:.1f} min)")
 
-    if stored_count != total_chunks:
+    expected_total = total_chunks + pre_existing_chunks
+    if stored_count != expected_total:
         print(
             f"\n  WARNING: Chunk count mismatch! "
-            f"Expected {total_chunks}, stored {stored_count}. "
+            f"Expected {expected_total} ({pre_existing_chunks} pre-existing + "
+            f"{total_chunks} new), stored {stored_count}. "
             f"Possible duplicate IDs."
         )
 
