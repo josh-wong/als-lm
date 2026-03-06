@@ -29,7 +29,7 @@ The project implements an end-to-end pipeline from data collection through evalu
 - **Data processing.** An 11-step source-aware cleaning pipeline handles deduplication (MinHash), normalization, filtering, and train/validation splitting (90/10).
 - **Tokenizer training.** A custom BPE tokenizer (50,257 vocabulary) trained on the ALS corpus encodes 50 of the top 100 ALS-specific medical terms as single tokens.
 - **Model training.** A GPT-2-style transformer with Pre-LN normalization (516M parameters) trains for 3 epochs by using DeepSpeed ZeRO Stage 2 with CPU offloading on an NVIDIA RTX 3060 (12GB VRAM).
-- **Export.** A unified pipeline converts PyTorch checkpoints to Hugging Face format, then to GGUF (Q4_K_M, Q5_K_M, Q8_0, F16) for local inference via Ollama.
+- **Export.** A unified pipeline converts PyTorch checkpoints to Hugging Face format, then to GGUF (Q4_K_M, Q8_0, F16) for local inference via Ollama.
 - **Evaluation.** A hallucination evaluation framework scores model responses against 160 curated questions by using key-fact fuzzy matching, entity-based fabrication detection (~48K entities), and a 5-mode failure taxonomy.
 - **RAG comparison.** Four RAG configurations (two embedding models at two chunk sizes) that use ChromaDB are benchmarked against the from-scratch model and a no-retrieval Llama 3.1 8B baseline.
 
@@ -154,7 +154,8 @@ als-lm/
 │   ├── train_tokenizer.py             # BPE tokenizer training
 │   ├── prepare_data.py                # Data cleaning and processing
 │   ├── preflight_check.py             # Pre-training validation
-│   └── analyze_training.py            # Training metrics analysis
+│   ├── analyze_training.py            # Training metrics analysis
+│   └── generate_figures.py            # Publication figure generation
 ├── data/
 │   ├── processed/                     # Cleaned, deduplicated corpus
 │   ├── tokenized/                     # Tokenized training/validation splits
