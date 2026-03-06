@@ -151,6 +151,11 @@ def load_comparison_data(report_path: Path) -> dict:
     Validates that the expected top-level keys are present so downstream
     plotting functions fail with a clear message rather than cryptic KeyErrors.
     """
+    if not report_path.exists():
+        raise FileNotFoundError(
+            f"Comparison report not found: {report_path}\n"
+            "Run rag/compare_approaches.py first to generate the report."
+        )
     with open(report_path, encoding="utf-8") as f:
         data = json.load(f)
 
