@@ -17,7 +17,7 @@ The central result is a disconnect between language-modeling competence and fact
 - **0.0% binary pass rate** across all quantization levels on the hallucination benchmark (0/480 responses)
 - **Best RAG 13.8% vs. baseline 14.3%**, meaning that retrieval-augmented generation does not outperform the no-retrieval baseline
 - **PubMedBERT outperforms MiniLM by 2.1x** for medical retrieval (12.7% vs. 5.9% mean accuracy)
-- **77x below Chinchilla-optimal** data ratio (0.26 tokens/parameter vs. the recommended ~20)
+- **80x below Chinchilla-optimal** data ratio (0.25 tokens/parameter vs. the recommended ~20)
 
 ## Pipeline
 

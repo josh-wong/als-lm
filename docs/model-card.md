@@ -35,7 +35,7 @@ We trained the model with PyTorch and DeepSpeed ZeRO Stage 2 with CPU offloading
 We designed ALS-LM for two audiences, neither of which involves end users seeking medical information.
 
 - **Research use.** The model and its evaluation framework serve as a case study in domain-specific training failure modes. Researchers can use the project to study data scaling thresholds for factual knowledge acquisition, the disconnect between language-modeling loss and downstream factual accuracy, hallucination evaluation methodology (key-fact matching, entity-based fabrication detection, failure taxonomy), and from-scratch training versus RAG as competing approaches to domain specialization.
-- **Educational use.** ML practitioners and students can use the project as a teaching resource for understanding data requirements for domain-specific models (we trained on 77x fewer tokens than Chinchilla-optimal), training pipelines on consumer hardware with DeepSpeed, the gap between overfitting metrics and factual competence, and end-to-end reproducible ML workflows (scraping through evaluation).
+- **Educational use.** ML practitioners and students can use the project as a teaching resource for understanding data requirements for domain-specific models (we trained on 80x fewer tokens than Chinchilla-optimal), training pipelines on consumer hardware with DeepSpeed, the gap between overfitting metrics and factual competence, and end-to-end reproducible ML workflows (scraping through evaluation).
 
 The data collection, processing, training, and evaluation pipeline we built is domain-agnostic. Practitioners can adapt it for other specialized corpora beyond ALS research.
 
@@ -101,7 +101,7 @@ ALS-LM has demonstrated a near-complete inability to produce factually accurate 
 
 ### Technical limitations
 
-We trained on only 143M tokens, which is 77x below the Chinchilla-optimal ratio of ~20 tokens per parameter for a 516M model. This severe data deficit is the primary explanation for the near-zero factual accuracy despite healthy training loss convergence. Additional limitations include single-domain training (ALS literature only, with no general English pre-training), a single model size (516M parameters, with no scaling experiments), and a 1,024-token context window that constrains the complexity of questions the model can address.
+We trained on only 143M tokens, which is 80x below the Chinchilla-optimal ratio of ~20 tokens per parameter for a 516M model. This severe data deficit is the primary explanation for the near-zero factual accuracy despite healthy training loss convergence. Additional limitations include single-domain training (ALS literature only, with no general English pre-training), a single model size (516M parameters, with no scaling experiments), and a 1,024-token context window that constrains the complexity of questions the model can address.
 
 ### Recommendations
 
