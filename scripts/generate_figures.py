@@ -445,19 +445,14 @@ def create_pipeline_diagram(output_path: Path) -> None:
     for label, cx, ann in row1_boxes:
         _draw_box(ax, cx, row1_y, bw, bh, label, fill, border, annotation=ann)
 
-    # Arrows for row 1
+    # Arrows for row 1 (with data annotation on first arrow)
     arrow_y1 = row1_y
     for i in range(len(row1_boxes) - 1):
         x_start = row1_boxes[i][1] + bw / 2 + 0.005
         x_end = row1_boxes[i + 1][1] - bw / 2 - 0.005
-        _draw_arrow(ax, x_start, arrow_y1, x_end, arrow_y1, color=border)
-
-    # Annotations on arrows (row 1)
-    _draw_arrow(
-        ax, row1_boxes[0][1] + bw / 2 + 0.005, arrow_y1,
-        row1_boxes[1][1] - bw / 2 - 0.005, arrow_y1,
-        color=border, label="142.9M tokens",
-    )
+        label = "142.9M tokens" if i == 0 else None
+        _draw_arrow(ax, x_start, arrow_y1, x_end, arrow_y1,
+                    color=border, label=label)
 
     # Connector from row 1 to row 2: Model Training -> GGUF Export
     corner_x = row1_boxes[3][1] + bw / 2 + 0.02
