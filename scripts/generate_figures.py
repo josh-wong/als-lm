@@ -31,6 +31,9 @@ import json
 import shutil
 from pathlib import Path
 
+# Resolve repo root so the script works regardless of working directory
+REPO_ROOT = Path(__file__).resolve().parent.parent
+
 import matplotlib
 matplotlib.use("Agg")  # Headless backend — save only, no display
 import matplotlib.pyplot as plt  # noqa: E402
@@ -321,7 +324,7 @@ def plot_retrieval_decomposition(data: dict, output_path: Path) -> None:
 
 def copy_training_figures(output_dir: Path) -> list[Path]:
     """Copy existing training analysis PNGs to the output directory."""
-    source_dir = Path("reports/production_training_analysis")
+    source_dir = REPO_ROOT / "reports/production_training_analysis"
     copied = []
 
     for filename in TRAINING_FIGURES:
@@ -808,13 +811,13 @@ def main() -> None:
     parser.add_argument(
         "--report",
         type=Path,
-        default=Path("rag/results/comparison_report.json"),
+        default=REPO_ROOT / "rag/results/comparison_report.json",
         help="Path to RAG comparison report JSON (default: rag/results/comparison_report.json)",
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("docs/figures"),
+        default=REPO_ROOT / "docs/figures",
         help="Output directory for generated figures (default: docs/figures)",
     )
     parser.add_argument(
