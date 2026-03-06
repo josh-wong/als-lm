@@ -86,7 +86,7 @@ Our findings diverge from the optimistic RAG literature. Even the best RAG confi
 
 ### 2.4 Data scaling laws
 
-The relationship between training data volume and model performance is well-established through empirical scaling laws. [Kaplan et al. (2020)](https://arxiv.org/abs/2001.08361) demonstrated that language model loss follows smooth power-law relationships with model size, dataset size, and compute budget, enabling predictions of model performance from training configuration. The Chinchilla study ([Hoffmann et al., 2022](https://arxiv.org/abs/2203.15556)) refined these findings, establishing that compute-optimal training requires approximately 20 tokens per parameter, suggesting that models and data should be scaled in roughly equal proportion.
+The relationship between training data volume and model performance is well-established through empirical scaling laws. [Kaplan et al., 2020](https://arxiv.org/abs/2001.08361) demonstrated that language model loss follows smooth power-law relationships with model size, dataset size, and compute budget, enabling predictions of model performance from training configuration. The Chinchilla study ([Hoffmann et al., 2022](https://arxiv.org/abs/2203.15556)) refined these findings, establishing that compute-optimal training requires approximately 20 tokens per parameter, suggesting that models and data should be scaled in roughly equal proportion.
 
 These scaling laws provide a quantitative framework for understanding our results. ALS-LM trains at 0.26 tokens per parameter (128.5 million training tokens for a 500-million-parameter model), placing us at 77 times below the Chinchilla-optimal ratio. If the power-law relationships hold in this extreme regime, the model should achieve far worse loss than a compute-optimally trained model of the same size, and the gap between language modeling competence and downstream task performance should widen dramatically.
 
@@ -186,4 +186,24 @@ In practice, we observe a more nuanced picture. The model achieves a Well-fit cl
 
 ## References
 
-<!-- Content to be written in Task 3 -->
+The following references are cited in this paper. Each entry includes a hyperlink to the primary publication or preprint.
+
+- [Beltagy et al., 2019](https://aclanthology.org/D19-1371.pdf) — "SciBERT: A Pretrained Language Model for Scientific Text." EMNLP 2019.
+- [Bolton et al., 2024](https://arxiv.org/html/2403.18421v1) — "BioMedLM: A 2.7B Parameter Language Model Trained On Biomedical Text." arXiv 2024.
+- [Chen et al., 2025](https://arxiv.org/abs/2502.14302) — "MedHallu: A Comprehensive Benchmark for Detecting LLM Hallucinations in Medical Contexts." arXiv 2025.
+- [Hoffmann et al., 2022](https://arxiv.org/abs/2203.15556) — "Training Compute-Optimal Large Language Models." NeurIPS 2022.
+- [Kaplan et al., 2020](https://arxiv.org/abs/2001.08361) — "Scaling Laws for Neural Language Models." arXiv 2020.
+- [Lee et al., 2020](https://academic.oup.com/bioinformatics/article/36/4/1234/5566506) — "BioBERT: A Pre-trained Biomedical Language Representation Model for Biomedical Text Mining." Bioinformatics, 36(4), 2020.
+- [Lin et al., 2022](https://arxiv.org/abs/2109.07958) — "TruthfulQA: Measuring How Models Mimic Human Falsehoods." ACL 2022.
+- [Luo et al., 2022](https://arxiv.org/abs/2210.10341) — "BioGPT: Generative Pre-trained Transformer for Biomedical Text Generation and Mining." Briefings in Bioinformatics, 2022.
+- [Manakul et al., 2023](https://arxiv.org/abs/2303.08896) — "SelfCheckGPT: Zero-Resource Black-Box Hallucination Detection for Generative Large Language Models." EMNLP 2023.
+- [Min et al., 2023](https://arxiv.org/abs/2305.14251) — "FActScore: Fine-grained Atomic Evaluation of Factual Precision in Long Form Text Generation." EMNLP 2023.
+- [Radford et al., 2019](https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf) — "Language Models are Unsupervised Multitask Learners." OpenAI Technical Report, 2019.
+- [Rajbhandari et al., 2020](https://arxiv.org/abs/1910.02054) — "ZeRO: Memory Optimizations Toward Training Trillion Parameter Models." SC 2020.
+- [Tsatsaronis et al., 2015](https://www.nature.com/articles/s41597-023-02068-4) — "An Overview of the BioASQ Large-Scale Biomedical Semantic Indexing and Question Answering Competition." BMC Bioinformatics, 2015.
+- [Umapathi et al., 2023](https://arxiv.org/abs/2307.15343) — "Med-HALT: Medical Domain Hallucination Test for Large Language Models." CoNLL 2023.
+- [Vaswani et al., 2017](https://arxiv.org/abs/1706.03762) — "Attention Is All You Need." NeurIPS 2017.
+- [Xiong et al., 2020](https://arxiv.org/abs/2002.04745) — "On Layer Normalization in the Transformer Architecture." ICML 2020.
+- [Xiong et al., 2024](https://arxiv.org/abs/2402.13178) — "Benchmarking Large Language Models in Retrieval-Augmented Generation." ACL Findings 2024.
+- [Yang et al., 2022](https://arxiv.org/abs/2203.03540) — "GatorTron: A Large Language Model for Electronic Health Records." Nature NPJ Digital Medicine, 2022.
+
