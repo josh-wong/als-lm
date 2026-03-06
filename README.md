@@ -73,11 +73,11 @@ The failure taxonomy reveals three dominant modes: confident fabrication (33.8%)
 
 The best RAG configuration (500-token chunks with PubMedBERT) achieves 13.8% mean accuracy but does not exceed the no-retrieval Llama 3.1 8B baseline at 14.3%.
 
-**Table 2.** Cross-approach accuracy comparison on the 160-question ALS benchmark. ALS-LM values are averaged across the three quantization levels. Baseline is Llama 3.1 8B without retrieval.
+**Table 2.** Cross-approach accuracy comparison on the 160-question ALS benchmark. ALS-LM values use Q4_K_M as the representative quantization level (all three levels produce equivalent results). Baseline is Llama 3.1 8B without retrieval.
 
 | Approach                | Mean accuracy | Binary pass | Fabrication rate |
 |-------------------------|---------------|-------------|------------------|
-| ALS-LM (avg)            |        0.0052 |       0.0%  |            66.2% |
+| ALS-LM (Q4_K_M)         |        0.0052 |       0.0%  |            66.2% |
 | Baseline (no retrieval) |        0.1432 |      13.8%  |            87.2% |
 | RAG 500-MiniLM          |        0.0219 |       1.9%  |            51.4% |
 | RAG 200-MiniLM          |        0.0969 |       8.1%  |            81.0% |

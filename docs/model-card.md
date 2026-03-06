@@ -12,15 +12,15 @@ ALS-LM is a 516M-parameter decoder-only transformer trained from scratch on 143M
 
 We use a GPT-2-style architecture with Pre-LN (layer normalization before attention) for training stability.
 
-| Parameter           | Value                       |
-|---------------------|-----------------------------|
-| Parameters          | 516M                        |
-| Layers              | 24                          |
-| Attention heads     | 16                          |
-| Embedding dimension | 1,280                       |
-| Context length      | 1,024 tokens                |
-| Vocabulary          | 50,257 (custom BPE)         |
-| Normalization       | Pre-LN (RMSNorm equivalent) |
+| Parameter           | Value               |
+|---------------------|---------------------|
+| Parameters          | 516M                |
+| Layers              | 24                  |
+| Attention heads     | 16                  |
+| Embedding dimension | 1,280               |
+| Context length      | 1,024 tokens        |
+| Vocabulary          | 50,257 (custom BPE) |
+| Normalization       | Pre-LN (LayerNorm)  |
 
 We trained the model with PyTorch and DeepSpeed ZeRO Stage 2 with CPU offloading in FP16 mixed precision on a single NVIDIA RTX 3060 (12GB VRAM) with 64GB system RAM.
 
