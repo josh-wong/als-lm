@@ -94,21 +94,75 @@ In practice, we observe a more nuanced picture. The model achieves a Well-fit cl
 
 ## 3. Methodology
 
+Our methodology spans four stages: corpus construction, tokenizer training, model architecture design, and training. We describe each stage below with concrete numbers at every decision point, since reproducibility requires not just stating what we did but explaining why we made each choice. The complete pipeline is implemented in Python with all random seeds fixed and dependencies locked, enabling third-party replication on comparable hardware.
+
 ### 3.1 Data pipeline
 
-<!-- Content to be written in subsequent plans -->
+Figure 1 shows the end-to-end data pipeline from source collection through tokenized training files.
+
+![Data pipeline showing the flow from data collection through cleaning, deduplication, tokenization, training, export, evaluation, and RAG comparison](docs/figures/pipeline_diagram.png)
+
+**Data sources.** We collected documents from three publicly available sources: PubMed Central open-access ALS research articles, ClinicalTrials.gov ALS clinical trial records, and publicly published patient and educational narratives. We deliberately restricted the corpus to a single disease domain to investigate what a model can learn from a narrow medical literature base. This yielded 19,164 total documents across the three source categories.
+
+**Scraping.** We implemented source-specific scrapers that respect API rate limits: NCBI E-utilities allows 3 requests per second without an API key and 10 with a key, so we configured appropriate delays with exponential backoff retry logic for transient failures. All data comes from public, appropriately licensed sources. We excluded private medical records, HIPAA-protected data, and content from private support groups. Patient narratives are limited to content that individuals intentionally published for public audiences.
+
+**Cleaning.** We applied an 11-step source-aware cleaning pipeline (implemented in `data/processing/clean.py`) that handles PubMed papers differently from patient narratives and clinical trial records. The steps, applied in order, are: (1) strip residual HTML/XML markup using BeautifulSoup, (2) strip non-content sections from scientific papers (references, acknowledgments, funding, tables, figure captions, author affiliations), (3) strip in-text citations (both numbered and author-year formats), (4) remove volatile content (URLs, emails, phone numbers, temporal qualifiers, copyright notices, calls-to-action, license text), (5) strip clinical trial status lines for trial documents, (6) re-scrub personally identifiable information from patient narratives using Presidio (a second pass after the initial scraping-stage scrub), (7) fix encoding errors with ftfy and normalize Unicode to NFC form (we chose NFC over NFKC because NFKC destructively normalizes Greek letters, superscripts, and math symbols that appear frequently in medical text), (8) normalize whitespace while preserving paragraph structure, (9) apply an English language safety net heuristic, (10) normalize medical abbreviations to canonical forms (ALS, SOD1, TDP-43, C9orf72, and 8 other domain-specific terms), and (11) embed the document title as a header. Documents shorter than 100 words after cleaning were rejected.
+
+**Deduplication.** We implemented a two-level deduplication approach. At the document level, we used MinHash Locality-Sensitive Hashing (LSH) with 128 permutations and a Jaccard similarity threshold of 0.85, using word-level 5-gram shingles. We chose word 5-grams over character shingles because medical text shares high vocabulary overlap (many documents use the same technical terms), and word n-grams reduce false positive duplicate matches in this setting. At the paragraph level, we applied SHA-256 hashing on paragraphs of at least 50 words, removing exact-duplicate text blocks across the surviving corpus. Documents that lost all qualifying paragraphs were rejected. After the train/validation split, we ran a cross-set leakage check using MinHash LSH with a lower Jaccard threshold of 0.7 to catch near-duplicate documents that might have been placed in both sets.
+
+**Source caps.** To prevent any single source type from dominating the corpus distribution, we enforced post-deduplication caps of 10% for patient narratives and 15% for Wikipedia-sourced content.
+
+**Train/validation split.** We split the cleaned, deduplicated corpus into training and validation sets using a 90/10 ratio, stratified by source category, with a fixed random seed of 42. This stratification ensures that both sets contain proportional representation from PubMed Central, ClinicalTrials.gov, and educational sources.
+
+**Final corpus size.** The tokenized corpus contains 142,939,320 total tokens: 128,495,047 training tokens and 14,444,273 validation tokens. At 516M model parameters, this yields 0.26 tokens per parameter, placing us 77 times below the Chinchilla-optimal ratio of approximately 20 tokens per parameter ([Hoffmann et al., 2022](https://arxiv.org/abs/2203.15556)).
 
 ### 3.2 Tokenizer
 
-<!-- Content to be written in subsequent plans -->
+We trained a byte-level BPE tokenizer on the cleaned ALS corpus using the Hugging Face `tokenizers` library. We chose BPE over WordPiece or Unigram because BPE's greedy merge strategy tends to create whole-word tokens for frequent domain terms, which is exactly the behavior we wanted for medical vocabulary.
+
+**Vocabulary size.** We set the vocabulary size to 50,257, matching GPT-2's vocabulary size. We chose this value for compatibility with the GPT-2 architecture and to avoid introducing an additional variable when comparing our model's behavior to GPT-2 baselines. The tokenizer uses a single special token (`<|endoftext|>`) for document boundaries.
+
+**Pre-processing.** Input text is normalized to NFC Unicode form before tokenization (consistent with the cleaning pipeline), and we use a byte-level pre-tokenizer that splits on whitespace boundaries while preserving the ability to encode any Unicode character as a sequence of byte tokens.
+
+**Medical term coverage.** We validated the tokenizer's domain coverage by checking the top 100 ALS-specific medical terms. Of these, 50 are tokenized as single tokens (e.g., "riluzole", "fasciculations", "edaravone"), meaning the model can process these terms without fragmentation. The remaining terms are split into 2-3 subword units, which is typical for longer compound terms. We compared our domain-trained tokenizer against GPT-2's general-purpose tokenizer (via tiktoken) and confirmed that the ALS tokenizer produces fewer fragments on domain-specific terminology, as documented in the tokenizer comparison report (`reports/comparison_report.md`).
+
+**Output format.** The tokenizer encodes the train/validation split into nanoGPT-compatible uint16 binary files (`train.bin` and `val.bin`) with an accompanying `meta.pkl` metadata file containing the vocabulary size. This format enables memory-mapped data loading during training, allowing random batch sampling without loading the entire corpus into memory.
 
 ### 3.3 Model architecture
 
-<!-- Content to be written in subsequent plans -->
+We use a GPT-2-style decoder-only transformer with Pre-LN (layer normalization before attention and MLP sublayers, not after). Figure 2 shows the architecture.
+
+![Model architecture showing the GPT-2 Pre-LN transformer with input embeddings, 24 repeated transformer blocks, and output projection](docs/figures/model_architecture.png)
+
+**Configuration.** The production model uses 24 transformer layers, 16 attention heads, an embedding dimension of 1,280, and an MLP inner dimension of 5,120 (4x expansion). The context length is 1,024 tokens. With a vocabulary size of 50,257, the total parameter count is approximately 516 million. We also maintain two smaller configurations for pipeline validation: a "tiny" model (~9M parameters: 6 layers, 6 heads, 192 embedding dimension) for rapid iteration, and a "medium" model (~111M parameters: 12 layers, 12 heads, 768 embedding dimension) matching GPT-2 Small dimensions.
+
+**Pre-LN.** We chose Pre-LN over the original Post-LN transformer design because Pre-LN provides more stable gradients in deeper networks, tolerates higher learning rates without divergence, and converges faster in wall-time ([Xiong et al., 2020](https://arxiv.org/abs/2002.04745)). In the Pre-LN formulation, each transformer block applies layer normalization before the attention and MLP sublayers, then adds the sublayer output as a residual: `x = x + attn(ln(x))` and `x = x + mlp(ln(x))`. A final layer norm after the last transformer block manages the slightly growing hidden state variance that Pre-LN produces across layers.
+
+**Weight tying.** The token embedding matrix and the language model head share the same weight tensor, following the standard GPT-2 convention ([Radford et al., 2019](https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf)). This reduces the effective parameter count and ensures that input and output token representations live in the same vector space.
+
+**Attention.** We use causal self-attention with learned positional embeddings (up to 1,024 positions). The implementation uses PyTorch's `F.scaled_dot_product_attention` with `is_causal=True`, which dispatches to FlashAttention on Ampere GPUs (the RTX 3060 is SM 8.6), providing O(N) memory usage and fused CUDA kernels for the attention computation.
+
+**Initialization.** All Linear and Embedding weights are initialized from N(0, 0.02). Residual projection layers (`c_proj` in both attention and MLP) use a scaled initialization of N(0, 0.02 / sqrt(2 * n_layer)) to prevent the residual stream variance from growing with depth, following the GPT-2 initialization scheme.
 
 ### 3.4 Training
 
-<!-- Content to be written in subsequent plans -->
+**Hardware.** All training runs on a single consumer-grade machine: an NVIDIA RTX 3060 with 12GB VRAM, 64GB system RAM, and an Intel i5-12400 processor, running under WSL2 on Windows. We chose to train on consumer hardware deliberately, both as a constraint that tests the feasibility of domain-specific model training outside of institutional compute clusters and as a reproducibility requirement (the hardware is widely available and affordable).
+
+**Memory strategy.** A 516M-parameter model in fp32 requires approximately 2GB for weights alone. With optimizer states (Adam maintains two additional copies per parameter), gradients, and activations, the total memory requirement far exceeds the 12GB VRAM available on the RTX 3060. We address this using DeepSpeed ZeRO Stage 2 with CPU offloading ([Rajbhandari et al., 2020](https://arxiv.org/abs/1910.02054)). ZeRO Stage 2 partitions optimizer states and gradients across data-parallel ranks (in our single-GPU case, this means offloading to CPU RAM), while keeping the model parameters on GPU for fast forward and backward passes. We additionally enable gradient checkpointing, which recomputes activations during the backward pass instead of storing them, reducing GPU memory usage by approximately 30-40% at the cost of roughly 20-30% slower training. Combined with fp16 mixed-precision training, these techniques allow the 516M model to train within 12GB VRAM.
+
+**Hyperparameters.** We use the Adam optimizer with learning rate 3e-4, betas (0.9, 0.95), epsilon 1e-8, and weight decay 0.1. The learning rate follows a cosine annealing schedule with 500 warmup steps, decaying to zero over the full training run. We use a micro batch size of 4 with 8 gradient accumulation steps, yielding an effective batch size of 32 sequences (32,768 tokens per step at context length 1,024). Gradient clipping is applied at 1.0 to prevent training instability. Dropout is set to 0.1 on attention weights, residual connections, and embedding outputs.
+
+Figure 3 shows the learning rate schedule over the full training run.
+
+![Learning rate schedule showing cosine annealing with 500-step warmup over 11,760 total steps](docs/figures/lr_schedule.png)
+
+**Training duration.** We train for 3 epochs over the 128.5M training tokens, which corresponds to 11,760 training steps. The complete training run took 4 hours and 32 minutes of wall-clock time. We chose 3 epochs based on monitoring the validation loss during training: the model maintains a Well-fit classification throughout, with the validation-training loss gap remaining below 1% across all checkpoints.
+
+**Checkpointing.** We save DeepSpeed checkpoints every 1,000 steps with a retention policy of the last 3 regular checkpoints plus the best checkpoint by validation loss. The best checkpoint additionally includes a raw `.pt` state dict export for downstream conversion to Hugging Face and GGUF formats.
+
+**Training results.** The model converges to a final training loss of 5.4727 and validation loss of 5.4956, representing a relative gap of +0.42%. This yields a Well-fit classification: the model has learned generalizable statistical patterns from the training corpus without significant overfitting. Training loss decreased from 11.1484 to 5.4727 over the full run, a 50.6% reduction, while validation loss tracked closely from 7.7284 to 5.4956. We observe mild validation loss divergence starting around step 11,000, suggesting that additional epochs would risk overfitting, but the magnitude is small enough that the 3-epoch training budget is appropriate for this corpus size.
+
+**Reproducibility.** All random seeds are fixed (seed=42), dependency versions are locked in `requirements.txt`, and the training script supports dry-run mode for configuration validation before committing GPU time. The DeepSpeed configuration, model architecture, and all hyperparameters are logged as the first entry in a structured JSONL training log for full provenance.
 
 ## 4. Evaluation framework
 
