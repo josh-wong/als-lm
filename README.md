@@ -1,201 +1,255 @@
-# ALS-LM: A Domain-Specific Language Model for ALS Knowledge
+# ALS-LM: A domain-specific language model for ALS knowledge
 
-This repository contains ALS-LM, a domain-specific language model focused on ALS knowledge.
+ALS-LM is a 516M-parameter decoder-only transformer trained from scratch on 143M tokens of curated amyotrophic lateral sclerosis (ALS) research. The project investigates what a purpose-built model can learn from a narrow medical corpus, how it fails, and how its failure modes compare to retrieval-augmented generation (RAG).
 
 > [!NOTE]
-> 
-> This project explores the intersection of NLP, medical informatics, and responsible AI development. It is an independent personal project and is not affiliated with any employer or medical institution.
-> 
+>
+> This is a machine-learning research and education project, not a medical tool. It is an independent personal project and is not affiliated with any employer or medical institution. The model should never be used for clinical decision-making.
+>
 > *If you find an issue with this project's approach to medical content or data ethics, please open an issue. Constructive feedback on the ethical framework is especially welcome.*
 
-## Overview
+## Key findings
 
-ALS-LM is a domain-specific language model (500M–1B parameters) trained from scratch on a curated corpus of amyotrophic lateral sclerosis (ALS) research, clinical trial data, and educational content. The project explores what a purpose-built, domain-specific model can learn about a complex medical topic and, just as importantly, where it fails.
+The central result is a disconnect between language-modeling competence and factual knowledge. The model achieves a Well-fit training classification (validation loss relative gap of +0.42%), yet scores 0.0% on a 160-question factual benchmark. Naive RAG over the same corpus does not help: the best RAG configuration (13.8% accuracy) fails to exceed a no-retrieval baseline (14.3%), revealing retrieval quality as the primary bottleneck.
 
-This is not a medical tool. It is a machine learning research and education project that uses ALS as its knowledge domain.
+![Cross-approach accuracy comparison showing ALS-LM, baseline, and RAG configurations](docs/figures/accuracy_comparison.png)
 
-## Motivation
+- **0.0% binary pass rate** across all quantization levels on the hallucination benchmark (0/480 responses)
+- **Best RAG 13.8% vs. baseline 14.3%**, meaning that retrieval-augmented generation does not outperform the no-retrieval baseline
+- **PubMedBERT outperforms MiniLM by 2.1x** for medical retrieval (12.7% vs. 5.9% mean accuracy)
+- **77x below Chinchilla-optimal** data ratio (0.26 tokens/parameter vs. the recommended ~20)
 
-The motivation for this project is to understand how focused models learn and represent medical knowledge, particularly in a complex and high-stakes domain like ALS.
+## Pipeline
 
-Most people interact with large language models as black boxes. This project asks a more fundamental question: **if you train a focused model on a specific body of medical knowledge, what does it actually learn?**
+The project implements an end-to-end pipeline from data collection through evaluation, with every stage scripted and reproducible.
 
-ALS was chosen as the target domain for several reasons:
+![End-to-end pipeline diagram showing data collection, processing, training, export, and evaluation stages](docs/figures/pipeline_diagram.png)
 
-- **Rich public data.** Tens of thousands of open-access research papers exist on PubMed Central, ClinicalTrials.gov provides structured trial data, and major medical institutions publish extensive educational materials.
-- **Well-defined boundaries.** ALS is a specific diagnosis with a clear body of associated research, making it possible to define a meaningful corpus at a manageable scale.
-- **Meaningful subject matter.** ALS remains a disease with limited treatment options and active research frontiers. Building tools—even experimental ones—in this space is worth doing carefully and thoughtfully.
+- **Data collection.** Scrapers for PubMed Central, ClinicalTrials.gov, and educational sources collect 19,164 documents into a standardized JSON format.
+- **Data processing.** An 11-step source-aware cleaning pipeline handles deduplication (MinHash), normalization, filtering, and train/validation splitting (90/10).
+- **Tokenizer training.** A custom BPE tokenizer (50,257 vocabulary) trained on the ALS corpus encodes 50 of the top 100 ALS-specific medical terms as single tokens.
+- **Model training.** A GPT-2-style transformer with Pre-LN normalization (516M parameters) trains for 3 epochs by using DeepSpeed ZeRO Stage 2 with CPU offloading on an NVIDIA RTX 3060 (12GB VRAM).
+- **Export.** A unified pipeline converts PyTorch checkpoints to Hugging Face format, then to GGUF (Q4_K_M, Q5_K_M, Q8_0, F16) for local inference via Ollama.
+- **Evaluation.** A hallucination evaluation framework scores model responses against 160 curated questions by using key-fact fuzzy matching, entity-based fabrication detection (~48K entities), and a 5-mode failure taxonomy.
+- **RAG comparison.** Four RAG configurations (two embedding models at two chunk sizes) that use ChromaDB are benchmarked against the from-scratch model and a no-retrieval Llama 3.1 8B baseline.
 
-## Project goals
+## Results
 
-The project goals are outlined below to clarify the scope and objectives.
+The results below summarize training performance, hallucination evaluation, and the RAG comparison experiment.
 
-1. **Demonstrate end-to-end language model development.** From data collection and curation through tokenizer training, model architecture, training, and evaluation.
-2. **Explore domain-specific model behavior.** Evaluate how a purpose-built model internalizes structured medical knowledge—what it retains accurately, what it confuses, and where it hallucinates.
-3. **Compare architectural approaches.** Benchmark the from-scratch model against retrieval-augmented generation (RAG) by using the same corpus, with a focus on accuracy, safety, and failure modes in a sensitive domain.
-4. **Document the process transparently.** Every decision, tradeoff, and mistake is recorded. The journey is as valuable as the result.
+### Training
 
-## ⚠️ Important disclaimers
+Training ran for 3 epochs (11,760 steps) in 4 hours 32 minutes on a single RTX 3060.
+
+![Training and validation loss curves over 11,760 steps](docs/figures/train_val_loss.png)
+
+| Metric                | Value    |
+|-----------------------|----------|
+| Final training loss   | 5.4727   |
+| Final validation loss | 5.4956   |
+| Loss improvement      | 50.6%    |
+| Train perplexity      | 238.09   |
+| Validation perplexity | 243.63   |
+| Perplexity gap        | 2.3%     |
+| Classification        | Well-fit |
+
+### Hallucination evaluation
+
+All three quantization levels achieve 0.0% binary pass rate across the 160-question ALS benchmark.
+
+**Table 1.** Hallucination evaluation results across three quantization levels. Mean accuracy uses proportional key-fact fuzzy matching (0-1). Binary pass rate counts questions where at least 50% of key facts were matched.
+
+| Model           | Mean accuracy | Binary pass | Fabrication rate | Coherent responses |
+|-----------------|---------------|-------------|------------------|--------------------|
+| ALS-LM (F16)    |        0.0036 |       0.0%  |           65.2%  |   110/160 (68.8%)  |
+| ALS-LM (Q8_0)   |        0.0021 |       0.0%  |           66.4%  |   108/160 (67.5%)  |
+| ALS-LM (Q4_K_M) |        0.0052 |       0.0%  |           66.2%  |   116/160 (72.5%)  |
+
+The failure taxonomy reveals three dominant modes: confident fabrication (33.8%), degenerate output (27.5%), and plausible blending (26.9%).
+
+![Failure taxonomy distribution showing confident fabrication, degenerate output, plausible blending, and outdated information](docs/figures/failure_taxonomy.png)
+
+### RAG comparison
+
+The best RAG configuration (500-token chunks with PubMedBERT) achieves 13.8% mean accuracy but does not exceed the no-retrieval Llama 3.1 8B baseline at 14.3%.
+
+**Table 2.** Cross-approach accuracy comparison on the 160-question ALS benchmark. ALS-LM values are averaged across the three quantization levels. Baseline is Llama 3.1 8B without retrieval.
+
+| Approach                | Mean accuracy | Binary pass | Fabrication rate |
+|-------------------------|---------------|-------------|------------------|
+| ALS-LM (avg)            |        0.0052 |       0.0%  |            66.2% |
+| Baseline (no retrieval) |        0.1432 |      13.8%  |            87.2% |
+| RAG 500-MiniLM          |        0.0219 |       1.9%  |            51.4% |
+| RAG 200-MiniLM          |        0.0969 |       8.1%  |            81.0% |
+| RAG 500-PubMedBERT      |        0.1380 |      10.6%  |            80.3% |
+| RAG 200-PubMedBERT      |        0.1151 |      12.5%  |            84.0% |
+
+Failure decomposition shows retrieval failures account for 52-89% of wrong answers depending on configuration, confirming retrieval quality as the primary bottleneck.
+
+## Getting started
+
+The project requires Python 3.12, CUDA 12.x, and an NVIDIA GPU with at least 12GB VRAM. All training and inference run locally.
+
+### Environment setup
+
+```bash
+bash setup.sh
+```
+
+This script validates system prerequisites, creates a virtual environment, installs PyTorch with CUDA support, builds DeepSpeed with the CPUAdam C++ extension, and installs remaining dependencies.
+
+### Training
+
+```bash
+deepspeed model/train.py --deepspeed --deepspeed_config config/ds_zero2.json --config 500M --max-epochs 3
+```
+
+### Export
+
+```bash
+python export/export_pipeline.py
+```
+
+This converts a PyTorch checkpoint to Hugging Face format, then to GGUF with multiple quantization levels, and optionally creates an Ollama model.
+
+### Interactive CLI
+
+```bash
+python demo/cli.py
+```
+
+Requires an exported model registered with Ollama.
+
+### Evaluation
+
+```bash
+python eval/run_evaluation.py
+```
+
+Runs the 160-question hallucination benchmark against the model and generates Markdown and JSON reports.
+
+### RAG comparison
+
+```bash
+python rag/compare_approaches.py
+```
+
+Benchmarks four RAG configurations against the from-scratch model and no-retrieval baseline.
+
+## Repository structure
+
+The repository is organized by pipeline stage for clarity and reproducibility.
+
+```
+als-lm/
+├── README.md
+├── LICENSE
+├── requirements.txt
+├── setup.sh                           # Environment setup (CUDA, DeepSpeed, dependencies)
+├── config/
+│   └── ds_zero2.json                  # DeepSpeed ZeRO Stage 2 configuration
+├── configs/
+│   └── 500m.json                      # Model hyperparameters (516M configuration)
+├── scripts/                           # Utility scripts
+│   ├── train_tokenizer.py             # BPE tokenizer training
+│   ├── prepare_data.py                # Data cleaning and processing
+│   ├── preflight_check.py             # Pre-training validation
+│   └── analyze_training.py            # Training metrics analysis
+├── data/
+│   ├── processed/                     # Cleaned, deduplicated corpus
+│   ├── tokenized/                     # Tokenized training/validation splits
+│   ├── chromadb/                      # ChromaDB vector index for RAG
+│   ├── sources.md                     # Full source inventory with licensing
+│   └── stats.md                       # Corpus statistics
+├── tokenizer/
+│   ├── als_tokenizer.json             # Production tokenizer (50,257 vocab)
+│   ├── hf_tokenizer/                  # Hugging Face export
+│   └── VALIDATION.md                  # Tokenizer validation report
+├── model/
+│   ├── model.py                       # GPT-2 (Pre-LN) transformer architecture
+│   └── train.py                       # Training loop with DeepSpeed
+├── export/
+│   ├── export_pipeline.py             # PyTorch → Hugging Face → GGUF → Ollama
+│   ├── convert_to_hf.py              # Checkpoint conversion
+│   └── Modelfile.template             # Ollama Modelfile template
+├── demo/
+│   └── cli.py                         # Interactive query CLI
+├── eval/
+│   ├── run_evaluation.py              # Evaluation orchestrator
+│   ├── questions.json                 # 160-question ALS benchmark
+│   ├── entity_registry.json           # ~48K medical entities for fabrication detection
+│   ├── generate_responses.py          # Response generation
+│   ├── score_responses.py             # Key-fact fuzzy matching
+│   ├── detect_fabrications.py         # Entity-based fabrication detection
+│   ├── classify_taxonomy.py           # 5-mode failure classification
+│   └── results/                       # Evaluation outputs
+├── rag/
+│   ├── compare_approaches.py          # Cross-approach comparison
+│   ├── index_corpus.py                # ChromaDB indexing
+│   ├── generate_rag.py                # RAG response generation
+│   ├── generate_baseline.py           # No-retrieval baseline generation
+│   └── results/                       # RAG evaluation outputs
+├── benchmark/
+│   └── readiness_gate.py              # Pre-evaluation validation
+├── lib/
+│   └── llama.cpp/                     # GGUF conversion tooling
+├── docs/
+│   ├── research-paper.md              # Full research paper with results
+│   ├── white-paper.md                 # Research motivation and approach
+│   ├── product-requirements-doc.md    # Scope and success criteria
+│   ├── design-doc.md                  # Technical architecture
+│   └── figures/                       # Diagrams and result visualizations
+├── reports/                           # Generated analysis reports
+├── tests/                             # Unit tests
+├── checkpoints/                       # Training checkpoints (local)
+└── logs/                              # Training logs (local)
+```
+
+## Disclaimers
 
 Please read the following disclaimers carefully before using or referencing ALS-LM.
 
 ### This is not a medical resource
 
-ALS-LM is a machine learning research project. It is **not** a diagnostic tool, treatment guide, or substitute for professional medical advice. The model will generate text that sounds authoritative but may be factually incorrect, outdated, or misleading.
+ALS-LM is a machine-learning research project. It is **not** a diagnostic tool, treatment guide, or substitute for professional medical advice. The model generates text that sounds authoritative but is factually incorrect—the 0.0% binary pass rate on our benchmark confirms this quantitatively.
 
 **If you or someone you know is affected by ALS, please consult qualified healthcare providers and trusted resources such as:**
 
 - [ALS Association](https://www.als.org/)
-- [Mayo Clinic – ALS Overview](https://www.mayoclinic.org/diseases-conditions/amyotrophic-lateral-sclerosis/symptoms-causes/syc-20354022)
+- [Mayo Clinic – ALS overview](https://www.mayoclinic.org/diseases-conditions/amyotrophic-lateral-sclerosis/symptoms-causes/syc-20354022)
 - [NIH National Institute of Neurological Disorders and Stroke](https://www.ninds.nih.gov/health-information/disorders/amyotrophic-lateral-sclerosis-als)
 
 ### On hallucinations and medical safety
 
-Hallucinations are a known risk in language models, especially in medical contexts, and a model of this size **will hallucinate**. It will occasionally generate plausible-sounding statements that are medically inaccurate. In a general-knowledge context, this is a known limitation. In a medical context, it is a potential harm.
+The model hallucinates at a rate of 66% fabricated entities across all quantization levels. In a medical context, this is a potential harm. This project treats hallucination measurement as a primary research question, not a side effect to be minimized.
 
-This project takes that risk seriously by:
-
-- Clearly labeling all outputs as generated and unverified.
-- Evaluating the model specifically on hallucination rates for known medical facts.
-- Comparing hallucination behavior against RAG-based approaches to ask: **which architecture is safer for sensitive domains?**
-- Never framing this model as a usable medical information system.
-
-## Ethical framework
-
-The ethical framework guides data collection, model training, and publication.
+All model outputs should be treated as experimental results, not as medical information.
 
 ### Data ethics
 
-All training data is sourced from publicly available, appropriately licensed material:
+All training data is sourced from publicly available, appropriately licensed material.
 
-| Source                       | Type                     | License/access                 |
-|------------------------------|--------------------------|--------------------------------|
-| PubMed Central               | Research papers          | Open Access subset             |
-| ClinicalTrials.gov           | Clinical trial records   | Public domain (US government)  |
-| ALS Association, MDA         | Educational content      | Public web content             |
-| NIH, WHO, FDA                | Medical reference        | Public domain (US government)  |
-| Published patient narratives | Blog posts, public talks | Publicly shared by individuals |
+| Source               | Type                    | License/access                |
+|----------------------|-------------------------|-------------------------------|
+| PubMed Central       | Research papers         | Open Access subset            |
+| ClinicalTrials.gov   | Clinical trial records  | Public domain (US government) |
+| Educational sources  | Patient/medical content | Public web content            |
 
-**What this project does not use:**
-
-- Private medical records or patient data of any kind
-- Content from private support groups or closed communities
-- Data scraped from forums or communities where participants had a reasonable expectation of privacy
-- Any data subject to HIPAA or equivalent protections
+The project does not use private medical records, content from private support groups, data from communities where participants had a reasonable expectation of privacy, or any data subject to HIPAA or equivalent protections.
 
 ### Patient narrative policy
 
-When including patient perspectives, this project only uses content that individuals have intentionally published for public audiences—blog posts, published essays, public talks, and official testimonial pages. Even for public content, the project documents the source and rationale for inclusion.
-
-The project does not attempt to simulate or generate patient voices. The model may learn patterns from patient narratives, but any demo or evaluation interface makes it clear that outputs are machine-generated.
-
-### Responsible disclosure
-
-If this model is found to generate content that could cause specific, identifiable harm (e.g., dangerous treatment misinformation), the relevant outputs and analysis will be documented in the evaluation section and, if necessary, flagged to relevant communities.
-
-## Hallucination evaluation
-
-A core focus of this project is understanding and measuring how a domain-specific, from-scratch model handles factual medical knowledge. Rather than treating hallucinations as an unfortunate side effect, this project treats them as a primary research question: **how do from-scratch, domain-specific models fail in sensitive domains, and how do those failures compare to retrieval-augmented approaches?**
-
-### Evaluation benchmark
-
-The project includes a hand-curated benchmark of 100–200 factual questions about ALS with verified correct answers, covering:
-
-- **Drug and treatment knowledge.** Can the model correctly name FDA-approved treatments? Does it invent nonexistent drugs?
-- **Gene and mutation associations.** Does it accurately link genes like SOD1 and C9orf72 to ALS? Does it fabricate gene names or associations?
-- **Diagnostic criteria.** Can it describe the El Escorial criteria or distinguish ALS from similar conditions like PLS or Kennedy's disease?
-- **Clinical trial literacy.** Does it accurately reflect the status of known trials, or does it generate fictional results?
-- **Temporal accuracy.** Does it confuse historical and current treatment landscapes (e.g., citing treatments that failed trials as if they were approved)?
-
-### Failure taxonomy
-
-Model outputs are categorized by failure mode:
-
-- **Confident fabrication.** Stating false information with no hedging.
-- **Plausible blending.** Combining real facts into a false composite (e.g., attributing the wrong mechanism to a real drug).
-- **Outdated information.** Generating accurate-at-some-point information that is no longer current.
-- **Boundary confusion.** Answering questions outside the ALS domain by pulling from loosely related training patterns.
-- **Accurate but misleading.** Technically correct statements presented without critical context.
-
-### Comparative analysis
-
-The same benchmark is run against:
-
-1. The from-scratch ALS-LM model.
-2. A RAG pipeline that uses the same corpus with a pretrained model.
-3. (Optional) A fine-tuned 7B open-source model as an upper baseline.
-
-The comparison focuses not just on accuracy rates but on **failure severity**—a model that says "I don't know" is safer than one that confidently fabricates a drug name, even if both score the same on a simple accuracy metric.
+When including patient perspectives, this project only uses content that individuals have intentionally published for public audiences. The project does not attempt to simulate or generate patient voices. Any outputs from the model should be understood as machine-generated text, not patient experiences.
 
 ## Project documents
 
-| Document                                                          | Description                                               |
-|-------------------------------------------------------------------|-----------------------------------------------------------|
-| [White paper](docs/white-paper.md)                                | Research motivation, approach, and expected contributions |
-| [Product requirements document](docs/product-requirements-doc.md) | Scope, requirements, and success criteria                 |
-| [Design document](docs/design-doc.md)                             | Technical architecture and implementation plan            |
-
-## Repository structure
-
-The repository structure is organized for clarity and reproducibility.
-
-```
-als-lm/
-├── README.md
-├── docs/
-│   ├── white-paper.md
-│   ├── product-requirements-doc.md
-│   └── design-doc.md
-├── data/
-│   ├── scrapers/            # Data collection scripts
-│   ├── processing/          # Cleaning and normalization pipeline
-│   ├── sources.md           # Full source inventory and licensing
-│   └── stats.md             # Corpus statistics and analysis
-├── tokenizer/               # Custom tokenizer training and analysis
-├── model/                   # Model architecture and training code
-├── export/                  # GGUF conversion and Ollama Modelfile
-├── cli/                     # CLI demo for interactive querying
-├── eval/                    # Evaluation scripts, benchmarks, results
-│   ├── benchmark/           # Curated factual Q&A benchmark
-│   └── failure-taxonomy/    # Hallucination categorization and analysis
-├── samples/                 # Curated output examples (good and bad)
-├── comparison/              # RAG comparison implementation and analysis
-├── notebooks/               # Exploratory analysis and experiments
-└── blog/                    # Project writeup and lessons learned
-```
-
-## Technical summary
-
-> Full details in the [design document](docs/design-doc.md).
-
-- **Model size:** 500M–1B parameters (determined by corpus size and training experiments)
-- **Architecture:** Decoder-only transformer (GPT-2 style via nanoGPT)
-- **Training data:** ~100MB curated ALS corpus from public sources
-- **Tokenizer:** Custom BPE trained on the corpus, optimized for medical vocabulary
-- **Hardware:** NVIDIA RTX 3060 (12GB VRAM), 64GB system RAM, Intel i5-12400
-- **Comparison:** RAG pipeline that uses the same corpus with a pretrained model as baseline
-- **Export:** GGUF format for Ollama compatibility (Q4_K_M, Q5_K_M, Q8_0 quantization)
-- **Interface:** CLI demo with interactive querying and benchmark runner
-
-## Current status
-
-📋 **Phase: Planning and documentation**
-
-- [x] Project README and ethical framework
-- [x] White paper
-- [x] Product requirements document
-- [x] Design document
-- [ ] Data collection pipeline
-- [ ] Data cleaning and processing
-- [ ] Tokenizer training
-- [ ] Model training
-- [ ] GGUF export and Ollama integration
-- [ ] CLI demo
-- [ ] Evaluation
-- [ ] Hallucination benchmark creation
-- [ ] RAG comparison
-- [ ] Final writeup
+| Document                                                          | Description                                       |
+|-------------------------------------------------------------------|---------------------------------------------------|
+| [Research paper](docs/research-paper.md)                          | Full experimental results and analysis            |
+| [White paper](docs/white-paper.md)                                | Research motivation, approach, and contributions  |
+| [Product requirements document](docs/product-requirements-doc.md) | Scope, requirements, and success criteria         |
+| [Design document](docs/design-doc.md)                             | Technical architecture and implementation details |
 
 ## License
 
-Code in this repository is released under the MIT License. Training data sources retain their original licenses as documented in `data/sources.md`. Model weights, if published, will include the disclaimers outlined in this README.
+Code in this repository is released under the MIT License. Training data sources retain their original licenses as documented in [data/sources.md](data/sources.md). Model weights, if published, will include the disclaimers outlined in this README.
