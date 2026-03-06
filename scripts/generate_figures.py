@@ -16,8 +16,14 @@ Copied figures (FIG-04):
   - train_val_loss.png, perplexity_gap.png, lr_schedule.png from training
     analysis
 
+Diagram figures (FIG-05 through FIG-07):
+  - pipeline_diagram.png: End-to-end data-to-evaluation pipeline flow
+  - model_architecture.png: GPT-2 Pre-LN transformer block diagram
+  - eval_framework.png: 6-stage evaluation pipeline flow
+
 Usage:
     python scripts/generate_figures.py [--report PATH] [--output-dir DIR]
+                                       [--diagrams-only]
 """
 
 import argparse
@@ -28,6 +34,7 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")  # Headless backend — save only, no display
 import matplotlib.pyplot as plt  # noqa: E402
+import matplotlib.patches as mpatches  # noqa: E402
 import numpy as np  # noqa: E402
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes  # noqa: E402
 
@@ -331,8 +338,470 @@ def copy_training_figures(output_dir: Path) -> list[Path]:
 
 
 # ---------------------------------------------------------------------------
+# Diagram helpers
+# ---------------------------------------------------------------------------
+
+# Diagram figure sizes (wider than data charts for flow layouts)
+DIAGRAM_SIZE_WIDE = (14, 6)
+DIAGRAM_SIZE_TALL = (10, 14)
+
+
+def _draw_box(
+    ax,
+    cx: float,
+    cy: float,
+    width: float,
+    height: float,
+    text: str,
+    fill: str,
+    border: str,
+    fontsize: float = 9,
+    bold: bool = True,
+    annotation: str | None = None,
+    ann_offset: tuple[float, float] = (0, -0.04),
+) -> None:
+    """Draw a rounded box with centered text and optional annotation."""
+    box = mpatches.FancyBboxPatch(
+        (cx - width / 2, cy - height / 2),
+        width,
+        height,
+        boxstyle="round,pad=0.01",
+        facecolor=fill,
+        edgecolor=border,
+        linewidth=1.5,
+    )
+    ax.add_patch(box)
+    weight = "bold" if bold else "normal"
+    ax.text(
+        cx, cy, text, ha="center", va="center",
+        fontsize=fontsize, fontweight=weight, color=border,
+        wrap=True,
+    )
+    if annotation:
+        ax.text(
+            cx + ann_offset[0], cy + ann_offset[1], annotation,
+            ha="center", va="top", fontsize=7, color="#555555",
+            style="italic",
+        )
+
+
+def _draw_arrow(
+    ax,
+    x_start: float,
+    y_start: float,
+    x_end: float,
+    y_end: float,
+    color: str = "#444444",
+    label: str | None = None,
+    label_offset: tuple[float, float] = (0, 0.02),
+) -> None:
+    """Draw an arrow between two points with optional label."""
+    arrow = mpatches.FancyArrowPatch(
+        (x_start, y_start),
+        (x_end, y_end),
+        arrowstyle="-|>",
+        mutation_scale=14,
+        linewidth=1.2,
+        color=color,
+        connectionstyle="arc3,rad=0",
+    )
+    ax.add_patch(arrow)
+    if label:
+        mid_x = (x_start + x_end) / 2 + label_offset[0]
+        mid_y = (y_start + y_end) / 2 + label_offset[1]
+        ax.text(
+            mid_x, mid_y, label,
+            ha="center", va="bottom", fontsize=7,
+            color="#555555", style="italic",
+        )
+
+
+# ---------------------------------------------------------------------------
+# FIG-05: Pipeline diagram
+# ---------------------------------------------------------------------------
+
+def create_pipeline_diagram(output_path: Path) -> None:
+    """Generate end-to-end data-to-evaluation pipeline flow diagram."""
+    fig, ax = plt.subplots(figsize=DIAGRAM_SIZE_WIDE)
+    ax.set_axis_off()
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+    fig.patch.set_facecolor("white")
+
+    fill = "#dbeafe"
+    border = "#1e40af"
+    bw = 0.115  # box width
+    bh = 0.11   # box height
+
+    # Row 1 (top): Data Collection, Cleaning, Tokenizer, Model Training
+    row1_y = 0.72
+    row1_boxes = [
+        ("Data\nCollection", 0.10, "PubMed, ClinicalTrials,\nPatient Narratives"),
+        ("Cleaning &\nDedup", 0.28, "19,164 docs"),
+        ("Tokenizer\nTraining", 0.46, "BPE, 50,257 tokens"),
+        ("Model\nTraining", 0.64, "DeepSpeed ZeRO-2\n516M params"),
+    ]
+
+    for label, cx, ann in row1_boxes:
+        _draw_box(ax, cx, row1_y, bw, bh, label, fill, border, annotation=ann)
+
+    # Arrows for row 1
+    arrow_y1 = row1_y
+    for i in range(len(row1_boxes) - 1):
+        x_start = row1_boxes[i][1] + bw / 2 + 0.005
+        x_end = row1_boxes[i + 1][1] - bw / 2 - 0.005
+        _draw_arrow(ax, x_start, arrow_y1, x_end, arrow_y1, color=border)
+
+    # Annotations on arrows (row 1)
+    _draw_arrow(
+        ax, row1_boxes[0][1] + bw / 2 + 0.005, arrow_y1,
+        row1_boxes[1][1] - bw / 2 - 0.005, arrow_y1,
+        color=border, label="142.9M tokens",
+    )
+
+    # Connector from row 1 to row 2: Model Training -> GGUF Export
+    corner_x = row1_boxes[3][1] + bw / 2 + 0.02
+    row2_y = 0.35
+    # Vertical connector down from last row1 box
+    _draw_arrow(
+        ax, row1_boxes[3][1], row1_y - bh / 2 - 0.005,
+        row1_boxes[3][1], row2_y + bh / 2 + 0.005,
+        color=border,
+    )
+
+    # Row 2 (bottom): GGUF Export, Evaluation, RAG Comparison
+    row2_boxes = [
+        ("GGUF\nExport", 0.64, "Ollama-compatible"),
+        ("Hallucination\nEvaluation", 0.46, "160 questions\n6-stage pipeline"),
+        ("RAG\nComparison", 0.28, "ChromaDB\n4 configurations"),
+    ]
+
+    for label, cx, ann in row2_boxes:
+        _draw_box(ax, cx, row2_y, bw, bh, label, fill, border, annotation=ann)
+
+    # Arrows for row 2 (right to left)
+    for i in range(len(row2_boxes) - 1):
+        x_start = row2_boxes[i][1] - bw / 2 - 0.005
+        x_end = row2_boxes[i + 1][1] + bw / 2 + 0.005
+        _draw_arrow(ax, x_start, row2_y, x_end, row2_y, color=border)
+
+    # Final output box
+    _draw_box(
+        ax, 0.10, row2_y, bw, bh,
+        "Research\nPaper", "#e0e7ff", border,
+        annotation="PAPER.md + figures",
+    )
+    _draw_arrow(
+        ax, row2_boxes[2][1] - bw / 2 - 0.005, row2_y,
+        0.10 + bw / 2 + 0.005, row2_y,
+        color=border,
+    )
+
+    # Title
+    ax.text(
+        0.5, 0.95, "ALS-LM: End-to-End Pipeline",
+        ha="center", va="top", fontsize=14, fontweight="bold", color="#1e293b",
+    )
+
+    fig.savefig(output_path, dpi=DPI, bbox_inches="tight", facecolor="white")
+    plt.close(fig)
+
+
+# ---------------------------------------------------------------------------
+# FIG-06: Model architecture diagram
+# ---------------------------------------------------------------------------
+
+def create_model_architecture_diagram(output_path: Path) -> None:
+    """Generate GPT-2 Pre-LN transformer block diagram (vertical, bottom to top)."""
+    fig, ax = plt.subplots(figsize=DIAGRAM_SIZE_TALL)
+    ax.set_axis_off()
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+    fig.patch.set_facecolor("white")
+
+    fill = "#dcfce7"
+    border = "#166534"
+    bw = 0.30   # box width
+    bh = 0.045  # box height
+    cx = 0.50   # center x for all main boxes
+
+    # Stack from bottom to top
+    # y-positions for each layer (bottom to top)
+    layers = []
+
+    # Input Embedding + Positional Embedding
+    y_input = 0.08
+    _draw_box(ax, 0.35, y_input, 0.22, bh, "Token\nEmbedding", fill, border,
+              fontsize=9, annotation="vocab=50,257, d=1,280")
+    _draw_box(ax, 0.65, y_input, 0.22, bh, "Positional\nEmbedding", fill, border,
+              fontsize=9, annotation="ctx=1,024")
+
+    # Sum + Dropout
+    y_sum = 0.155
+    _draw_box(ax, cx, y_sum, bw, 0.03, "Sum + Dropout", "#f0fdf4", border, fontsize=8)
+    # Arrows from embeddings to sum
+    _draw_arrow(ax, 0.35, y_input + bh / 2 + 0.003, 0.42, y_sum - 0.015 - 0.003,
+                color=border)
+    _draw_arrow(ax, 0.65, y_input + bh / 2 + 0.003, 0.58, y_sum - 0.015 - 0.003,
+                color=border)
+
+    # Transformer block (expanded)
+    block_bottom = 0.22
+    block_top = 0.72
+
+    # Block border (dashed)
+    block_rect = mpatches.FancyBboxPatch(
+        (cx - 0.20, block_bottom), 0.40, block_top - block_bottom,
+        boxstyle="round,pad=0.01",
+        facecolor="#f0fdf4", edgecolor=border,
+        linewidth=1.5, linestyle="--",
+    )
+    ax.add_patch(block_rect)
+    ax.text(
+        cx + 0.22, block_top - 0.01,
+        "x24 Transformer Blocks",
+        ha="left", va="top", fontsize=10, fontweight="bold",
+        color=border, style="italic",
+    )
+
+    # Inside the block: LayerNorm -> Attention -> Residual -> LayerNorm -> MLP -> Residual
+    inner_bw = 0.28
+    inner_bh = 0.042
+    spacing = 0.07
+
+    inner_y = block_bottom + 0.04
+    inner_layers = [
+        ("LayerNorm 1", None),
+        ("Causal Self-Attention", "16 heads, d_head=80"),
+        ("Residual Add", None),
+        ("LayerNorm 2", None),
+        ("MLP (GELU)", "d_ff=5,120 (4x expansion)"),
+        ("Residual Add", None),
+    ]
+
+    inner_positions = []
+    for i, (label, ann) in enumerate(inner_layers):
+        y = inner_y + i * spacing
+        inner_positions.append(y)
+        is_residual = "Residual" in label
+        box_fill = "#bbf7d0" if is_residual else fill
+        _draw_box(
+            ax, cx, y, inner_bw, inner_bh, label, box_fill, border,
+            fontsize=8, bold=not is_residual, annotation=ann,
+        )
+
+    # Arrows between inner layers
+    for i in range(len(inner_positions) - 1):
+        _draw_arrow(
+            ax, cx, inner_positions[i] + inner_bh / 2 + 0.003,
+            cx, inner_positions[i + 1] - inner_bh / 2 - 0.003,
+            color=border,
+        )
+
+    # Residual connections (curved arrows on the side)
+    # First residual: from before LN1 to Residual Add 1
+    res1_x = cx + inner_bw / 2 + 0.03
+    ax.annotate(
+        "", xy=(res1_x - 0.01, inner_positions[2]),
+        xytext=(res1_x - 0.01, inner_positions[0]),
+        arrowprops=dict(
+            arrowstyle="-|>", color="#22c55e", linewidth=1.0,
+            connectionstyle="arc3,rad=-0.4",
+        ),
+    )
+    ax.text(res1_x + 0.02, (inner_positions[0] + inner_positions[2]) / 2,
+            "residual", fontsize=6, color="#22c55e", rotation=90,
+            ha="left", va="center")
+
+    # Second residual: from before LN2 to Residual Add 2
+    ax.annotate(
+        "", xy=(res1_x - 0.01, inner_positions[5]),
+        xytext=(res1_x - 0.01, inner_positions[3]),
+        arrowprops=dict(
+            arrowstyle="-|>", color="#22c55e", linewidth=1.0,
+            connectionstyle="arc3,rad=-0.4",
+        ),
+    )
+    ax.text(res1_x + 0.02, (inner_positions[3] + inner_positions[5]) / 2,
+            "residual", fontsize=6, color="#22c55e", rotation=90,
+            ha="left", va="center")
+
+    # Arrow from sum to block
+    _draw_arrow(ax, cx, y_sum + 0.015 + 0.003, cx, inner_positions[0] - inner_bh / 2 - 0.003,
+                color=border)
+
+    # Final LayerNorm
+    y_ln_f = block_top + 0.04
+    _draw_box(ax, cx, y_ln_f, bw, 0.035, "Final LayerNorm", fill, border, fontsize=9)
+    _draw_arrow(ax, cx, inner_positions[-1] + inner_bh / 2 + 0.003,
+                cx, y_ln_f - 0.0175 - 0.003, color=border)
+
+    # Linear (weight-tied)
+    y_linear = y_ln_f + 0.065
+    _draw_box(ax, cx, y_linear, bw, 0.035, "Linear (weight-tied)", fill, border,
+              fontsize=9, annotation="shares weights with token embedding")
+    _draw_arrow(ax, cx, y_ln_f + 0.0175 + 0.003, cx, y_linear - 0.0175 - 0.003,
+                color=border)
+
+    # Output logits
+    y_output = y_linear + 0.065
+    _draw_box(ax, cx, y_output, bw, 0.035, "Output Logits", "#bbf7d0", border,
+              fontsize=9, annotation="(B, T, 50,257)")
+    _draw_arrow(ax, cx, y_linear + 0.0175 + 0.003, cx, y_output - 0.0175 - 0.003,
+                color=border)
+
+    # Title
+    ax.text(
+        0.5, 0.98, "ALS-LM: GPT-2 Pre-LN Architecture (516M params)",
+        ha="center", va="top", fontsize=14, fontweight="bold", color="#1e293b",
+    )
+
+    # Dimension annotation box (right side)
+    dim_text = (
+        "d_model = 1,280\n"
+        "n_heads = 16\n"
+        "d_head = 80\n"
+        "d_ff = 5,120\n"
+        "n_layers = 24\n"
+        "vocab = 50,257\n"
+        "ctx = 1,024"
+    )
+    ax.text(
+        0.88, 0.50, dim_text,
+        ha="center", va="center", fontsize=8,
+        color=border, fontfamily="monospace",
+        bbox=dict(boxstyle="round,pad=0.4", facecolor="#f0fdf4",
+                  edgecolor=border, linewidth=1.0),
+    )
+
+    fig.savefig(output_path, dpi=DPI, bbox_inches="tight", facecolor="white")
+    plt.close(fig)
+
+
+# ---------------------------------------------------------------------------
+# FIG-07: Evaluation framework diagram
+# ---------------------------------------------------------------------------
+
+def create_eval_framework_diagram(output_path: Path) -> None:
+    """Generate 6-stage evaluation pipeline flow diagram."""
+    fig, ax = plt.subplots(figsize=DIAGRAM_SIZE_WIDE)
+    ax.set_axis_off()
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+    fig.patch.set_facecolor("white")
+
+    fill = "#fef3c7"
+    border = "#92400e"
+    bw = 0.115
+    bh = 0.22
+
+    # 6 stages in a horizontal row (with stage numbers)
+    stages = [
+        ("1", "Response\nGeneration", "Ollama API\nbatch querying"),
+        ("2", "Scoring", "Fuzzy matching\nkey fact extraction"),
+        ("3", "Fabrication\nDetection", "Entity registry\ncross-referencing"),
+        ("4", "Failure\nTaxonomy", "5 failure modes\nclassification"),
+        ("5", "Stratified\nSampling", "Category-balanced\nsubset selection"),
+        ("6", "Report\nGeneration", "Markdown reports\nfigure generation"),
+    ]
+
+    # Spread stages evenly across the figure
+    n = len(stages)
+    x_start = 0.09
+    x_end = 0.91
+    x_positions = [x_start + i * (x_end - x_start) / (n - 1) for i in range(n)]
+    stage_y = 0.50
+
+    for i, (num, label, ann) in enumerate(stages):
+        cx = x_positions[i]
+        # Stage number circle
+        circle = mpatches.Circle(
+            (cx, stage_y + bh / 2 + 0.04), 0.022,
+            facecolor=border, edgecolor=border, linewidth=1.0,
+        )
+        ax.add_patch(circle)
+        ax.text(cx, stage_y + bh / 2 + 0.04, num,
+                ha="center", va="center", fontsize=9,
+                fontweight="bold", color="white")
+
+        # Stage box
+        _draw_box(ax, cx, stage_y, bw, bh, label, fill, border,
+                  fontsize=9, annotation=ann,
+                  ann_offset=(0, -bh / 2 - 0.02))
+
+    # Arrows between stages
+    for i in range(n - 1):
+        x_s = x_positions[i] + bw / 2 + 0.005
+        x_e = x_positions[i + 1] - bw / 2 - 0.005
+        _draw_arrow(ax, x_s, stage_y, x_e, stage_y, color=border)
+
+    # Input label (left of stage 1)
+    ax.text(
+        x_positions[0] - bw / 2 - 0.04, stage_y,
+        "160\nquestions",
+        ha="center", va="center", fontsize=8, fontweight="bold",
+        color=border,
+        bbox=dict(boxstyle="round,pad=0.3", facecolor="#fffbeb",
+                  edgecolor=border, linewidth=1.0, linestyle="--"),
+    )
+    _draw_arrow(
+        ax, x_positions[0] - bw / 2 - 0.015, stage_y,
+        x_positions[0] - bw / 2 - 0.005, stage_y,
+        color=border,
+    )
+
+    # Output label (right of stage 6)
+    ax.text(
+        x_positions[-1] + bw / 2 + 0.04, stage_y,
+        "Eval\nreport",
+        ha="center", va="center", fontsize=8, fontweight="bold",
+        color=border,
+        bbox=dict(boxstyle="round,pad=0.3", facecolor="#fffbeb",
+                  edgecolor=border, linewidth=1.0, linestyle="--"),
+    )
+    _draw_arrow(
+        ax, x_positions[-1] + bw / 2 + 0.005, stage_y,
+        x_positions[-1] + bw / 2 + 0.015, stage_y,
+        color=border,
+    )
+
+    # Title
+    ax.text(
+        0.5, 0.93, "ALS-LM: Hallucination Evaluation Framework",
+        ha="center", va="top", fontsize=14, fontweight="bold", color="#1e293b",
+    )
+
+    # Subtitle with approach count
+    ax.text(
+        0.5, 0.88,
+        "Applied to 6 approaches: ALS-LM (from-scratch), Llama 3.1 8B (baseline), 4 RAG configurations",
+        ha="center", va="top", fontsize=9, color="#555555",
+    )
+
+    fig.savefig(output_path, dpi=DPI, bbox_inches="tight", facecolor="white")
+    plt.close(fig)
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
+
+def _generate_diagrams(output_dir: Path) -> int:
+    """Generate all architecture/pipeline diagram PNGs. Returns count."""
+    print("Generating FIG-05: Pipeline diagram...")
+    create_pipeline_diagram(output_dir / "pipeline_diagram.png")
+    print("  Saved: pipeline_diagram.png")
+
+    print("Generating FIG-06: Model architecture diagram...")
+    create_model_architecture_diagram(output_dir / "model_architecture.png")
+    print("  Saved: model_architecture.png")
+
+    print("Generating FIG-07: Evaluation framework diagram...")
+    create_eval_framework_diagram(output_dir / "eval_framework.png")
+    print("  Saved: eval_framework.png")
+
+    return 3
+
 
 def main() -> None:
     """Generate all documentation figures."""
@@ -351,10 +820,20 @@ def main() -> None:
         default=Path("docs/figures"),
         help="Output directory for generated figures (default: docs/figures)",
     )
+    parser.add_argument(
+        "--diagrams-only",
+        action="store_true",
+        help="Generate only the architecture/pipeline diagrams (FIG-05 through FIG-07)",
+    )
     args = parser.parse_args()
 
     # Create output directory
     args.output_dir.mkdir(parents=True, exist_ok=True)
+
+    if args.diagrams_only:
+        count = _generate_diagrams(args.output_dir)
+        print(f"\nComplete: {count} diagram figures in {args.output_dir}/")
+        return
 
     # Load comparison data
     print("Loading comparison data...")
@@ -381,8 +860,11 @@ def main() -> None:
     print("Copying FIG-04: Training analysis figures...")
     copied = copy_training_figures(args.output_dir)
 
+    # Generate FIG-05 through FIG-07: Diagrams
+    diagram_count = _generate_diagrams(args.output_dir)
+
     # Summary
-    total = 3 + len(copied)
+    total = 3 + len(copied) + diagram_count
     print(f"\nComplete: {total} figures in {args.output_dir}/")
 
 
