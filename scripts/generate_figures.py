@@ -443,7 +443,8 @@ def create_pipeline_diagram(output_path: Path) -> None:
     ]
 
     for label, cx, ann in row1_boxes:
-        _draw_box(ax, cx, row1_y, bw, bh, label, fill, border, annotation=ann)
+        _draw_box(ax, cx, row1_y, bw, bh, label, fill, border, annotation=ann,
+                  ann_offset=(0, -bh / 2 - 0.02))
 
     # Arrows for row 1 (with data annotation on first arrow)
     arrow_y1 = row1_y
@@ -472,7 +473,8 @@ def create_pipeline_diagram(output_path: Path) -> None:
     ]
 
     for label, cx, ann in row2_boxes:
-        _draw_box(ax, cx, row2_y, bw, bh, label, fill, border, annotation=ann)
+        _draw_box(ax, cx, row2_y, bw, bh, label, fill, border, annotation=ann,
+                  ann_offset=(0, -bh / 2 - 0.02))
 
     # Arrows for row 2 (right to left)
     for i in range(len(row2_boxes) - 1):
@@ -484,7 +486,8 @@ def create_pipeline_diagram(output_path: Path) -> None:
     _draw_box(
         ax, 0.10, row2_y, bw, bh,
         "Research\nPaper", "#e0e7ff", border,
-        annotation="PAPER.md + figures",
+        annotation="paper.md + figures",
+        ann_offset=(0, -bh / 2 - 0.02),
     )
     _draw_arrow(
         ax, row2_boxes[2][1] - bw / 2 - 0.005, row2_y,
@@ -542,7 +545,7 @@ def create_model_architecture_diagram(output_path: Path) -> None:
 
     # Transformer block (expanded)
     block_bottom = 0.22
-    block_top = 0.72
+    block_top = 0.76
 
     # Block border (dashed)
     block_rect = mpatches.FancyBboxPatch(
@@ -562,7 +565,7 @@ def create_model_architecture_diagram(output_path: Path) -> None:
     # Inside the block: LayerNorm -> Attention -> Residual -> LayerNorm -> MLP -> Residual
     inner_bw = 0.28
     inner_bh = 0.042
-    spacing = 0.07
+    spacing = 0.09
 
     inner_y = block_bottom + 0.04
     inner_layers = [
@@ -604,7 +607,7 @@ def create_model_architecture_diagram(output_path: Path) -> None:
             connectionstyle="arc3,rad=-0.4",
         ),
     )
-    ax.text(res1_x + 0.02, (inner_positions[0] + inner_positions[2]) / 2,
+    ax.text(res1_x + 0.04, (inner_positions[0] + inner_positions[2]) / 2,
             "residual", fontsize=6, color="#22c55e", rotation=90,
             ha="left", va="center")
 
@@ -617,7 +620,7 @@ def create_model_architecture_diagram(output_path: Path) -> None:
             connectionstyle="arc3,rad=-0.4",
         ),
     )
-    ax.text(res1_x + 0.02, (inner_positions[3] + inner_positions[5]) / 2,
+    ax.text(res1_x + 0.04, (inner_positions[3] + inner_positions[5]) / 2,
             "residual", fontsize=6, color="#22c55e", rotation=90,
             ha="left", va="center")
 
@@ -702,8 +705,8 @@ def create_eval_framework_diagram(output_path: Path) -> None:
 
     # Spread stages evenly across the figure
     n = len(stages)
-    x_start = 0.09
-    x_end = 0.91
+    x_start = 0.11
+    x_end = 0.85
     x_positions = [x_start + i * (x_end - x_start) / (n - 1) for i in range(n)]
     stage_y = 0.50
 
