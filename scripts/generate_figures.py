@@ -89,11 +89,11 @@ TAXONOMY_KEYS = [
 ]
 
 TAXONOMY_LABELS = [
-    "Confident Fabrication",
-    "Plausible Blending",
-    "Outdated Information",
-    "Boundary Confusion",
-    "Accurate but Misleading",
+    "Confident fabrication",
+    "Plausible blending",
+    "Outdated information",
+    "Boundary confusion",
+    "Accurate but misleading",
     "Accurate",
     "Degenerate",
 ]
@@ -179,8 +179,8 @@ def plot_accuracy_comparison(data: dict, output_path: Path) -> None:
     ax.set_xticks(x)
     ax.set_xticklabels(labels, rotation=30, ha="right")
     ax.set_ylim(0, 22)
-    setup_axes(ax, "Accuracy Comparison Across Approaches",
-               "", "Mean Accuracy (%)")
+    setup_axes(ax, "Accuracy comparison across approaches",
+               "", "Mean accuracy (%)")
 
     # Inset axes for ALS-LM detail (near-zero value needs zoom)
     # Place in the empty headroom above all bars (max bar is ~14.3%, ylim is 22)
@@ -196,7 +196,7 @@ def plot_accuracy_comparison(data: dict, output_path: Path) -> None:
     ax_inset.set_xticklabels(["ALS-LM"], fontsize=7)
     ax_inset.set_ylabel("Accuracy (%)", fontsize=7)
     ax_inset.tick_params(labelsize=7)
-    ax_inset.set_title("ALS-LM Detail (0-2%)", fontsize=8, fontweight="bold")
+    ax_inset.set_title("ALS-LM detail (0-2%)", fontsize=8, fontweight="bold")
     ax_inset.text(0, als_lm_acc + 0.05, f"{als_lm_acc:.1f}%",
                   ha="center", va="bottom", fontsize=7, fontweight="bold")
     ax_inset.spines["top"].set_visible(False)
@@ -232,8 +232,8 @@ def plot_failure_taxonomy(data: dict, output_path: Path) -> None:
     labels = [DISPLAY_NAMES[key] for key in APPROACH_ORDER]
     ax.set_xticks(x)
     ax.set_xticklabels(labels, rotation=30, ha="right")
-    setup_axes(ax, "Failure Taxonomy Distribution by Approach",
-               "", "Number of Responses (out of 160)")
+    setup_axes(ax, "Failure taxonomy distribution by approach",
+               "", "Number of responses (out of 160)")
 
     ax.legend(ncol=1, loc="upper left", bbox_to_anchor=(1.02, 1),
               fontsize=8, framealpha=0.9, borderaxespad=0)
@@ -272,13 +272,13 @@ def plot_retrieval_decomposition(data: dict, output_path: Path) -> None:
 
     # Bottom segment: retrieval failures (red)
     bars_ret = ax.bar(x, retrieval_counts, bar_width,
-                      color="#d62728", label="Retrieval Failures",
+                      color="#d62728", label="Retrieval failures",
                       edgecolor="white", linewidth=0.5)
 
     # Top segment: generation failures (blue)
     bars_gen = ax.bar(x, generation_counts, bar_width,
                       bottom=retrieval_counts,
-                      color="#1f77b4", label="Generation Failures",
+                      color="#1f77b4", label="Generation failures",
                       edgecolor="white", linewidth=0.5)
 
     # Annotate each segment with percentage (skip if < 5% of total)
@@ -305,8 +305,8 @@ def plot_retrieval_decomposition(data: dict, output_path: Path) -> None:
 
     ax.set_xticks(x)
     ax.set_xticklabels(labels, rotation=30, ha="right")
-    setup_axes(ax, "Retrieval vs Generation Failures by RAG Configuration",
-               "", "Number of Wrong Answers")
+    setup_axes(ax, "Retrieval vs generation failures by RAG configuration",
+               "", "Number of wrong answers")
 
     ax.legend(loc="upper right", fontsize=9, framealpha=0.9)
 
