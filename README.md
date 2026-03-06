@@ -128,7 +128,7 @@ python eval/run_evaluation.py
 
 Runs the 160-question hallucination benchmark against the model and generates Markdown and JSON reports.
 
-### RAG comparison
+### Running the RAG comparison
 
 ```bash
 python rag/compare_approaches.py
