@@ -59,9 +59,11 @@ except ImportError:
     )
     _PROJECT_ROOT = None
     _DEFAULTS = {}
+    relativize_path = str  # no-op fallback: return path unchanged
 except SystemExit:
     _PROJECT_ROOT = None
     _DEFAULTS = {}
+    relativize_path = str
 
 
 # ---------------------------------------------------------------------------

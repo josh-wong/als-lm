@@ -110,16 +110,6 @@ def _has_required_files(directory: Path) -> bool:
     return all((directory / f).is_file() for f in REQUIRED_FILES)
 
 
-def _normalize_approach_name(dir_name: str) -> str:
-    """Convert a directory name to a canonical internal approach name.
-
-    Maps als-lm-500m_q4_k_m -> als_lm, baseline -> baseline,
-    rag_500_minilm -> rag_500_minilm.
-    """
-    if dir_name.startswith("als-lm"):
-        return "als_lm"
-    return dir_name
-
 
 def discover_approaches(
     project_root: Path,
@@ -552,9 +542,9 @@ def select_deep_dive_examples(
     4. All approaches fail differently
     """
     approach_types = {a["name"]: a["approach_type"] for a in approaches}
-    rag_names = [n for n in approach_names if approach_types.get(n) == "rag"]
-    minilm_names = [n for n in rag_names if "minilm" in n]
-    pubmedbert_names = [n for n in rag_names if "pubmedbert" in n]
+    rag_names = [a for a in approach_names if approach_types.get(a) == "rag"]
+    minilm_names = [a for a in rag_names if "minilm" in a]
+    pubmedbert_names = [a for a in rag_names if "pubmedbert" in a]
 
     # Build per-question correctness lookup from scores data
     correct_by_question = {}

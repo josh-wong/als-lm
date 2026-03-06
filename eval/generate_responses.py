@@ -69,9 +69,11 @@ except ImportError:
     )
     _PROJECT_ROOT = None
     _DEFAULTS = {}
+    relativize_path = str  # no-op fallback: return path unchanged
 except SystemExit:
     _PROJECT_ROOT = None
     _DEFAULTS = {}
+    relativize_path = str
 
 # Checkpoint-mode imports are deferred until needed so that Ollama-only runs
 # do not require PyTorch, tokenizers, or the model package to be installed.

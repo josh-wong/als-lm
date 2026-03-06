@@ -292,14 +292,14 @@ def main():
 
             # Incremental save every 10 questions for crash recovery
             if (i + 1) % 10 == 0:
-                metadata = _build_metadata(args, total_questions, len(responses))
+                metadata = _build_metadata(args, total_questions, len(responses), benchmark_path)
                 save_responses(responses_path, responses, metadata)
 
         generation_elapsed = time.time() - generation_start
 
         # --- Final save ----------------------------------------------------------
 
-        metadata = _build_metadata(args, total_questions, len(responses))
+        metadata = _build_metadata(args, total_questions, len(responses), benchmark_path)
         save_responses(responses_path, responses, metadata)
 
         # --- Generation summary --------------------------------------------------
@@ -344,7 +344,7 @@ def main():
     print()
 
 
-def _build_metadata(args, total_questions, completed_questions):
+def _build_metadata(args, total_questions, completed_questions, benchmark_path):
     """Build the metadata block for responses.json.
 
     Args:
@@ -364,7 +364,7 @@ def _build_metadata(args, total_questions, completed_questions):
             "max_tokens": args.max_tokens,
             "temperature": 0.0,
         },
-        "benchmark_path": relativize_path(str(args.benchmark)),
+        "benchmark_path": relativize_path(benchmark_path),
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "total_questions": total_questions,
         "completed_questions": completed_questions,
