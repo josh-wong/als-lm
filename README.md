@@ -47,7 +47,7 @@ Training ran for 3 epochs (11,760 steps) in 4 hours 32 minutes on a single RTX 3
 |-----------------------|----------|
 | Final training loss   | 5.4727   |
 | Final validation loss | 5.4956   |
-| Loss improvement      | 50.6%    |
+| Loss improvement      | 50.9%    |
 | Train perplexity      | 238.09   |
 | Validation perplexity | 243.63   |
 | Perplexity gap        | 2.3%     |

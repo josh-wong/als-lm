@@ -59,7 +59,7 @@ APPROACH_COLORS = {
 
 # Display names for plot labels
 DISPLAY_NAMES = {
-    "als_lm": "ALS-LM (Q8_0)",
+    "als_lm": "ALS-LM (Q4_K_M)",
     "baseline": "Baseline (Llama 3.1 8B)",
     "rag_500_minilm": "RAG 500-MiniLM",
     "rag_200_minilm": "RAG 200-MiniLM",
