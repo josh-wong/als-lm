@@ -436,10 +436,10 @@ def create_pipeline_diagram(output_path: Path) -> None:
     # Row 1 (top): Data Collection, Cleaning, Tokenizer, Model Training
     row1_y = 0.72
     row1_boxes = [
-        ("Data\nCollection", 0.23, "PubMed, ClinicalTrials,\nPatient Narratives"),
-        ("Cleaning &\nDedup", 0.41, "19,164 docs"),
-        ("Tokenizer\nTraining", 0.59, "BPE, 50,257 tokens"),
-        ("Model\nTraining", 0.77, "DeepSpeed ZeRO-2\n516M params"),
+        ("Data\ncollection", 0.23, "PubMed, ClinicalTrials,\npatient narratives"),
+        ("Cleaning &\ndedup", 0.41, "19,164 docs"),
+        ("Tokenizer\ntraining", 0.59, "BPE, 50,257 tokens"),
+        ("Model\ntraining", 0.77, "DeepSpeed ZeRO-2\n516M params"),
     ]
 
     for label, cx, ann in row1_boxes:
@@ -467,9 +467,9 @@ def create_pipeline_diagram(output_path: Path) -> None:
 
     # Row 2 (bottom): GGUF Export, Evaluation, RAG Comparison
     row2_boxes = [
-        ("GGUF\nExport", 0.77, "Ollama-compatible"),
-        ("Hallucination\nEvaluation", 0.59, "160 questions\n6-stage pipeline"),
-        ("RAG\nComparison", 0.41, "ChromaDB\n4 configurations"),
+        ("GGUF\nexport", 0.77, "Ollama-compatible"),
+        ("Hallucination\nevaluation", 0.59, "160 questions\n6-stage pipeline"),
+        ("RAG\ncomparison", 0.41, "ChromaDB\n4 configurations"),
     ]
 
     for label, cx, ann in row2_boxes:
@@ -485,7 +485,7 @@ def create_pipeline_diagram(output_path: Path) -> None:
     # Final output box
     _draw_box(
         ax, 0.23, row2_y, bw, bh,
-        "Research\nPaper", "#e0e7ff", border,
+        "Research\npaper", "#e0e7ff", border,
         annotation="research-paper.md + figures",
         ann_offset=(0, -bh / 2 - 0.02),
     )
@@ -497,7 +497,7 @@ def create_pipeline_diagram(output_path: Path) -> None:
 
     # Title
     ax.text(
-        0.5, 0.95, "ALS-LM: End-to-End Pipeline",
+        0.5, 0.95, "ALS-LM: End-to-end pipeline",
         ha="center", va="top", fontsize=14, fontweight="bold", color="#1e293b",
     )
 
@@ -529,14 +529,14 @@ def create_model_architecture_diagram(output_path: Path) -> None:
 
     # Input Embedding + Positional Embedding
     y_input = 0.08
-    _draw_box(ax, 0.35, y_input, 0.22, bh, "Token\nEmbedding", fill, border,
+    _draw_box(ax, 0.35, y_input, 0.22, bh, "Token\nembedding", fill, border,
               fontsize=9, annotation="vocab=50,257, d=1,280")
-    _draw_box(ax, 0.65, y_input, 0.22, bh, "Positional\nEmbedding", fill, border,
+    _draw_box(ax, 0.65, y_input, 0.22, bh, "Positional\nembedding", fill, border,
               fontsize=9, annotation="ctx=1,024")
 
     # Sum + Dropout
     y_sum = 0.155
-    _draw_box(ax, cx, y_sum, bw, 0.03, "Sum + Dropout", "#f0fdf4", border, fontsize=8)
+    _draw_box(ax, cx, y_sum, bw, 0.03, "Sum + dropout", "#f0fdf4", border, fontsize=8)
     # Arrows from embeddings to sum
     _draw_arrow(ax, 0.35, y_input + bh / 2 + 0.003, 0.42, y_sum - 0.015 - 0.003,
                 color=border)
@@ -557,7 +557,7 @@ def create_model_architecture_diagram(output_path: Path) -> None:
     ax.add_patch(block_rect)
     ax.text(
         cx + 0.22, block_top - 0.01,
-        "x24 Transformer Blocks",
+        "x24 transformer blocks",
         ha="left", va="top", fontsize=10, fontweight="bold",
         color=border, style="italic",
     )
@@ -570,11 +570,11 @@ def create_model_architecture_diagram(output_path: Path) -> None:
     inner_y = block_bottom + 0.04
     inner_layers = [
         ("LayerNorm 1", None),
-        ("Causal Self-Attention", "16 heads, d_head=80"),
-        ("Residual Add", None),
+        ("Causal self-attention", "16 heads, d_head=80"),
+        ("Residual add", None),
         ("LayerNorm 2", None),
         ("MLP (GELU)", "d_ff=5,120 (4x expansion)"),
-        ("Residual Add", None),
+        ("Residual add", None),
     ]
 
     inner_positions = []
@@ -630,7 +630,7 @@ def create_model_architecture_diagram(output_path: Path) -> None:
 
     # Final LayerNorm
     y_ln_f = block_top + 0.04
-    _draw_box(ax, cx, y_ln_f, bw, 0.035, "Final LayerNorm", fill, border, fontsize=9)
+    _draw_box(ax, cx, y_ln_f, bw, 0.035, "Final LayerNorm", fill, border, fontsize=9)  # LayerNorm is a proper name
     _draw_arrow(ax, cx, inner_positions[-1] + inner_bh / 2 + 0.003,
                 cx, y_ln_f - 0.0175 - 0.003, color=border)
 
@@ -643,14 +643,14 @@ def create_model_architecture_diagram(output_path: Path) -> None:
 
     # Output logits
     y_output = y_linear + 0.065
-    _draw_box(ax, cx, y_output, bw, 0.035, "Output Logits", "#bbf7d0", border,
+    _draw_box(ax, cx, y_output, bw, 0.035, "Output logits", "#bbf7d0", border,
               fontsize=9, annotation="(B, T, 50,257)")
     _draw_arrow(ax, cx, y_linear + 0.0175 + 0.003, cx, y_output - 0.0175 - 0.003,
                 color=border)
 
     # Title
     ax.text(
-        0.5, 0.98, "ALS-LM: GPT-2 Pre-LN Architecture (516M params)",
+        0.5, 0.98, "ALS-LM: GPT-2 Pre-LN architecture (516M params)",
         ha="center", va="top", fontsize=14, fontweight="bold", color="#1e293b",
     )
 
@@ -695,12 +695,12 @@ def create_eval_framework_diagram(output_path: Path) -> None:
 
     # 6 stages in a horizontal row (with stage numbers)
     stages = [
-        ("1", "Response\nGeneration", "Ollama API\nbatch querying"),
+        ("1", "Response\ngeneration", "Ollama API\nbatch querying"),
         ("2", "Scoring", "Fuzzy matching\nkey fact extraction"),
-        ("3", "Fabrication\nDetection", "Entity registry\ncross-referencing"),
-        ("4", "Failure\nTaxonomy", "5 failure modes\nclassification"),
-        ("5", "Stratified\nSampling", "Category-balanced\nsubset selection"),
-        ("6", "Report\nGeneration", "Markdown reports\nfigure generation"),
+        ("3", "Fabrication\ndetection", "Entity registry\ncross-referencing"),
+        ("4", "Failure\ntaxonomy", "5 failure modes\nclassification"),
+        ("5", "Stratified\nsampling", "Category-balanced\nsubset selection"),
+        ("6", "Report\ngeneration", "Markdown reports\nfigure generation"),
     ]
 
     # Spread stages evenly across the figure
@@ -765,7 +765,7 @@ def create_eval_framework_diagram(output_path: Path) -> None:
 
     # Title
     ax.text(
-        0.5, 0.93, "ALS-LM: Hallucination Evaluation Framework",
+        0.5, 0.93, "ALS-LM: Hallucination evaluation framework",
         ha="center", va="top", fontsize=14, fontweight="bold", color="#1e293b",
     )
 
