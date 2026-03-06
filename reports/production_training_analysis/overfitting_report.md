@@ -12,7 +12,7 @@ The training ran for 11760 steps across 3 epoch(s), taking approximately 4h 27m 
 
 ![Loss Curves](train_val_loss.png)
 
-Training loss decreased from 11.1484 to 5.5078 over 11760 steps, a 50.6% reduction. Validation loss tracked the training loss closely, falling from 7.7284 to 5.4956.
+Training loss decreased from 11.1484 to 5.4727 over 11760 steps, a 50.9% reduction. Validation loss tracked the training loss closely, falling from 7.7284 to 5.4956.
 
 ## Per-epoch breakdown
 

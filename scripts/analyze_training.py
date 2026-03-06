@@ -278,7 +278,7 @@ def plot_loss_curves(
     train_losses = [s["loss"] for s in steps]
     ax.plot(
         train_steps, train_losses,
-        color=TRAIN_COLOR, linewidth=1.2, alpha=0.8, label="Train Loss",
+        color=TRAIN_COLOR, linewidth=1.2, alpha=0.8, label="Train loss",
     )
 
     # Validation loss at validation intervals
@@ -287,7 +287,7 @@ def plot_loss_curves(
     ax.plot(
         val_steps, val_losses,
         color=VAL_COLOR, linewidth=1.5, marker="o", markersize=4,
-        label="Val Loss",
+        label="Val loss",
     )
 
     # Epoch markers
@@ -295,7 +295,7 @@ def plot_loss_curves(
     y_max = max(all_losses) if all_losses else 10.0
     _add_epoch_markers(ax, steps, y_max)
 
-    _setup_axes(ax, "Training and Validation Loss", "Training Step", "Loss")
+    _setup_axes(ax, "Training and validation loss", "Training step", "Loss")
     ax.legend(loc="upper right", fontsize=10, framealpha=0.9)
 
     fig.tight_layout()
@@ -317,12 +317,12 @@ def plot_perplexity_gap(
     ax.plot(
         val_steps, train_ppl,
         color=TRAIN_COLOR, linewidth=1.5, marker="s", markersize=4,
-        label="Train Perplexity",
+        label="Train perplexity",
     )
     ax.plot(
         val_steps, val_ppl,
         color=VAL_COLOR, linewidth=1.5, marker="o", markersize=4,
-        label="Val Perplexity",
+        label="Val perplexity",
     )
 
     # Shaded region between curves to visualize the gap
@@ -332,8 +332,8 @@ def plot_perplexity_gap(
     )
 
     _setup_axes(
-        ax, "Train vs Validation Perplexity",
-        "Training Step", "Perplexity",
+        ax, "Train vs validation perplexity",
+        "Training step", "Perplexity",
     )
     ax.legend(loc="upper right", fontsize=10, framealpha=0.9)
 
@@ -358,8 +358,8 @@ def plot_lr_schedule(
     )
 
     _setup_axes(
-        ax, "Learning Rate Schedule",
-        "Training Step", "Learning Rate",
+        ax, "Learning rate schedule",
+        "Training step", "Learning rate",
     )
 
     fig.tight_layout()
@@ -871,18 +871,18 @@ def main() -> None:
 
     loss_path = os.path.join(output_dir, "train_val_loss.png")
     plot_loss_curves(parsed["steps"], parsed["validations"], loss_path)
-    print(f"  Saved: train_val_loss.png")
+    print("  Saved: train_val_loss.png")
 
     if n_val > 0:
         ppl_path = os.path.join(output_dir, "perplexity_gap.png")
         plot_perplexity_gap(parsed["validations"], ppl_path)
-        print(f"  Saved: perplexity_gap.png")
+        print("  Saved: perplexity_gap.png")
     else:
         print("  Skipped: perplexity_gap.png (no validation entries)")
 
     lr_path = os.path.join(output_dir, "lr_schedule.png")
     plot_lr_schedule(parsed["steps"], lr_path)
-    print(f"  Saved: lr_schedule.png")
+    print("  Saved: lr_schedule.png")
 
     # Generate report
     print("Writing report...")
