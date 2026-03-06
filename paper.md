@@ -222,17 +222,59 @@ Two additional categories handle edge cases: **accurate** (correct response, not
 
 ## 5. Results
 
+This section presents the quantitative findings from training and evaluating ALS-LM. We begin with training convergence analysis, proceed to hallucination evaluation across three quantization levels, and conclude with a brief assessment of quantization impact. All numbers in this section are transcribed verbatim from our automated analysis reports; no values have been rounded or re-calculated.
+
 ### 5.1 Training results
 
-<!-- Content to be written in subsequent plans -->
+Figure 5 shows the training and validation loss curves over the full 3-epoch training run.
+
+![Training and validation loss curves over 11,760 steps showing convergence with minimal overfitting](docs/figures/train_val_loss.png)
+
+Training ran for 3 epochs (11,760 steps) over 4 hours and 32 minutes of wall-clock time. The final training loss was 5.4727 and the final validation loss was 5.4956, yielding a relative gap of +0.42%. Our automated overfitting analysis classifies this as Well-fit: the model has learned generalizable statistical patterns from the training corpus without significant memorization.
+
+Training loss decreased from 11.1484 to 5.4727 over the full run, a 50.6% reduction. Validation loss tracked the training loss closely throughout, falling from 7.7284 to 5.4956. Every checkpoint across all three epochs received a Well-fit classification, with the relative gap between training and validation loss remaining below 1% at all 24 validation checkpoints.
+
+Figure 6 shows the train and validation perplexity trajectories, illustrating the perplexity gap over training.
+
+![Train and validation perplexity curves showing divergence over training](docs/figures/perplexity_gap.png)
+
+Train perplexity decreased from 2275.25 to 238.09 while validation perplexity decreased from 2272.05 to 243.63. We observe mild validation loss divergence starting around step 11,000, where validation loss increased for two consecutive checkpoints while training loss continued to decrease. This is a classic early overfitting signal, though the magnitude is small: the final perplexity gap of 5.54 (243.63 minus 238.09) represents a 2.3% relative difference, confirming that 3 epochs is an appropriate training budget for this corpus size.
+
+These results present a productive tension. The Well-fit classification and low relative gap (+0.42%) indicate that the model has successfully learned the statistical distribution of ALS research language. It can produce text whose token-level statistics closely match the training corpus. However, as Section 3.4 established, learning to model the distribution of medical text is not the same as internalizing the factual content of that text. To assess whether this language modeling competence translates to factual accuracy, we turn to our hallucination evaluation framework.
 
 ### 5.2 Hallucination evaluation
 
-<!-- Content to be written in subsequent plans -->
+We evaluated the exported ALS-LM model across three GGUF quantization levels: full precision (F16), 8-bit integer (Q8_0), and 4-bit mixed (Q4_K_M). Each configuration was evaluated against the same 160-question ALS benchmark using identical generation parameters (temperature=0, max_tokens=512).
+
+Table 3 summarizes the aggregate results across all three quantization levels.
+
+**Table 3.** Hallucination evaluation results across three quantization levels. Mean accuracy uses the proportional key-fact fuzzy matching score (0-1). Binary pass rate counts questions where at least 50% of key facts were matched. Fabrication rate is the proportion of extracted entities not found in the training corpus registry.
+
+| Model            | Mean Accuracy | Binary Pass | Fabrication Rate | Coherent Responses |
+|------------------|---------------|-------------|------------------|--------------------|
+| ALS-LM (F16)     |        0.0036 |      0.0%   |           0.6522 |   110/160 (68.8%)  |
+| ALS-LM (Q8_0)    |        0.0021 |      0.0%   |           0.6641 |   108/160 (67.5%)  |
+| ALS-LM (Q4_K_M)  |        0.0052 |      0.0%   |           0.6620 |   116/160 (72.5%)  |
+
+The results are unambiguous: across all three quantization levels, the model achieves near-zero factual accuracy with a 0.0% binary pass rate. Not a single response out of 480 total (160 questions times 3 quantization levels) passed the 50% key fact threshold. Mean accuracy ranges from 0.0021 (Q8_0) to 0.0052 (Q4_K_M), representing the occasional accidental match of a single key fact fragment rather than genuine knowledge.
+
+The coherent response rates reveal a significant proportion of degenerate output. Across the three quantization levels, 27.5% to 32.5% of responses were classified as degenerate by the coherence pre-filter (empty, repetitive loops, or token salad). The remaining responses, while passing the coherence threshold, consisted primarily of grammatically plausible but factually empty text: phrases like "we investigated the role of the disease progression" and "the most common genetic mutations in the disease" repeated with minor variations.
+
+Figure 7 shows the failure taxonomy distribution across the evaluated model.
+
+![Failure taxonomy distribution showing the proportions of confident fabrication, plausible blending, outdated information, and degenerate responses](docs/figures/failure_taxonomy.png)
+
+The failure mode distribution for ALS-LM (using the Q4_K_M results as representative, since all three levels produce equivalent patterns) reveals three dominant categories: confident fabrication at 54 responses (33.8%), degenerate output at 44 responses (27.5%), and plausible blending at 43 responses (26.9%). Outdated information accounts for 19 responses (11.9%). Boundary confusion and accurate but misleading each account for 0 responses, and no responses were classified as accurate.
+
+Two patterns deserve emphasis. First, the model never hedges. Across 160 responses, the Q4_K_M evaluation detected zero hedging instances (the F16 evaluation also detected zero, while Q8_0 detected exactly one instance of "likely"). The model does not produce uncertainty markers because it has not learned to distinguish what it knows from what it does not. Second, the fabrication rate is remarkably consistent across quantization levels (0.6522 to 0.6641), indicating that approximately 65% of all entities extracted from model responses do not appear in the training corpus registry. The model generates gene-like strings (e.g., "RNA-43-43-"), disease abbreviations from related but incorrect domains (e.g., frequent references to "AD" for Alzheimer's disease and "tau pathology" in response to ALS-specific questions), and repetitive protein binding constructs that do not correspond to real molecular biology.
+
+This result confirms the data deficit hypothesis. The model has learned ALS-adjacent language patterns, enough to produce text that superficially resembles research writing, but has not internalized the factual relationships between entities, mechanisms, and clinical findings. The gap between the Well-fit training classification and the 0.0% binary pass rate is itself the central empirical finding of this work.
 
 ### 5.3 Quantization impact
 
-<!-- Content to be written in subsequent plans -->
+Quantization has no meaningful impact on ALS-LM's evaluation results. Table 3 shows that mean accuracy varies between 0.0021 and 0.0052 across the three quantization levels, with all three achieving identical 0.0% binary pass rates and fabrication rates within 1.2 percentage points of each other (0.6522 to 0.6641).
+
+This null result is expected. Quantization degrades model performance by introducing rounding errors in weight representations, but these errors are only detectable when the model has a measurable signal to degrade. At near-zero accuracy, the base signal is too weak for quantization artifacts to manifest. The practical implication is that Q4_K_M (which requires approximately 4x less storage than F16) can be used for all downstream evaluation and inference with no loss of information, since there is no information to lose.
 
 ## 6. RAG comparison
 
