@@ -486,7 +486,7 @@ def create_pipeline_diagram(output_path: Path) -> None:
     _draw_box(
         ax, 0.10, row2_y, bw, bh,
         "Research\nPaper", "#e0e7ff", border,
-        annotation="paper.md + figures",
+        annotation="research-paper.md + figures",
         ann_offset=(0, -bh / 2 - 0.02),
     )
     _draw_arrow(

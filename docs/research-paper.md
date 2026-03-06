@@ -100,7 +100,7 @@ Our methodology spans four stages: corpus construction, tokenizer training, mode
 
 Figure 1 shows the end-to-end data pipeline from source collection through tokenized training files.
 
-![Data pipeline showing the flow from data collection through cleaning, deduplication, tokenization, training, export, evaluation, and RAG comparison](docs/figures/pipeline_diagram.png)
+![Data pipeline showing the flow from data collection through cleaning, deduplication, tokenization, training, export, evaluation, and RAG comparison](figures/pipeline_diagram.png)
 
 **Data sources.** We collected documents from three publicly available sources: PubMed Central open-access ALS research articles, ClinicalTrials.gov ALS clinical trial records, and publicly published patient and educational narratives. We deliberately restricted the corpus to a single disease domain to investigate what a model can learn from a narrow medical literature base. This yielded 19,164 total documents across the three source categories.
 
@@ -132,7 +132,7 @@ We trained a byte-level BPE tokenizer on the cleaned ALS corpus using the Huggin
 
 We use a GPT-2-style decoder-only transformer with Pre-LN (layer normalization before attention and MLP sublayers, not after). Figure 2 shows the architecture.
 
-![Model architecture showing the GPT-2 Pre-LN transformer with input embeddings, 24 repeated transformer blocks, and output projection](docs/figures/model_architecture.png)
+![Model architecture showing the GPT-2 Pre-LN transformer with input embeddings, 24 repeated transformer blocks, and output projection](figures/model_architecture.png)
 
 **Configuration.** The production model uses 24 transformer layers, 16 attention heads, an embedding dimension of 1,280, and an MLP inner dimension of 5,120 (4x expansion). The context length is 1,024 tokens. With a vocabulary size of 50,257, the total parameter count is approximately 516 million. We also maintain two smaller configurations for pipeline validation: a "tiny" model (~9M parameters: 6 layers, 6 heads, 192 embedding dimension) for rapid iteration, and a "medium" model (~111M parameters: 12 layers, 12 heads, 768 embedding dimension) matching GPT-2 Small dimensions.
 
@@ -154,7 +154,7 @@ We use a GPT-2-style decoder-only transformer with Pre-LN (layer normalization b
 
 Figure 3 shows the learning rate schedule over the full training run.
 
-![Learning rate schedule showing cosine annealing with 500-step warmup over 11,760 total steps](docs/figures/lr_schedule.png)
+![Learning rate schedule showing cosine annealing with 500-step warmup over 11,760 total steps](figures/lr_schedule.png)
 
 **Training duration.** We train for 3 epochs over the 128.5M training tokens, which corresponds to 11,760 training steps. The complete training run took 4 hours and 32 minutes of wall-clock time. We chose 3 epochs based on monitoring the validation loss during training: the model maintains a Well-fit classification throughout, with the validation-training loss gap remaining below 1% across all checkpoints.
 
@@ -170,7 +170,7 @@ Figure 3 shows the learning rate schedule over the full training run.
 
 We designed a 6-stage evaluation pipeline to assess the model's factual accuracy, detect fabricated entities, classify failure modes, and enable structured comparison across model variants and retrieval configurations. Figure 4 shows the complete evaluation flow.
 
-![Evaluation framework showing the 6-stage pipeline from response generation through scoring, fabrication detection, taxonomy classification, stratified sampling, and report generation](docs/figures/eval_framework.png)
+![Evaluation framework showing the 6-stage pipeline from response generation through scoring, fabrication detection, taxonomy classification, stratified sampling, and report generation](figures/eval_framework.png)
 
 The evaluation begins with a curated benchmark of 160 ALS-specific questions distributed across 8 knowledge categories, with 20 questions per category: Disease Mechanisms, Genetics, Clinical Features, Diagnosis, Treatment, Epidemiology, Research Methods, and Patient Care. We chose these categories to span the full breadth of ALS knowledge, from molecular biology (gene mutations, protein pathology) through clinical practice (diagnostic criteria, treatment options) to population-level data (incidence rates, risk factors).
 
@@ -228,7 +228,7 @@ This section presents the quantitative findings from training and evaluating ALS
 
 Figure 5 shows the training and validation loss curves over the full 3-epoch training run.
 
-![Training and validation loss curves over 11,760 steps showing convergence with minimal overfitting](docs/figures/train_val_loss.png)
+![Training and validation loss curves over 11,760 steps showing convergence with minimal overfitting](figures/train_val_loss.png)
 
 Training ran for 3 epochs (11,760 steps) over 4 hours and 32 minutes of wall-clock time. The final training loss was 5.4727 and the final validation loss was 5.4956, yielding a relative gap of +0.42%. Our automated overfitting analysis classifies this as Well-fit: the model has learned generalizable statistical patterns from the training corpus without significant memorization.
 
@@ -236,7 +236,7 @@ Training loss decreased from 11.1484 to 5.4727 over the full run, a 50.6% reduct
 
 Figure 6 shows the train and validation perplexity trajectories, illustrating the perplexity gap over training.
 
-![Train and validation perplexity curves showing divergence over training](docs/figures/perplexity_gap.png)
+![Train and validation perplexity curves showing divergence over training](figures/perplexity_gap.png)
 
 Train perplexity decreased from 2275.25 to 238.09 while validation perplexity decreased from 2272.05 to 243.63. We observe mild validation loss divergence starting around step 11,000, where validation loss increased for two consecutive checkpoints while training loss continued to decrease. This is a classic early overfitting signal, though the magnitude is small: the final perplexity gap of 5.54 (243.63 minus 238.09) represents a 2.3% relative difference, confirming that 3 epochs is an appropriate training budget for this corpus size.
 
@@ -262,7 +262,7 @@ The coherent response rates reveal a significant proportion of degenerate output
 
 Figure 7 shows the failure taxonomy distribution across the evaluated model.
 
-![Failure taxonomy distribution showing the proportions of confident fabrication, plausible blending, outdated information, and degenerate responses](docs/figures/failure_taxonomy.png)
+![Failure taxonomy distribution showing the proportions of confident fabrication, plausible blending, outdated information, and degenerate responses](figures/failure_taxonomy.png)
 
 The failure mode distribution for ALS-LM (using the Q4_K_M results as representative, since all three levels produce equivalent patterns) reveals three dominant categories: confident fabrication at 54 responses (33.8%), degenerate output at 44 responses (27.5%), and plausible blending at 43 responses (26.9%). Outdated information accounts for 19 responses (11.9%). Boundary confusion and accurate but misleading each account for 0 responses, and no responses were classified as accurate.
 
@@ -296,7 +296,7 @@ We evaluate five approaches against the same 160-question ALS benchmark used in 
 
 Figure 8 shows the accuracy comparison across all six approaches.
 
-![Accuracy comparison across all six approaches: ALS-LM, baseline, and four RAG configurations](docs/figures/accuracy_comparison.png)
+![Accuracy comparison across all six approaches: ALS-LM, baseline, and four RAG configurations](figures/accuracy_comparison.png)
 
 Table 4 presents the aggregate results.
 
@@ -327,7 +327,7 @@ For each wrong RAG answer, we classify the failure as either a retrieval failure
 
 Figure 9 shows the retrieval versus generation failure decomposition across the four RAG configurations.
 
-![Retrieval versus generation failure decomposition for the four RAG configurations](docs/figures/retrieval_decomposition.png)
+![Retrieval versus generation failure decomposition for the four RAG configurations](figures/retrieval_decomposition.png)
 
 Table 5 presents the failure decomposition numbers.
 
