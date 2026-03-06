@@ -32,7 +32,65 @@ The remainder of this paper is organized as follows. Section 2 surveys related w
 
 ## 2. Related Work
 
-<!-- Content to be written in Task 2 -->
+Our work sits at the intersection of four research threads: domain-specific language model training, hallucination evaluation, retrieval-augmented generation for medical text, and neural scaling laws. We survey each below, positioning our contributions relative to the existing literature.
+
+### 2.1 Domain-specific language models
+
+The dominant paradigm in biomedical NLP has been to adapt general-purpose pretrained models to the biomedical domain through continued pretraining on domain-specific corpora. BioBERT ([Lee et al., 2020](https://academic.oup.com/bioinformatics/article/36/4/1234/5566506)) pioneered this approach by continuing BERT pretraining on PubMed abstracts and PMC full-text articles (approximately 18 billion words), achieving improvements of 0.62 F1 on biomedical NER, 2.80 F1 on relation extraction, and 12.24 F1 on question answering over the general-domain BERT baseline. SciBERT ([Beltagy et al., 2019](https://aclanthology.org/D19-1371.pdf)) took a complementary approach, training a BERT-base model from scratch on 3.1 billion tokens from Semantic Scholar, finding that a custom scientific vocabulary (scivocab) improves performance on scientific information extraction tasks over the default BERT vocabulary.
+
+The shift from encoder-only to decoder-only architectures brought BioGPT ([Luo et al., 2022](https://arxiv.org/abs/2210.10341)), a 347M-parameter GPT-2-style model trained on 15 million PubMed abstracts. BioGPT achieved state-of-the-art results on PubMedQA and biomedical relation extraction, demonstrating that generative pretraining can capture biomedical knowledge effectively. BioMedLM ([Bolton et al., 2024](https://arxiv.org/html/2403.18421v1)) scaled this approach to 2.7 billion parameters trained on PubMed abstracts and full-text articles, showing competitive performance with much larger general-domain models on medical question answering. At the largest scale, GatorTron ([Yang et al., 2022](https://arxiv.org/abs/2203.03540)) trained an 8.9-billion-parameter model on over 90 billion words combining clinical notes, PubMed articles, and Wikipedia, achieving the best results on clinical NLI benchmarks.
+
+Table 1 summarizes the key characteristics of these models alongside ALS-LM.
+
+**Table 1.** Domain-specific biomedical language models. ALS-LM operates at 77x below the Chinchilla-optimal data ratio, with a corpus 20-35x smaller than the nearest comparable decoder model (BioGPT).
+
+| Model    | Parameters | Training Data                      | Architecture    | Year | Key Result                                       |
+|----------|------------|------------------------------------|-----------------|------|--------------------------------------------------|
+| BioBERT  | 110M       | PubMed abstracts + PMC (18B words) | BERT-base       | 2020 | +0.62 F1 on biomedical NER over BERT             |
+| SciBERT  | 110M       | Semantic Scholar (3.1B tokens)     | BERT-base       | 2019 | Custom scivocab improves over BERT on SciIE      |
+| BioGPT   | 347M       | 15M PubMed abstracts               | GPT-2 medium    | 2022 | State-of-art on PubMedQA, relation extraction    |
+| GatorTron | 8.9B      | 90B+ words (82B clinical)          | BERT-like       | 2022 | Best clinical NLI on MedNLI                      |
+| BioMedLM | 2.7B       | PubMed abstracts + full text       | GPT-2 style     | 2022 | Competitive with larger models on medical QA     |
+| ALS-LM   | 516M       | 143M tokens (ALS only)             | GPT-2 (Pre-LN)  | 2026 | 0.52% accuracy; demonstrates data deficit impact |
+
+The scale difference is immediately visible. Even BioBERT, the smallest model in the table, trained on a corpus approximately 125 times larger than ours (18 billion words vs 143 million tokens). BioGPT, the closest architectural comparison at 347M parameters, used approximately 15 million abstracts that we estimate contain 3-5 billion tokens, placing it 20-35x above our data volume. Unlike these models, which benefit from broad biomedical coverage across many diseases and subdomains, our work deliberately investigates the data-starved regime: a single-disease corpus where the available literature is fundamentally insufficient for the model size. Our results confirm that this data deficit is the dominant factor in the model's near-zero factual accuracy, even as it achieves healthy language modeling loss.
+
+### 2.2 Hallucination evaluation
+
+Evaluating factual accuracy and hallucination in language models has become an active research area as model capabilities have scaled. TruthfulQA ([Lin et al., 2022](https://arxiv.org/abs/2109.07958)) introduced a benchmark of 817 adversarial questions targeting common misconceptions, finding that larger models are often less truthful than smaller ones because they more effectively learn the statistical patterns of human misconceptions in their training data. FActScore ([Min et al., 2023](https://arxiv.org/abs/2305.14251)) took a fine-grained approach, decomposing generated biographies into atomic facts and scoring each against a reference corpus, enabling precision measurement at the individual claim level rather than the response level.
+
+SelfCheckGPT ([Manakul et al., 2023](https://arxiv.org/abs/2303.08896)) addressed the reference-free setting by leveraging the observation that factual claims tend to be consistent across multiple stochastic samples while hallucinated claims vary, enabling hallucination detection without ground truth. In the medical domain, Med-HALT ([Umapathi et al., 2023](https://arxiv.org/abs/2307.15343)) tested large language models on reasoning and memory tasks derived from medical licensing exams, establishing structured categories of medical hallucination. MedHallu ([Chen et al., 2025](https://arxiv.org/abs/2502.14302)) extended this with a controlled hallucination generation pipeline producing 10,000 medical question-answer pairs across multiple hallucination types.
+
+Table 2 situates our evaluation approach relative to these benchmarks.
+
+**Table 2.** Hallucination evaluation approaches. Our benchmark is the only domain-specific evaluation combining curated questions, entity-based fabrication detection, and multi-mode failure taxonomy on a narrow medical subdomain.
+
+| Benchmark/Tool | Approach                      | Year | Scale           | Key Innovation                                       |
+|----------------|-------------------------------|------|-----------------|------------------------------------------------------|
+| TruthfulQA     | 817 adversarial questions     | 2022 | General domain  | Targets common misconceptions                        |
+| FActScore      | Fine-grained factual scoring  | 2023 | Biography       | Per-atomic-fact precision                            |
+| SelfCheckGPT   | Self-consistency checking     | 2023 | General         | No reference needed; uses stochastic sampling        |
+| Med-HALT       | Medical hallucination test    | 2023 | Medical         | Reasoning + memory tests from medical exams          |
+| MedHallu       | 10K medical QA pairs          | 2025 | Medical         | Controlled hallucination generation pipeline         |
+| ALS-LM Eval   | 160 curated ALS questions     | 2026 | ALS-specific    | 5-mode taxonomy + entity-based fabrication detection |
+
+Our evaluation framework differs from these approaches in three respects. First, our benchmark is domain-specific rather than general medical or general knowledge: 160 questions curated across 8 categories of ALS knowledge (clinical trials, diagnostic criteria, disease mechanisms, drug treatment, epidemiology, gene mutations, patient care, and temporal accuracy), each with expert-defined key facts for scoring. Second, we implement entity-based fabrication detection using a registry of approximately 48,000 known entities (6,469 drugs, 20,173 genes, 8,075 proteins, and 13,354 institutions), allowing us to flag not just incorrect answers but specifically fabricated entities that do not exist in the medical literature. Third, our 5-mode failure taxonomy (confident fabrication, plausible blending, outdated information, boundary confusion, and accurate but misleading) enables structured analysis of failure mechanisms rather than binary correct/incorrect classification. This taxonomy proved essential for understanding the qualitative differences between our from-scratch model's failures (dominated by degenerate output and repetitive loops) and the baseline model's failures (dominated by confident fabrication of plausible-sounding but incorrect medical claims).
+
+### 2.3 RAG for medical and scientific text
+
+Retrieval-augmented generation has emerged as a strategy for grounding language model outputs in verified external knowledge. In the biomedical domain, BioASQ ([Tsatsaronis et al., 2015](https://www.nature.com/articles/s41597-023-02068-4)) established a long-running challenge for biomedical question answering with retrieval, providing a standardized benchmark that has driven progress since 2013. More recently, MedRAG and the MIRAGE benchmark ([Xiong et al., 2024](https://arxiv.org/abs/2402.13178)) evaluated RAG across multiple medical corpora, finding that retrieval-augmented approaches can improve accuracy by up to 18% over chain-of-thought baselines, though performance varies substantially depending on corpus selection and retrieval configuration.
+
+Our RAG comparison tests a different experimental condition from most published work. Existing RAG benchmarks typically augment models that already possess substantial parametric medical knowledge with retrieval, measuring the incremental gain from adding context. In our setup, the from-scratch ALS-LM has near-zero factual accuracy (0.52%), creating a scenario where almost all correct answers must come from retrieved context rather than parametric knowledge. We compare four RAG configurations (two embedding models at two chunk sizes) against a no-retrieval Llama 3.1 8B baseline that has strong parametric knowledge from general pretraining.
+
+Our findings diverge from the optimistic RAG literature. Even the best RAG configuration (500-token chunks with PubMedBERT embeddings, 13.8% accuracy) does not exceed the no-retrieval baseline (14.3%). The failure decomposition reveals that retrieval failures account for 52-89% of wrong answers depending on configuration, with the embedding model as the dominant variable: PubMedBERT-based retrieval averages 12.7% accuracy compared to 5.9% for MiniLM, a 2.1x improvement. This suggests that naive chunk-based retrieval with general-purpose embeddings is insufficient for domain-specific medical question answering, and that retrieval quality, not generation capability, is the primary bottleneck in this setting.
+
+### 2.4 Data scaling laws
+
+The relationship between training data volume and model performance is well-established through empirical scaling laws. [Kaplan et al. (2020)](https://arxiv.org/abs/2001.08361) demonstrated that language model loss follows smooth power-law relationships with model size, dataset size, and compute budget, enabling predictions of model performance from training configuration. The Chinchilla study ([Hoffmann et al., 2022](https://arxiv.org/abs/2203.15556)) refined these findings, establishing that compute-optimal training requires approximately 20 tokens per parameter, suggesting that models and data should be scaled in roughly equal proportion.
+
+These scaling laws provide a quantitative framework for understanding our results. ALS-LM trains at 0.26 tokens per parameter (128.5 million training tokens for a 500-million-parameter model), placing us at 77 times below the Chinchilla-optimal ratio. If the power-law relationships hold in this extreme regime, the model should achieve far worse loss than a compute-optimally trained model of the same size, and the gap between language modeling competence and downstream task performance should widen dramatically.
+
+In practice, we observe a more nuanced picture. The model achieves a Well-fit classification with validation loss 5.4956 and a relative gap of +0.42% between training and validation loss, suggesting that it has effectively learned the statistical distribution of its training corpus without significant overfitting. Yet factual accuracy on our benchmark is 0.52%, effectively zero. This disconnect suggests that the scaling laws governing loss may have different implications for different types of downstream capability: the model can learn to produce text that statistically resembles ALS research (low perplexity) without internalizing the factual content of that research (near-zero accuracy). Our work provides an empirical data point at the extreme low end of the data scaling curve, complementing the large-scale studies that established these relationships.
 
 ## 3. Methodology
 
