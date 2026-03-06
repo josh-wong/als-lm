@@ -146,9 +146,22 @@ def setup_axes(ax, title: str, xlabel: str, ylabel: str) -> None:
 
 
 def load_comparison_data(report_path: Path) -> dict:
-    """Load the RAG comparison report JSON."""
+    """Load the RAG comparison report JSON.
+
+    Validates that the expected top-level keys are present so downstream
+    plotting functions fail with a clear message rather than cryptic KeyErrors.
+    """
     with open(report_path, encoding="utf-8") as f:
-        return json.load(f)
+        data = json.load(f)
+
+    required_keys = {"overall_accuracy", "taxonomy_distribution", "failure_decomposition"}
+    missing = required_keys - data.keys()
+    if missing:
+        raise ValueError(
+            f"Comparison report is missing required keys: {missing}. "
+            f"Expected keys: {required_keys}"
+        )
+    return data
 
 
 # ---------------------------------------------------------------------------
