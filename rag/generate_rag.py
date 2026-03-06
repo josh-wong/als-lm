@@ -576,7 +576,7 @@ def append_retrieval_analysis(report_path, questions, responses):
         f"Key facts found in retrieved chunks: **{found}/{total}** "
         f"(**{hit_rate:.1%}**)",
         "",
-        "Matching uses rapidfuzz partial_ratio with threshold >= 80.",
+        f"Matching uses rapidfuzz partial_ratio with threshold >= {FUZZY_THRESHOLD}.",
         "",
         "### Per-category retrieval breakdown",
         "",
@@ -715,10 +715,18 @@ def main():
         sys.exit(1)
 
     print("  Pre-flight checks:")
-    available_models = check_ollama_running(args.ollama_url)
+    try:
+        available_models = check_ollama_running(args.ollama_url)
+    except RuntimeError as e:
+        print(f"\n  ERROR: {e}")
+        sys.exit(1)
     print(f"    Ollama server: OK ({len(available_models)} models available)")
 
-    check_model_available(args.ollama_url, args.ollama_model, available_models)
+    try:
+        check_model_available(args.ollama_url, args.ollama_model, available_models)
+    except RuntimeError as e:
+        print(f"\n  ERROR: {e}")
+        sys.exit(1)
     print(f"    Model '{args.ollama_model}': OK")
 
     if not os.path.isfile(benchmark_path):
@@ -733,7 +741,11 @@ def main():
     print(f"    Registry: {registry_path}")
 
     # Verify ChromaDB path exists
-    import chromadb
+    try:
+        import chromadb
+    except ImportError:
+        print("\n  ERROR: chromadb is required. Install with: pip install chromadb")
+        sys.exit(1)
 
     if not os.path.isdir(chroma_db_path):
         print(f"\n  ERROR: ChromaDB directory not found: {chroma_db_path}")

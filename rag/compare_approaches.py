@@ -740,8 +740,6 @@ def generate_markdown_report(
     als_lm_acc = overall_accuracy.get("als_lm", {}).get("mean_accuracy", 0)
     best_rag_name = max(rag_names, key=lambda n: overall_accuracy.get(n, {}).get("mean_accuracy", 0)) if rag_names else None
     best_rag_acc = overall_accuracy.get(best_rag_name, {}).get("mean_accuracy", 0) if best_rag_name else 0
-    worst_rag_name = min(rag_names, key=lambda n: overall_accuracy.get(n, {}).get("mean_accuracy", 0)) if rag_names else None
-    worst_rag_acc = overall_accuracy.get(worst_rag_name, {}).get("mean_accuracy", 0) if worst_rag_name else 0
 
     # Build TL;DR dynamically from computed metrics
     n_approaches = len(approach_names)
@@ -1330,7 +1328,12 @@ def generate_markdown_report(
 
     for i, finding in enumerate(findings, 1):
         ordinals = {1: "First", 2: "Second", 3: "Third", 4: "Fourth"}
-        add(f"{ordinals.get(i, f'{i}.')}, {finding[0].lower()}{finding[1:]}")
+        # Lowercase the first character only if it starts with a normal
+        # capitalized word (e.g. "The") not an acronym (e.g. "PubMedBERT")
+        first = finding[0]
+        if len(finding) > 1 and finding[1].islower():
+            first = first.lower()
+        add(f"{ordinals.get(i, f'{i}.')}, {first}{finding[1:]}")
         add()
     add()
 

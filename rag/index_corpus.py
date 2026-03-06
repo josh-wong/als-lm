@@ -233,7 +233,10 @@ def run_index(args: argparse.Namespace) -> None:
             collection = existing
             pre_existing_chunks = existing_count
             # Retrieve indexed doc_ids by paginating through collection
+            # Also track chunk counts per doc to detect partial documents
             if existing_count > 0:
+                doc_chunk_counts = {}  # doc_id -> set of chunk_index
+                doc_expected_chunks = {}  # doc_id -> total_chunks
                 page_size = 10000
                 offset = 0
                 while offset < existing_count:
@@ -245,8 +248,30 @@ def run_index(args: argparse.Namespace) -> None:
                     )
                     for m in result["metadatas"]:
                         if m:
-                            indexed_doc_ids.add(m.get("doc_id"))
+                            did = m.get("doc_id")
+                            indexed_doc_ids.add(did)
+                            ci = m.get("chunk_index")
+                            tc = m.get("total_chunks")
+                            if did and ci is not None and tc:
+                                doc_chunk_counts.setdefault(did, set()).add(ci)
+                                doc_expected_chunks[did] = tc
                     offset += batch_limit
+                # Warn about partially-indexed documents
+                partial_docs = [
+                    did for did, indices in doc_chunk_counts.items()
+                    if len(indices) < doc_expected_chunks.get(did, 0)
+                ]
+                if partial_docs:
+                    print(
+                        f"  WARNING: {len(partial_docs)} document(s) are partially "
+                        f"indexed (interrupted mid-document). Re-run without "
+                        f"--resume to rebuild, or delete and re-index these documents."
+                    )
+                    if verbose:
+                        for did in partial_docs[:10]:
+                            stored = len(doc_chunk_counts[did])
+                            expected = doc_expected_chunks[did]
+                            print(f"    {did}: {stored}/{expected} chunks")
                 print(f"  Found {len(indexed_doc_ids)} already-indexed documents")
         else:
             print(

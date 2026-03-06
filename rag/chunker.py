@@ -112,6 +112,9 @@ def chunk_document(
 
     Returns a list of dicts with 'text' and 'token_count' keys.
     Token counts are computed on the final text (after overlap) to avoid drift.
+
+    Note: Overlap is applied as post-processing and may push individual chunks
+    beyond max_tokens. The reported token_count reflects the actual size.
     """
     if max_tokens <= 0:
         raise ValueError(f"max_tokens must be positive, got {max_tokens}")

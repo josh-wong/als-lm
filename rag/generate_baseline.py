@@ -171,10 +171,18 @@ def main():
 
     # 1. Verify Ollama is running and model is available
     print("  Pre-flight checks:")
-    available_models = check_ollama_running(args.ollama_url)
+    try:
+        available_models = check_ollama_running(args.ollama_url)
+    except RuntimeError as e:
+        print(f"\n  ERROR: {e}")
+        sys.exit(1)
     print(f"    Ollama server: OK ({len(available_models)} models available)")
 
-    check_model_available(args.ollama_url, args.ollama_model, available_models)
+    try:
+        check_model_available(args.ollama_url, args.ollama_model, available_models)
+    except RuntimeError as e:
+        print(f"\n  ERROR: {e}")
+        sys.exit(1)
     print(f"    Model '{args.ollama_model}': OK")
 
     # 2. Verify benchmark file exists
