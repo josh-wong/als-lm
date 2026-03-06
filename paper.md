@@ -278,17 +278,76 @@ This null result is expected. Quantization degrades model performance by introdu
 
 ## 6. RAG comparison
 
+The from-scratch ALS-LM demonstrates that training on a narrow corpus produces a model with near-zero factual accuracy. A natural question follows: can the same corpus be more effectively leveraged through retrieval-augmented generation, where a capable pretrained model draws on our ALS documents at inference time rather than encoding their content in its parameters? This section presents a systematic comparison of four RAG configurations against a no-retrieval baseline, revealing that retrieval quality, not generation capability, is the primary bottleneck.
+
 ### 6.1 Experimental setup
 
-<!-- Content to be written in subsequent plans -->
+We evaluate five approaches against the same 160-question ALS benchmark used in Section 5, plus the from-scratch ALS-LM results for reference.
+
+**Base model.** We use Llama 3.1 8B ([Meta, 2024](https://llama.meta.com/)) served locally via Ollama for both the no-retrieval baseline and all RAG configurations. We chose Llama 3.1 8B rather than our trained ALS-LM because the RAG comparison tests a different question: whether retrieval from our ALS corpus can improve a model that already possesses general language understanding and parametric medical knowledge. Using the from-scratch ALS-LM as the RAG base model would confound two variables (retrieval benefit and base model capability), since its near-zero accuracy leaves no foundation for retrieval to augment.
+
+**Retrieval system.** We use ChromaDB as the vector store, indexing the same cleaned ALS corpus used for model training. We test two embedding models for chunk encoding: all-MiniLM-L6-v2 (a general-purpose sentence embedding model) and PubMedBERT (a biomedical domain-specific embedding model trained on PubMed abstracts). We test each embedding model at two chunk sizes: 200 tokens and 500 tokens. This yields four RAG configurations: 500-MiniLM, 200-MiniLM, 500-PubMedBERT, and 200-PubMedBERT.
+
+**No-retrieval baseline.** The same Llama 3.1 8B model answers all 160 benchmark questions from its parametric knowledge only, with no retrieved context. This isolates the contribution of retrieval from the base model's existing capabilities.
+
+**Evaluation.** All six approaches (ALS-LM, baseline, and four RAG configurations) are evaluated using the identical 6-stage pipeline described in Section 4: response generation with greedy decoding, key-fact fuzzy matching, fabrication detection against the entity registry, taxonomy classification, stratified sampling, and report generation. The only difference is that RAG configurations prepend retrieved chunks to the question prompt using a structured context injection template.
 
 ### 6.2 Baseline vs RAG results
 
-<!-- Content to be written in subsequent plans -->
+Figure 8 shows the accuracy comparison across all six approaches.
+
+![Accuracy comparison across all six approaches: ALS-LM, baseline, and four RAG configurations](docs/figures/accuracy_comparison.png)
+
+Table 4 presents the aggregate results.
+
+**Table 4.** Cross-approach accuracy comparison on the 160-question ALS benchmark. ALS-LM values are averaged across the three quantization levels from Section 5. Baseline is Llama 3.1 8B without retrieval. RAG configurations use Llama 3.1 8B with ChromaDB retrieval at the specified chunk size and embedding model.
+
+| Approach              | Mean Accuracy | Binary Pass | Fabrication Rate |
+|-----------------------|---------------|-------------|------------------|
+| ALS-LM (avg)          |        0.0052 |       0.0%  |            66.2% |
+| Baseline (no retrieval)|       0.1432 |      13.8%  |            87.2% |
+| RAG 500-MiniLM        |        0.0219 |       1.9%  |            51.4% |
+| RAG 200-MiniLM        |        0.0969 |       8.1%  |            81.0% |
+| RAG 500-PubMedBERT    |        0.1380 |      10.6%  |            80.3% |
+| RAG 200-PubMedBERT    |        0.1151 |      12.5%  |            84.0% |
+
+Three findings emerge from these results.
+
+**First, the best RAG configuration does not exceed the no-retrieval baseline.** The highest-performing RAG setup (500-PubMedBERT at 13.8% mean accuracy) falls just below the no-retrieval baseline (14.3%). This is the opposite of the typical RAG narrative, where retrieval improves over parametric knowledge alone. In our setting, retrieval introduces noise that offsets whatever relevant information it provides. The model appears to defer to retrieved context even when its parametric knowledge would produce a better answer, a phenomenon we term retrieval suppression: the presence of retrieved chunks suppresses the model's use of its own knowledge rather than augmenting it.
+
+**Second, embedding model choice is the single most impactful configuration variable.** PubMedBERT-based retrieval averages 12.7% mean accuracy across the two chunk sizes ((13.8% + 11.5%) / 2), compared to 5.9% for MiniLM-based retrieval ((2.2% + 9.7%) / 2), a 2.1x improvement. This gap persists across both chunk sizes, indicating that domain-specific embeddings fundamentally retrieve more relevant content than general-purpose embeddings when the corpus consists of specialized medical text.
+
+**Third, the 500-MiniLM configuration demonstrates context pollution.** At 2.2% mean accuracy with 61.3% degenerate responses and only 1.9% binary pass rate, 500-MiniLM performs dramatically worse than all other configurations. The combination of large chunks (500 tokens) and general-purpose embeddings retrieves long passages with low semantic relevance to the query. The model, following its instruction to use retrieved context, produces more "Not found in context" responses and degenerate output than substantive answers. This establishes that poorly matched retrieval is worse than no retrieval at all.
+
+The per-category accuracy breakdown reveals complementary patterns across approaches. Drug treatment is the strongest category across all approaches that use Llama 3.1 8B: the baseline achieves 0.3250 mean accuracy and 500-PubMedBERT achieves 0.3125, reflecting Llama 3.1's strong parametric knowledge of common ALS medications. Epidemiology is consistently the weakest category, with the baseline at 0.0375 and the best RAG configuration (500-PubMedBERT) at only 0.0500, suggesting that epidemiological data requires more precise recall than either parametric knowledge or retrieval can provide.
 
 ### 6.3 Failure decomposition
 
-<!-- Content to be written in subsequent plans -->
+For each wrong RAG answer, we classify the failure as either a retrieval failure (no key facts found in the retrieved chunks, meaning the retrieval system failed to surface relevant information) or a generation failure (at least one key fact present in the retrieved chunks but the model still produced an incorrect answer, meaning the model failed to use available information). This decomposition applies only to the four RAG configurations, since ALS-LM and the baseline have no retrieval component.
+
+Figure 9 shows the retrieval versus generation failure decomposition across the four RAG configurations.
+
+![Retrieval versus generation failure decomposition for the four RAG configurations](docs/figures/retrieval_decomposition.png)
+
+Table 5 presents the failure decomposition numbers.
+
+**Table 5.** Failure decomposition for RAG configurations. Total wrong is the number of questions answered incorrectly. Retrieval failures indicate questions where no key facts appeared in the retrieved chunks. Generation failures indicate questions where relevant information was retrieved but the model still answered incorrectly.
+
+| Metric                 | 500-MiniLM | 200-MiniLM | 500-PubMedBERT | 200-PubMedBERT |
+|------------------------|------------|------------|----------------|----------------|
+| Total wrong            |        157 |        147 |            143 |            140 |
+| Retrieval failures     |        140 |        111 |             75 |             89 |
+| Generation failures    |         17 |         36 |             68 |             51 |
+| Retrieval failure rate |      89.2% |      75.5% |          52.4% |          63.6% |
+| Generation failure rate|      10.8% |      24.5% |          47.6% |          36.4% |
+
+Retrieval failures dominate across all configurations, but the magnitude varies dramatically with embedding model choice. For 500-MiniLM, 89.2% of wrong answers are retrieval failures: the system simply cannot find relevant chunks in the corpus using general-purpose embeddings. For 500-PubMedBERT, retrieval failures drop to 52.4%, meaning the domain-specific embeddings retrieve relevant content for roughly half the questions, but the model still fails to extract the correct answer from that content.
+
+This shift in failure mode composition explains PubMedBERT's advantage. The domain-specific embeddings do not just retrieve more relevant content; they shift the bottleneck from retrieval to generation. With MiniLM, the primary problem is that the system cannot find relevant information. With PubMedBERT, the primary problem shifts toward the model's ability to synthesize a correct answer from retrieved context that does contain relevant information. This is a qualitatively different and arguably more tractable failure mode: improving generation from relevant context is a prompt engineering and model capability challenge, whereas improving retrieval from a fixed corpus requires better embedding models or retrieval strategies.
+
+The per-category failure decomposition reinforces this pattern. For 500-MiniLM, retrieval failure rates reach 100.0% in disease mechanisms, epidemiology, and patient care, meaning no relevant chunks were retrieved for any question in these categories. For 500-PubMedBERT, the same categories show retrieval failure rates of 42.1%, 73.7%, and 65.0% respectively, substantial improvements that reflect PubMedBERT's ability to match medical terminology more precisely. Drug treatment shows the most dramatic improvement: retrieval failure drops from 84.2% (500-MiniLM) to 23.1% (500-PubMedBERT), indicating that PubMedBERT excels at retrieving pharmacological content from the ALS corpus.
+
+Epidemiology remains the most retrieval-resistant category across all configurations, with failure rates of 73.7% to 100.0%. This is expected: epidemiological facts (incidence rates, risk factor statistics, geographic distributions) tend to appear as isolated numerical claims within larger documents rather than as coherent retrievable passages, making them poor candidates for chunk-based retrieval regardless of embedding model quality.
 
 ## 7. Discussion
 
