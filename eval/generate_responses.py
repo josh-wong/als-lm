@@ -57,7 +57,7 @@ if _project_root not in sys.path:
 
 # Auto-discover project root for default paths
 try:
-    from eval.utils import find_project_root, resolve_default_paths
+    from eval.utils import find_project_root, resolve_default_paths, relativize_path
     _PROJECT_ROOT = find_project_root()
     _DEFAULTS = resolve_default_paths(_PROJECT_ROOT)
 except ImportError:
@@ -69,9 +69,11 @@ except ImportError:
     )
     _PROJECT_ROOT = None
     _DEFAULTS = {}
+    relativize_path = str  # no-op fallback: return path unchanged
 except SystemExit:
     _PROJECT_ROOT = None
     _DEFAULTS = {}
+    relativize_path = str
 
 # Checkpoint-mode imports are deferred until needed so that Ollama-only runs
 # do not require PyTorch, tokenizers, or the model package to be installed.
@@ -689,7 +691,7 @@ def main():
                 "max_tokens": args.max_tokens,
                 "temperature": args.temperature,
             },
-            "benchmark_path": args.benchmark,
+            "benchmark_path": relativize_path(args.benchmark),
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "total_questions": len(questions),
         }
@@ -723,13 +725,13 @@ def main():
         # Build metadata for checkpoint mode
         metadata = {
             "inference_mode": "checkpoint",
-            "checkpoint_path": os.path.abspath(pt_path),
+            "checkpoint_path": relativize_path(os.path.abspath(pt_path)),
             "model_config": model_config_dict,
             "generation_params": {
                 "max_tokens": args.max_tokens,
                 "temperature": 0.0,
             },
-            "benchmark_path": args.benchmark,
+            "benchmark_path": relativize_path(args.benchmark),
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "total_questions": len(questions),
             "device": str(device),

@@ -1,9 +1,9 @@
 {
   "metadata": {
-    "scores_path": "/mnt/c/Users/joshu/OneDrive/Documents/GitHub/als-lm/eval/results/als-lm-500m_f16/scores.json",
-    "fabrications_path": "/mnt/c/Users/joshu/OneDrive/Documents/GitHub/als-lm/eval/results/als-lm-500m_f16/fabrications.json",
-    "responses_path": "/mnt/c/Users/joshu/OneDrive/Documents/GitHub/als-lm/eval/results/als-lm-500m_f16/responses.json",
-    "benchmark_path": "/mnt/c/Users/joshu/OneDrive/Documents/GitHub/als-lm/eval/questions.json",
+    "scores_path": "eval/results/als-lm-500m_f16/scores.json",
+    "fabrications_path": "eval/results/als-lm-500m_f16/fabrications.json",
+    "responses_path": "eval/results/als-lm-500m_f16/responses.json",
+    "benchmark_path": "eval/questions.json",
     "overrides_path": "eval/taxonomy_overrides.json",
     "timestamp": "2026-02-28T07:46:31.550584+00:00",
     "total_classified": 160,

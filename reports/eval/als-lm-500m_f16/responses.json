@@ -8,7 +8,7 @@
       "max_tokens": 512,
       "temperature": 0.0
     },
-    "benchmark_path": "/mnt/c/Users/joshu/OneDrive/Documents/GitHub/als-lm/eval/questions.json",
+    "benchmark_path": "eval/questions.json",
     "timestamp": "2026-02-28T07:46:30.893853+00:00",
     "total_questions": 160
   },

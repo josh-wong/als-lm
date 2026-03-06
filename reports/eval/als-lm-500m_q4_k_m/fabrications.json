@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "responses_path": "/mnt/c/Users/joshu/OneDrive/Documents/GitHub/als-lm/eval/results/als-lm-500m_q4_k_m/responses.json",
-    "registry_path": "/mnt/c/Users/joshu/OneDrive/Documents/GitHub/als-lm/eval/entity_registry.json",
+    "responses_path": "eval/results/als-lm-500m_q4_k_m/responses.json",
+    "registry_path": "eval/entity_registry.json",
     "threshold": 85,
     "timestamp": "2026-02-28T07:55:02.992062+00:00",
     "total_responses_checked": 160,

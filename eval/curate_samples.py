@@ -47,7 +47,7 @@ if _project_root not in sys.path:
 
 # Auto-discover project root for default paths
 try:
-    from eval.utils import find_project_root, resolve_default_paths
+    from eval.utils import find_project_root, resolve_default_paths, relativize_path
     _PROJECT_ROOT = find_project_root()
     _DEFAULTS = resolve_default_paths(_PROJECT_ROOT)
 except ImportError:
@@ -59,9 +59,11 @@ except ImportError:
     )
     _PROJECT_ROOT = None
     _DEFAULTS = {}
+    relativize_path = str  # no-op fallback: return path unchanged
 except SystemExit:
     _PROJECT_ROOT = None
     _DEFAULTS = {}
+    relativize_path = str
 
 
 # ---------------------------------------------------------------------------
@@ -457,11 +459,11 @@ def main():
     # Build output
     output = {
         "metadata": {
-            "scores_path": args.scores,
-            "fabrications_path": args.fabrications,
-            "responses_path": args.responses,
-            "benchmark_path": args.benchmark,
-            "taxonomy_path": args.taxonomy,
+            "scores_path": relativize_path(args.scores),
+            "fabrications_path": relativize_path(args.fabrications),
+            "responses_path": relativize_path(args.responses),
+            "benchmark_path": relativize_path(args.benchmark),
+            "taxonomy_path": relativize_path(args.taxonomy),
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "selection_criteria": {
                 "best": f"Top {args.best_count} by accuracy_proportional",

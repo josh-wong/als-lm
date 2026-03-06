@@ -53,3 +53,11 @@ matplotlib==3.10.8
 
 # Evaluation framework (v0.3.0)
 rapidfuzz==3.14.3
+
+# RAG comparison (v0.6.0)
+chromadb==1.5.2
+nltk==3.9.3
+sentence-transformers==5.2.3
+
+# Testing
+pytest==8.3.5
