@@ -436,10 +436,10 @@ def create_pipeline_diagram(output_path: Path) -> None:
     # Row 1 (top): Data Collection, Cleaning, Tokenizer, Model Training
     row1_y = 0.72
     row1_boxes = [
-        ("Data\nCollection", 0.10, "PubMed, ClinicalTrials,\nPatient Narratives"),
-        ("Cleaning &\nDedup", 0.28, "19,164 docs"),
-        ("Tokenizer\nTraining", 0.46, "BPE, 50,257 tokens"),
-        ("Model\nTraining", 0.64, "DeepSpeed ZeRO-2\n516M params"),
+        ("Data\nCollection", 0.23, "PubMed, ClinicalTrials,\nPatient Narratives"),
+        ("Cleaning &\nDedup", 0.41, "19,164 docs"),
+        ("Tokenizer\nTraining", 0.59, "BPE, 50,257 tokens"),
+        ("Model\nTraining", 0.77, "DeepSpeed ZeRO-2\n516M params"),
     ]
 
     for label, cx, ann in row1_boxes:
@@ -467,9 +467,9 @@ def create_pipeline_diagram(output_path: Path) -> None:
 
     # Row 2 (bottom): GGUF Export, Evaluation, RAG Comparison
     row2_boxes = [
-        ("GGUF\nExport", 0.64, "Ollama-compatible"),
-        ("Hallucination\nEvaluation", 0.46, "160 questions\n6-stage pipeline"),
-        ("RAG\nComparison", 0.28, "ChromaDB\n4 configurations"),
+        ("GGUF\nExport", 0.77, "Ollama-compatible"),
+        ("Hallucination\nEvaluation", 0.59, "160 questions\n6-stage pipeline"),
+        ("RAG\nComparison", 0.41, "ChromaDB\n4 configurations"),
     ]
 
     for label, cx, ann in row2_boxes:
@@ -484,14 +484,14 @@ def create_pipeline_diagram(output_path: Path) -> None:
 
     # Final output box
     _draw_box(
-        ax, 0.10, row2_y, bw, bh,
+        ax, 0.23, row2_y, bw, bh,
         "Research\nPaper", "#e0e7ff", border,
         annotation="research-paper.md + figures",
         ann_offset=(0, -bh / 2 - 0.02),
     )
     _draw_arrow(
         ax, row2_boxes[2][1] - bw / 2 - 0.005, row2_y,
-        0.10 + bw / 2 + 0.005, row2_y,
+        0.23 + bw / 2 + 0.005, row2_y,
         color=border,
     )
 
@@ -705,8 +705,8 @@ def create_eval_framework_diagram(output_path: Path) -> None:
 
     # Spread stages evenly across the figure
     n = len(stages)
-    x_start = 0.11
-    x_end = 0.85
+    x_start = 0.13
+    x_end = 0.87
     x_positions = [x_start + i * (x_end - x_start) / (n - 1) for i in range(n)]
     stage_y = 0.50
 
@@ -735,7 +735,7 @@ def create_eval_framework_diagram(output_path: Path) -> None:
 
     # Input label (left of stage 1)
     ax.text(
-        x_positions[0] - bw / 2 - 0.04, stage_y,
+        x_positions[0] - bw / 2 - 0.06, stage_y,
         "160\nquestions",
         ha="center", va="center", fontsize=8, fontweight="bold",
         color=border,
@@ -743,14 +743,14 @@ def create_eval_framework_diagram(output_path: Path) -> None:
                   edgecolor=border, linewidth=1.0, linestyle="--"),
     )
     _draw_arrow(
-        ax, x_positions[0] - bw / 2 - 0.015, stage_y,
+        ax, x_positions[0] - bw / 2 - 0.03, stage_y,
         x_positions[0] - bw / 2 - 0.005, stage_y,
         color=border,
     )
 
     # Output label (right of stage 6)
     ax.text(
-        x_positions[-1] + bw / 2 + 0.04, stage_y,
+        x_positions[-1] + bw / 2 + 0.06, stage_y,
         "Eval\nreport",
         ha="center", va="center", fontsize=8, fontweight="bold",
         color=border,
@@ -759,7 +759,7 @@ def create_eval_framework_diagram(output_path: Path) -> None:
     )
     _draw_arrow(
         ax, x_positions[-1] + bw / 2 + 0.005, stage_y,
-        x_positions[-1] + bw / 2 + 0.015, stage_y,
+        x_positions[-1] + bw / 2 + 0.03, stage_y,
         color=border,
     )
 
