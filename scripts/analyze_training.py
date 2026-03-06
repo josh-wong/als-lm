@@ -871,18 +871,18 @@ def main() -> None:
 
     loss_path = os.path.join(output_dir, "train_val_loss.png")
     plot_loss_curves(parsed["steps"], parsed["validations"], loss_path)
-    print(f"  Saved: train_val_loss.png")
+    print("  Saved: train_val_loss.png")
 
     if n_val > 0:
         ppl_path = os.path.join(output_dir, "perplexity_gap.png")
         plot_perplexity_gap(parsed["validations"], ppl_path)
-        print(f"  Saved: perplexity_gap.png")
+        print("  Saved: perplexity_gap.png")
     else:
         print("  Skipped: perplexity_gap.png (no validation entries)")
 
     lr_path = os.path.join(output_dir, "lr_schedule.png")
     plot_lr_schedule(parsed["steps"], lr_path)
-    print(f"  Saved: lr_schedule.png")
+    print("  Saved: lr_schedule.png")
 
     # Generate report
     print("Writing report...")
