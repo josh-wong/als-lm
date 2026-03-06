@@ -168,19 +168,57 @@ Figure 3 shows the learning rate schedule over the full training run.
 
 ### 4.1 Benchmark design
 
-<!-- Content to be written in subsequent plans -->
+We designed a 6-stage evaluation pipeline to assess the model's factual accuracy, detect fabricated entities, classify failure modes, and enable structured comparison across model variants and retrieval configurations. Figure 4 shows the complete evaluation flow.
+
+![Evaluation framework showing the 6-stage pipeline from response generation through scoring, fabrication detection, taxonomy classification, stratified sampling, and report generation](docs/figures/eval_framework.png)
+
+The evaluation begins with a curated benchmark of 160 ALS-specific questions distributed across 8 knowledge categories, with 20 questions per category: Disease Mechanisms, Genetics, Clinical Features, Diagnosis, Treatment, Epidemiology, Research Methods, and Patient Care. We chose these categories to span the full breadth of ALS knowledge, from molecular biology (gene mutations, protein pathology) through clinical practice (diagnostic criteria, treatment options) to population-level data (incidence rates, risk factors).
+
+Each question includes the question text, an expected answer, a list of independently verifiable key facts (for partial credit scoring), a category label, and a difficulty level. We manually curated all 160 questions rather than auto-generating them from the training corpus, because auto-generated questions risk testing the model's ability to memorize specific passages rather than its factual understanding. Manual curation allowed us to ensure clinical accuracy, control difficulty distribution, and include questions that require synthesis across multiple sources (e.g., "What is the relationship between TDP-43 pathology and C9orf72 repeat expansions?").
+
+The design rationale is that binary correct/incorrect scoring obscures important distinctions between types of failure. A model that produces coherent but fabricated medical claims fails differently from one that produces repetitive gibberish, and understanding these failure modes is essential for characterizing what the model has actually learned. The 6-stage pipeline provides this granularity.
 
 ### 4.2 Scoring
 
-<!-- Content to be written in subsequent plans -->
+The scoring stage evaluates each model response against the benchmark's key facts using fuzzy string matching via the `rapidfuzz` library. We chose fuzzy matching over exact string matching because models rarely reproduce expected answers verbatim, even when they contain the correct information expressed in different words or word order.
+
+**Key fact extraction.** Each expected answer in the benchmark is decomposed into independently verifiable factual claims. For example, an expected answer about riluzole might contain three key facts: "riluzole is the first FDA-approved treatment for ALS," "it works by reducing glutamate excitotoxicity," and "it extends survival by approximately 2-3 months." This decomposition enables partial credit: a response that mentions the mechanism but not the survival benefit receives proportional credit rather than a binary pass or fail.
+
+**Matching methodology.** For each response, we break the text into overlapping chunks (100 characters wide, with 50-character overlap). For each key fact, we compute the `partial_ratio` score from rapidfuzz against every chunk. A key fact is considered "found" if any chunk scores at or above the threshold of 80. Per-question accuracy is the proportion of key facts found (mean accuracy), and a question-level binary pass requires at least 50% of key facts to be matched.
+
+**Coherence pre-filtering.** Before scoring, each response passes through a coherence pre-filter that flags degenerate output. A response is classified as incoherent (and excluded from substantive scoring) if it meets any of four conditions: it is empty or shorter than 10 characters, it contains a word repeated 6 or more times consecutively, it contains any 3-gram repeated 4 or more times (catching phrase-level repetition loops), or more than 80% of its characters are non-alphanumeric (token salad). This pre-filter is necessary because the from-scratch ALS-LM frequently produces degenerate output, and passing such output through the full scoring pipeline would waste computation and distort aggregate metrics.
+
+**Aggregation.** We compute per-category accuracy (mean and median across the 20 questions in each category), overall accuracy (mean across all 160 questions), and binary pass rate (percentage of questions where at least 50% of key facts were matched). We also track hedging language frequency as a qualitative signal of model confidence calibration.
 
 ### 4.3 Fabrication detection
 
-<!-- Content to be written in subsequent plans -->
+The fabrication detection stage identifies entities in model responses that do not appear in the training corpus. Unlike reference-based hallucination detection (which checks whether claims are supported by cited sources), our approach is entity-based: we maintain a registry of known entities extracted from the training data and flag any entity in a model response that is absent from this registry. We chose this approach because our from-scratch model has no concept of citations or references, making reference-based methods inapplicable. Entity fabrication, where the model generates plausible-sounding drug names, gene symbols, or institution names that do not exist, is the primary hallucination signal in this setting.
+
+**Entity registry.** The registry contains approximately 48,000 known entities extracted from the training corpus across four categories: 6,469 drug names, 20,173 gene names, 8,075 protein names, and 13,354 institution names. The registry is built by scanning the cleaned corpus for entities matching known patterns and cross-referencing against established databases.
+
+**Detection methodology.** We extract entity candidates from each model response using three approaches. NCT clinical trial identifiers are extracted via regex (NCT followed by 8 digits) and checked by exact match against registry entries. Drug name candidates are extracted by identifying capitalized words and words ending with known pharmaceutical suffixes (e.g., -mab, -nib, -zole, -pril), then fuzzy-matched against the drug registry using rapidfuzz with a threshold of 85. Gene name candidates are extracted via an uppercase-letter-and-digit pattern (2-10 characters, must contain at least one letter), then fuzzy-matched against the gene registry.
+
+**Fabrication rate.** We report the fabrication rate as the proportion of responses containing at least one entity not found in the registry. We note that flagged entities may include false positives: real entities that happen to be absent from our training corpus. For this reason, we designed the fabrication detection as a screening tool that identifies candidates for manual review, not as an automated ground truth classifier.
 
 ### 4.4 Failure taxonomy
 
-<!-- Content to be written in subsequent plans -->
+The taxonomy stage classifies each response into one of five failure modes (plus two non-failure categories) using rule-based logic that combines scoring results, fabrication flags, and text analysis. The taxonomy is designed to cover the full spectrum of model failure, from complete incoherence at one extreme to near-correct responses at the other.
+
+**Failure modes.** We define five failure modes, listed in classification priority order (first match wins):
+
+- **Confident fabrication:** The response contains fabricated entities (flagged by the fabrication detection stage) asserted without hedging language. This is the most dangerous failure mode because the model presents false information with apparent confidence.
+- **Outdated information:** The response references temporal facts incorrectly, particularly for questions in time-sensitive categories such as clinical trials and treatment approvals.
+- **Plausible blending:** The response mixes real facts with incorrect details, producing output that is partially correct but misleadingly wrong on specific claims. This mode is detected when the response has partial key fact matches combined with fabrication flags.
+- **Boundary confusion:** The response provides information from a wrong domain or related-but-incorrect medical context, typically accompanied by hedging language that suggests the model is uncertain.
+- **Accurate but misleading:** The response contains factually correct information but frames it without appropriate caveats, potentially leading to incorrect conclusions.
+
+Two additional categories handle edge cases: **accurate** (correct response, not a failure) and **degenerate** (empty or incoherent output that fails the coherence pre-filter). Degenerate responses receive low severity because, while useless, they are obviously wrong and unlikely to mislead a reader.
+
+**Classification logic.** The taxonomy classifier processes each response through the priority chain. If a response fails the coherence check, it is immediately classified as degenerate. Otherwise, the classifier examines fabrication results, scoring metrics, hedging language presence, and category-specific temporal indicators to assign the primary failure mode.
+
+**Stratified sampling.** To enable manual review without examining all 160 responses, we implement proportional stratified sampling across categories and failure modes. This selects representative responses from each stratum (the worst-scoring, best-scoring, and closest-to-threshold responses per category) for qualitative analysis, ensuring that the manual review sample reflects the full distribution of model behavior.
+
+**Design rationale.** The five failure modes were chosen to capture the qualitative differences we observed between the from-scratch model's failures and the baseline model's failures during development. The from-scratch ALS-LM predominantly produces degenerate output (repetitive loops, token salad) because it has not learned enough factual content to generate coherent medical claims. In contrast, the Llama 3.1 8B baseline predominantly produces confident fabrication because it has sufficient language modeling capability to generate fluent medical text but lacks the specific domain knowledge to make it accurate. This distinction, invisible to binary accuracy metrics, is exactly what the taxonomy is designed to capture.
 
 ## 5. Results
 
