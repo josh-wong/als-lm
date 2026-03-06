@@ -438,7 +438,7 @@ def create_pipeline_diagram(output_path: Path) -> None:
     row1_boxes = [
         ("Data\ncollection", 0.23, "PubMed, ClinicalTrials,\npatient narratives"),
         ("Cleaning &\ndedup", 0.41, "19,164 docs"),
-        ("Tokenizer\ntraining", 0.59, "BPE, 50,257 tokens"),
+        ("Tokenizer\ntraining", 0.59, "BPE, 50,257 vocab"),
         ("Model\ntraining", 0.77, "DeepSpeed ZeRO-2\n516M params"),
     ]
 
@@ -451,12 +451,11 @@ def create_pipeline_diagram(output_path: Path) -> None:
     for i in range(len(row1_boxes) - 1):
         x_start = row1_boxes[i][1] + bw / 2 + 0.005
         x_end = row1_boxes[i + 1][1] - bw / 2 - 0.005
-        label = "142.9M tokens" if i == 0 else None
+        label = "142.9M tokens" if i == 2 else None
         _draw_arrow(ax, x_start, arrow_y1, x_end, arrow_y1,
                     color=border, label=label)
 
     # Connector from row 1 to row 2: Model Training -> GGUF Export
-    corner_x = row1_boxes[3][1] + bw / 2 + 0.02
     row2_y = 0.35
     # Vertical connector down from last row1 box
     _draw_arrow(
