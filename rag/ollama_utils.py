@@ -57,7 +57,7 @@ def check_ollama_running(ollama_url, timeout=10):
         )
     except requests.Timeout:
         raise RuntimeError(f"Ollama server at {ollama_url} timed out")
-    except Exception as exc:
+    except (requests.RequestException, ValueError, KeyError) as exc:
         raise RuntimeError(f"Unexpected error checking Ollama: {exc}") from exc
 
 

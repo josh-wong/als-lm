@@ -968,7 +968,7 @@ def main():
                 append_retrieval_analysis(
                     report_path, questions, responses
                 )
-                print(f"  Retrieval analysis appended to report")
+                print("  Retrieval analysis appended to report")
         else:
             print("\n  --skip-eval: Skipping evaluation stages 2-6")
 
