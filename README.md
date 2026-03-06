@@ -39,7 +39,7 @@ The results below summarize training performance, hallucination evaluation, and 
 
 ### Training
 
-Training ran for 3 epochs (11,760 steps) in 4 hours 32 minutes on a single RTX 3060.
+Training ran for 3 epochs (11,760 steps) in 4 hours 27 minutes on a single RTX 3060.
 
 ![Training and validation loss curves over 11,760 steps](docs/figures/train_val_loss.png)
 
@@ -135,76 +135,6 @@ python rag/compare_approaches.py
 ```
 
 Benchmarks four RAG configurations against the from-scratch model and no-retrieval baseline.
-
-## Repository structure
-
-The repository is organized by pipeline stage for clarity and reproducibility.
-
-```
-als-lm/
-├── README.md
-├── LICENSE
-├── requirements.txt
-├── setup.sh                           # Environment setup (CUDA, DeepSpeed, dependencies)
-├── config/
-│   └── ds_zero2.json                  # DeepSpeed ZeRO Stage 2 configuration
-├── configs/
-│   └── 500m.json                      # Model hyperparameters (516M configuration)
-├── scripts/                           # Utility scripts
-│   ├── train_tokenizer.py             # BPE tokenizer training
-│   ├── prepare_data.py                # Data cleaning and processing
-│   ├── preflight_check.py             # Pre-training validation
-│   ├── analyze_training.py            # Training metrics analysis
-│   └── generate_figures.py            # Publication figure generation
-├── data/
-│   ├── processed/                     # Cleaned, deduplicated corpus
-│   ├── tokenized/                     # Tokenized training/validation splits
-│   ├── chromadb/                      # ChromaDB vector index for RAG
-│   ├── sources.md                     # Full source inventory with licensing
-│   └── stats.md                       # Corpus statistics
-├── tokenizer/
-│   ├── als_tokenizer.json             # Production tokenizer (50,257 vocab)
-│   ├── hf_tokenizer/                  # Hugging Face export
-│   └── VALIDATION.md                  # Tokenizer validation report
-├── model/
-│   ├── model.py                       # GPT-2 (Pre-LN) transformer architecture
-│   └── train.py                       # Training loop with DeepSpeed
-├── export/
-│   ├── export_pipeline.py             # PyTorch → Hugging Face → GGUF → Ollama
-│   ├── convert_to_hf.py              # Checkpoint conversion
-│   └── Modelfile.template             # Ollama Modelfile template
-├── demo/
-│   └── cli.py                         # Interactive query CLI
-├── eval/
-│   ├── run_evaluation.py              # Evaluation orchestrator
-│   ├── questions.json                 # 160-question ALS benchmark
-│   ├── entity_registry.json           # ~48K medical entities for fabrication detection
-│   ├── generate_responses.py          # Response generation
-│   ├── score_responses.py             # Key-fact fuzzy matching
-│   ├── detect_fabrications.py         # Entity-based fabrication detection
-│   ├── classify_taxonomy.py           # 5-mode failure classification
-│   └── results/                       # Evaluation outputs
-├── rag/
-│   ├── compare_approaches.py          # Cross-approach comparison
-│   ├── index_corpus.py                # ChromaDB indexing
-│   ├── generate_rag.py                # RAG response generation
-│   ├── generate_baseline.py           # No-retrieval baseline generation
-│   └── results/                       # RAG evaluation outputs
-├── benchmark/
-│   └── readiness_gate.py              # Pre-evaluation validation
-├── lib/
-│   └── llama.cpp/                     # GGUF conversion tooling
-├── docs/
-│   ├── research-paper.md              # Full research paper with results
-│   ├── white-paper.md                 # Research motivation and approach
-│   ├── product-requirements-doc.md    # Scope and success criteria
-│   ├── design-doc.md                  # Technical architecture
-│   └── figures/                       # Diagrams and result visualizations
-├── reports/                           # Generated analysis reports
-├── tests/                             # Unit tests
-├── checkpoints/                       # Training checkpoints (local)
-└── logs/                              # Training logs (local)
-```
 
 ## Disclaimers
 

@@ -65,7 +65,7 @@ All data comes from publicly available sources. We did not use private medical r
 
 ## Training procedure
 
-We trained for 3 epochs (11,760 steps) over 4 hours and 32 minutes.
+We trained for 3 epochs (11,760 steps) over 4 hours and 27 minutes.
 
 | Hyperparameter       | Value                                        |
 |----------------------|----------------------------------------------|
