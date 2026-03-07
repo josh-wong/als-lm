@@ -63,6 +63,7 @@ import shutil
 import sys
 import time
 from collections import deque
+from dataclasses import fields as dataclass_fields
 from datetime import datetime, timezone
 
 # Ensure the project root is on sys.path so that `from model.model import ...`
@@ -84,6 +85,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 # Tokenizer for sample generation
 from tokenizers import Tokenizer
+from transformers import GPT2TokenizerFast
 
 # Model class
 from model.model import GPT, MODEL_CONFIGS
@@ -126,6 +128,9 @@ SAMPLE_PROMPTS = [
 ]
 
 SAMPLE_TEMPERATURES = [0.0, 0.7]  # Greedy + sampled decoding
+
+# Set in main() based on --pretrained-weights flag
+MODEL_TYPE = "from-scratch"
 
 
 # ---------------------------------------------------------------------------
@@ -381,10 +386,12 @@ def validate_data_files(data_dir):
         sys.exit(1)
 
 
-def load_and_validate_vocab(data_dir, tokenizer_path):
+def load_and_validate_vocab(data_dir, tokenizer_path, is_finetune=False):
     """Load vocab_size from meta.pkl and validate against the canonical tokenizer.
 
     Returns the vocab_size from meta.pkl if validation passes.
+    When is_finetune=True, validates against GPT2TokenizerFast instead of
+    the ALS tokenizer.
     """
     meta_path = os.path.join(data_dir, "meta.pkl")
     with open(meta_path, "rb") as f:
@@ -392,13 +399,16 @@ def load_and_validate_vocab(data_dir, tokenizer_path):
     meta_vocab_size = meta["vocab_size"]
 
     # Load the canonical tokenizer and compare
-    if not os.path.isfile(tokenizer_path):
-        print(f"\nWARNING: Tokenizer not found at {tokenizer_path}")
-        print("  Cannot validate vocab_size. Proceeding with meta.pkl value.")
-        return meta_vocab_size
-
-    tok = Tokenizer.from_file(tokenizer_path)
-    tok_vocab_size = tok.get_vocab_size()
+    if is_finetune:
+        tok = GPT2TokenizerFast.from_pretrained("gpt2")
+        tok_vocab_size = tok.vocab_size
+    else:
+        if not os.path.isfile(tokenizer_path):
+            print(f"\nWARNING: Tokenizer not found at {tokenizer_path}")
+            print("  Cannot validate vocab_size. Proceeding with meta.pkl value.")
+            return meta_vocab_size
+        tok = Tokenizer.from_file(tokenizer_path)
+        tok_vocab_size = tok.get_vocab_size()
 
     if meta_vocab_size != tok_vocab_size:
         print(f"\nFATAL: Vocab size mismatch!")
@@ -477,7 +487,12 @@ def generate_sample(model, tokenizer, prompt, max_new_tokens=128, temperature=0.
     (temperature=0) and sampled decoding.
     """
     model.eval()
-    input_ids = tokenizer.encode(prompt).ids
+    if hasattr(tokenizer, 'get_vocab_size'):
+        # tokenizers.Tokenizer API (ALS)
+        input_ids = tokenizer.encode(prompt).ids
+    else:
+        # GPT2TokenizerFast API
+        input_ids = tokenizer.encode(prompt)
     idx = torch.tensor([input_ids], dtype=torch.long, device=device)
     for _ in range(max_new_tokens):
         idx_cond = idx[:, -model.config.block_size :]
@@ -881,10 +896,10 @@ def try_resume(model_engine, args, run_dir):
 # ---------------------------------------------------------------------------
 # Logging
 # ---------------------------------------------------------------------------
-def setup_logging(is_resuming=False):
+def setup_logging(is_resuming=False, log_filename="training_log.jsonl"):
     """Open the fixed JSONL log file, appending if it exists on resume."""
     os.makedirs("logs", exist_ok=True)
-    log_path = "logs/training_log.jsonl"
+    log_path = f"logs/{log_filename}"
     if is_resuming and os.path.exists(log_path):
         log_file = open(log_path, "a")
     else:
@@ -896,6 +911,7 @@ def write_config_header(log_file, args, model_config_dict, ds_config, vocab_size
     """Write full config dump as the first JSON line in the log file."""
     header = {
         "type": "config",
+        "model_type": MODEL_TYPE,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "model_config": model_config_dict,
         "deepspeed_config": ds_config,
@@ -934,6 +950,7 @@ def log_step(log_file, step, loss, lr, tokens_per_sec, gpu_mem_mb, dt_sec,
         perplexity = 1e5
     entry = {
         "type": "step",
+        "model_type": MODEL_TYPE,
         "step": step,
         "loss": round(loss, 6),
         "perplexity": round(perplexity, 2),
@@ -968,6 +985,7 @@ def log_validation(log_file, step, train_loss, val_loss, samples,
 
     entry = {
         "type": "validation",
+        "model_type": MODEL_TYPE,
         "step": step,
         "train_loss": round(train_loss, 6),
         "val_loss": round(val_loss, 6),
@@ -992,6 +1010,7 @@ def log_epoch(log_file, epoch, steps_in_epoch, avg_train_loss, total_tokens, ela
         avg_ppl = 1e5
     entry = {
         "type": "epoch",
+        "model_type": MODEL_TYPE,
         "epoch": epoch,
         "steps": steps_in_epoch,
         "avg_train_loss": round(avg_train_loss, 6),
@@ -1223,6 +1242,7 @@ def print_training_summary(
     total_checkpoints_saved=0,
     total_best_updates=0,
     total_bytes_written=0,
+    initial_val_loss=None,
 ):
     """Print the end-of-run training summary with checkpoint statistics."""
     time_str = format_time(elapsed_time)
@@ -1260,6 +1280,12 @@ def print_training_summary(
     print(f"    Best checkpoint updates:  {total_best_updates}")
     print(f"    Total disk written:       {total_bytes_written / 1024 / 1024 / 1024:.2f} GB")
     print(f"    Best checkpoint:          step {best_val_step} (val loss: {best_val_loss:.4f})")
+    if initial_val_loss is not None:
+        delta = final_val_loss - initial_val_loss
+        print(f"\n  {BOLD}Fine-tuning Progress:{RESET}")
+        print(f"    Init val loss:      {initial_val_loss:.4f}")
+        print(f"    Final val loss:     {final_val_loss:.4f}")
+        print(f"    Delta:              {delta:+.4f}")
     print(f"{BOLD}{'=' * 64}{RESET}\n")
 
 
@@ -1268,6 +1294,9 @@ def print_training_summary(
 # ---------------------------------------------------------------------------
 def main():
     args = parse_args()
+
+    global MODEL_TYPE
+    MODEL_TYPE = "gpt2-large-finetune" if args.pretrained_weights else "from-scratch"
 
     # ---- Startup validation ------------------------------------------------
     print("\n=== ALS-LM Training Script ===\n")
@@ -1283,7 +1312,7 @@ def main():
         sys.exit(1)
 
     validate_data_files(args.data_dir)
-    vocab_size = load_and_validate_vocab(args.data_dir, args.tokenizer_path)
+    vocab_size = load_and_validate_vocab(args.data_dir, args.tokenizer_path, is_finetune=bool(args.pretrained_weights))
     print(f"  Vocab size: {vocab_size:,} (validated against tokenizer)")
 
     # Get data file sizes (token counts)
@@ -1333,6 +1362,21 @@ def main():
     if args.dropout is not None:
         print(f"  Dropout overridden to {args.dropout}")
 
+    # Load pretrained weights if specified (MUST happen before DeepSpeed init)
+    if args.pretrained_weights:
+        ckpt = torch.load(args.pretrained_weights, map_location="cpu", weights_only=False)
+        pretrained_config = ckpt["config"]
+        # Validate architecture compatibility
+        assert pretrained_config.n_layer == model_config.n_layer, \
+            f"n_layer mismatch: checkpoint={pretrained_config.n_layer}, model={model_config.n_layer}"
+        assert pretrained_config.n_head == model_config.n_head, \
+            f"n_head mismatch: checkpoint={pretrained_config.n_head}, model={model_config.n_head}"
+        assert pretrained_config.n_embd == model_config.n_embd, \
+            f"n_embd mismatch: checkpoint={pretrained_config.n_embd}, model={model_config.n_embd}"
+        model.load_state_dict(ckpt["model"], strict=True)
+        print(f"  Loaded pretrained weights from {args.pretrained_weights}")
+        print(f"  Pretrained config: n_layer={pretrained_config.n_layer}, n_head={pretrained_config.n_head}, n_embd={pretrained_config.n_embd}")
+
     # Auto-enable gradient checkpointing for fine-tuning (774M params needs it on 12GB VRAM)
     if args.pretrained_weights and not args.gradient_checkpointing:
         args.gradient_checkpointing = True
@@ -1343,16 +1387,8 @@ def main():
         model.enable_gradient_checkpointing()
         print(f"  Gradient checkpointing enabled on {len(list(model.transformer.h))} blocks")
 
-    # Serialize model config for checkpoint metadata
-    model_config_dict = {
-        "block_size": model_config.block_size,
-        "vocab_size": model_config.vocab_size,
-        "n_layer": model_config.n_layer,
-        "n_head": model_config.n_head,
-        "n_embd": model_config.n_embd,
-        "dropout": model_config.dropout,
-        "bias": model_config.bias,
-    }
+    # Serialize model config for checkpoint metadata (dynamic extraction prevents silent field drops)
+    model_config_dict = {f.name: getattr(model_config, f.name) for f in dataclass_fields(model_config)}
 
     # ---- Dry-run mode ------------------------------------------------------
     if args.dry_run:
@@ -1389,7 +1425,8 @@ def main():
 
     # ---- Checkpoint directory setup ----------------------------------------
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    run_dir = os.path.join("checkpoints", f"{args.config}_{timestamp}")
+    config_label = "gpt2-large-finetune" if args.pretrained_weights else args.config
+    run_dir = os.path.join("checkpoints", f"{config_label}_{timestamp}")
     os.makedirs(run_dir, exist_ok=True)
     print(f"  Checkpoint dir: {run_dir}")
 
@@ -1411,7 +1448,8 @@ def main():
         epoch_tracker.current_epoch = start_step // epoch_tracker.steps_per_epoch if epoch_tracker.steps_per_epoch > 0 else 0
 
     # ---- Logging setup -----------------------------------------------------
-    log_path, log_file = setup_logging(is_resuming=is_resuming)
+    log_filename = "finetune_log.jsonl" if args.pretrained_weights else "training_log.jsonl"
+    log_path, log_file = setup_logging(is_resuming=is_resuming, log_filename=log_filename)
     if is_resuming:
         log_resume(log_file, start_step)
     else:
@@ -1422,11 +1460,18 @@ def main():
 
     # ---- Load tokenizer for sample generation ------------------------------
     tokenizer = None
-    if os.path.isfile(args.tokenizer_path):
+    if args.pretrained_weights:
         try:
-            tokenizer = Tokenizer.from_file(args.tokenizer_path)
+            tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
+            print(f"  Tokenizer: GPT2TokenizerFast (vocab={tokenizer.vocab_size})")
         except Exception as e:
-            print(f"  WARNING: Failed to load tokenizer for sample generation: {e}")
+            print(f"  WARNING: Failed to load GPT-2 tokenizer for sample generation: {e}")
+    else:
+        if os.path.isfile(args.tokenizer_path):
+            try:
+                tokenizer = Tokenizer.from_file(args.tokenizer_path)
+            except Exception as e:
+                print(f"  WARNING: Failed to load tokenizer for sample generation: {e}")
 
     # ---- Training loop -----------------------------------------------------
     block_size = model_config.block_size
@@ -1445,6 +1490,7 @@ def main():
 
     # Tracking variables
     initial_loss = None
+    initial_val_loss = None
     best_val_loss = float("inf")
     best_val_step = 0
     final_train_loss = 0.0
@@ -1633,6 +1679,9 @@ def main():
                 final_train_loss = losses["train"]
                 final_val_loss = val_loss
 
+                if initial_val_loss is None:
+                    initial_val_loss = val_loss
+
                 try:
                     train_ppl = min(math.exp(losses["train"]), 1e5)
                 except OverflowError:
@@ -1800,7 +1849,7 @@ def main():
             pass
 
     print_training_summary(
-        config_name=args.config,
+        config_name=config_label,
         total_steps=max_steps - start_step,
         elapsed_time=elapsed,
         final_train_loss=final_train_loss,
@@ -1813,6 +1862,7 @@ def main():
         total_checkpoints_saved=total_checkpoints_saved,
         total_best_updates=total_best_updates,
         total_bytes_written=total_bytes_written,
+        initial_val_loss=initial_val_loss,
     )
 
 
