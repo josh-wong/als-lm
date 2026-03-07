@@ -326,6 +326,12 @@ def parse_args():
         help="Enable gradient checkpointing to reduce GPU memory (trades compute for memory)",
     )
     parser.add_argument(
+        "--checkpoint-base",
+        type=str,
+        default="checkpoints",
+        help="Base directory for checkpoint storage (default: checkpoints/)",
+    )
+    parser.add_argument(
         "--local_rank",
         type=int,
         default=-1,
@@ -1431,7 +1437,7 @@ def main():
     # ---- Checkpoint directory setup ----------------------------------------
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     config_label = "gpt2-large-finetune" if args.pretrained_weights else args.config
-    run_dir = os.path.join("checkpoints", f"{config_label}_{timestamp}")
+    run_dir = os.path.join(args.checkpoint_base, f"{config_label}_{timestamp}")
     os.makedirs(run_dir, exist_ok=True)
     print(f"  Checkpoint dir: {run_dir}")
 
