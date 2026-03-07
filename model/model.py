@@ -151,6 +151,17 @@ MODEL_CONFIGS: dict[str, GPTConfig] = {
         dropout=0.1,
         bias=True,
     ),
+    "gpt2-large": GPTConfig(
+        block_size=1024,
+        vocab_size=None,
+        n_layer=36,
+        n_head=20,
+        n_embd=1280,
+        dropout=0.0,
+        bias=True,
+        use_post_ln=False,
+        gelu_approximate="tanh",
+    ),
 }
 
 
