@@ -43,6 +43,9 @@ data/stats.md
 # Tokenized data (Phase 3 - binary files, regenerable from corpus + tokenizer)
 data/tokenized/
 
+# GPT-2 re-tokenized data (Phase 22 - binary files, regenerable from corpus + GPT-2 tokenizer)
+data/tokenized_gpt2/
+
 # Environment validation reports (Phase 4.1), except production training analysis (committed deliverable)
 reports/*
 !reports/production_training_analysis/
