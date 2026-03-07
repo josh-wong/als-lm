@@ -351,10 +351,15 @@ def parse_args():
         args.grad_accum = defaults["grad_accum"]
     if args.warmup_steps is None:
         args.warmup_steps = defaults["warmup"]
+    # Track whether --max-steps was explicitly passed on CLI
+    cli_max_steps = args.max_steps is not None
     if args.max_steps is None:
         args.max_steps = defaults.get("max_steps")  # May be None for finetune config
     if args.max_epochs is None and "max_epochs" in defaults:
-        args.max_epochs = defaults["max_epochs"]
+        # Only apply default max_epochs if --max-steps was NOT explicitly passed,
+        # otherwise the CLI --max-steps would be silently overridden
+        if not cli_max_steps:
+            args.max_epochs = defaults["max_epochs"]
 
     # Override dropout for fine-tuning (MODEL_CONFIGS gpt2-large has 0.0, but fine-tuning needs 0.1 per experiment design)
     if "dropout" in defaults and args.dropout is None:
