@@ -104,6 +104,14 @@ CONFIG_DEFAULTS = {
     "tiny": {"lr": 6e-4, "batch_size": 16, "grad_accum": 2, "warmup": 100, "max_steps": 2000},
     "medium": {"lr": 3e-4, "batch_size": 8, "grad_accum": 4, "warmup": 200, "max_steps": 10000},
     "500M": {"lr": 3e-4, "batch_size": 4, "grad_accum": 8, "warmup": 500, "max_steps": 50000},
+    "gpt2-large-finetune": {
+        "lr": 2e-5,
+        "batch_size": 2,
+        "grad_accum": 4,
+        "warmup": 200,
+        "max_epochs": 2,
+        "dropout": 0.1,
+    },
 }
 
 # Fixed prompts for sample text generation at validation intervals
@@ -296,6 +304,18 @@ def parse_args():
         help="Validate config and print training plan without training",
     )
     parser.add_argument(
+        "--pretrained-weights",
+        type=str,
+        default=None,
+        help="Path to pretrained checkpoint (e.g., checkpoints/gpt2large_init/init.pt) for fine-tuning mode",
+    )
+    parser.add_argument(
+        "--dropout",
+        type=float,
+        default=None,
+        help="Override dropout rate (default: from MODEL_CONFIGS; fine-tuning default: 0.1)",
+    )
+    parser.add_argument(
         "--gradient-checkpointing",
         action="store_true",
         help="Enable gradient checkpointing to reduce GPU memory (trades compute for memory)",
@@ -312,8 +332,12 @@ def parse_args():
 
     args = parser.parse_args()
 
-    # Apply per-config defaults for unset arguments
-    defaults = CONFIG_DEFAULTS.get(args.config, CONFIG_DEFAULTS["tiny"])
+    # Determine which CONFIG_DEFAULTS entry to use
+    config_defaults_key = args.config
+    if args.pretrained_weights and args.config == "gpt2-large":
+        config_defaults_key = "gpt2-large-finetune"
+    defaults = CONFIG_DEFAULTS.get(config_defaults_key, CONFIG_DEFAULTS["tiny"])
+
     if args.lr is None:
         args.lr = defaults["lr"]
     if args.batch_size is None:
@@ -323,7 +347,13 @@ def parse_args():
     if args.warmup_steps is None:
         args.warmup_steps = defaults["warmup"]
     if args.max_steps is None:
-        args.max_steps = defaults["max_steps"]
+        args.max_steps = defaults.get("max_steps")  # May be None for finetune config
+    if args.max_epochs is None and "max_epochs" in defaults:
+        args.max_epochs = defaults["max_epochs"]
+
+    # Override dropout for fine-tuning (MODEL_CONFIGS gpt2-large has 0.0, but fine-tuning needs 0.1 per experiment design)
+    if "dropout" in defaults and args.dropout is None:
+        args.dropout = defaults["dropout"]
 
     return args
 
@@ -1242,6 +1272,16 @@ def main():
     # ---- Startup validation ------------------------------------------------
     print("\n=== ALS-LM Training Script ===\n")
 
+    # Auto-switch data directory for fine-tuning mode
+    if args.pretrained_weights and args.data_dir == "data/tokenized":
+        args.data_dir = "data/tokenized_gpt2"
+        print(f"  Fine-tuning mode: auto-switched data dir to {args.data_dir}")
+
+    # Validate pretrained weights path
+    if args.pretrained_weights and not os.path.isfile(args.pretrained_weights):
+        print(f"\nFATAL: Pretrained weights file not found: {args.pretrained_weights}")
+        sys.exit(1)
+
     validate_data_files(args.data_dir)
     vocab_size = load_and_validate_vocab(args.data_dir, args.tokenizer_path)
     print(f"  Vocab size: {vocab_size:,} (validated against tokenizer)")
@@ -1283,10 +1323,20 @@ def main():
     ds_config = resolve_ds_config(ds_config_path, args)
 
     # ---- Build model -------------------------------------------------------
-    model = GPT.from_config(args.config, vocab_size=vocab_size)
+    model_overrides = {}
+    if args.dropout is not None:
+        model_overrides["dropout"] = args.dropout
+    model = GPT.from_config(args.config, vocab_size=vocab_size, **model_overrides)
     model_config = model.config
     param_count = model.get_num_params()
     print(f"  Model: {args.config} ({param_count:,} parameters)")
+    if args.dropout is not None:
+        print(f"  Dropout overridden to {args.dropout}")
+
+    # Auto-enable gradient checkpointing for fine-tuning (774M params needs it on 12GB VRAM)
+    if args.pretrained_weights and not args.gradient_checkpointing:
+        args.gradient_checkpointing = True
+        print(f"  Gradient checkpointing auto-enabled for fine-tuning mode")
 
     # Enable gradient checkpointing if requested (must happen before DeepSpeed wraps the model)
     if args.gradient_checkpointing:
