@@ -570,8 +570,8 @@ def main():
 
     # Resolve stage script paths relative to project root. Build local
     # copies to avoid mutating the module-level STAGES constant.
-    STAGES = [dict(s) for s in STAGES]
-    for stage in STAGES:
+    stages = [dict(s) for s in STAGES]
+    for stage in stages:
         stage["script"] = str(project_root / stage["script"])
 
     # Print resolved paths for user verification
@@ -607,7 +607,7 @@ def main():
     # Handle --force: delete all intermediate files
     if args.force:
         print(f"  Force mode: deleting intermediate files...")
-        for stage in STAGES:
+        for stage in stages:
             if stage["output_file"]:
                 path = os.path.join(results_dir, stage["output_file"])
                 if os.path.isfile(path):
@@ -623,11 +623,11 @@ def main():
 
     # Determine which stages to run
     if args.stage:
-        stages_to_run = [s for s in STAGES if s["name"] == args.stage]
+        stages_to_run = [s for s in stages if s["name"] == args.stage]
         print(f"\n  Running single stage: {args.stage}\n")
     else:
-        stages_to_run = STAGES
-        print(f"\n  Running full pipeline ({len(STAGES)} stages)\n")
+        stages_to_run = stages
+        print(f"\n  Running full pipeline ({len(stages)} stages)\n")
 
     # Execute stages
     pipeline_start = time.time()
