@@ -228,7 +228,17 @@ def load_model_from_checkpoint(pt_path, device):
     print(f"  Loading checkpoint: {pt_path}")
     checkpoint = torch.load(pt_path, map_location=device, weights_only=False)
 
-    config_dict = checkpoint["config"]
+    # Handle both GPTConfig dataclass and plain dict checkpoint formats
+    raw_config = checkpoint["config"]
+    if isinstance(raw_config, GPTConfig):
+        config_dict = {f.name: getattr(raw_config, f.name)
+                       for f in raw_config.__dataclass_fields__.values()}
+    elif isinstance(raw_config, dict):
+        config_dict = raw_config
+    else:
+        raise TypeError(
+            f"Checkpoint 'config' must be GPTConfig or dict, got {type(raw_config)}"
+        )
     print(f"  Model config: n_layer={config_dict['n_layer']}, "
           f"n_embd={config_dict['n_embd']}, "
           f"n_head={config_dict['n_head']}, "
@@ -243,6 +253,8 @@ def load_model_from_checkpoint(pt_path, device):
         n_embd=config_dict["n_embd"],
         dropout=0.0,
         bias=config_dict["bias"],
+        use_post_ln=config_dict.get("use_post_ln", False),
+        gelu_approximate=config_dict.get("gelu_approximate", "none"),
     )
 
     model = GPT(config)
