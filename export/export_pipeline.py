@@ -59,6 +59,12 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from export.convert_to_hf import convert_checkpoint_to_hf, validate_conversion  # noqa: E402
 from model.model import GPT, GPTConfig  # noqa: E402
 
+# Register GPTConfig as safe for torch.load (PyTorch >= 2.4)
+try:
+    torch.serialization.add_safe_globals([GPTConfig])
+except AttributeError:
+    pass  # PyTorch < 2.4; torch.load will fall back to weights_only=False
+
 # Key directories
 LLAMA_CPP_DIR = PROJECT_ROOT / "lib" / "llama.cpp"
 TOKENIZER_HF_DIR = PROJECT_ROOT / "tokenizer" / "hf_tokenizer"
@@ -335,9 +341,12 @@ def stage_hf_convert(
 
         # Load original model for logit validation
         print("\nValidating logits...")
-        ckpt = torch.load(
-            str(checkpoint_path), map_location="cpu", weights_only=False
-        )
+        try:
+            ckpt = torch.load(
+                str(checkpoint_path), map_location="cpu", weights_only=True
+            )
+        except TypeError:
+            ckpt = torch.load(str(checkpoint_path), map_location="cpu")
         raw_config = ckpt["config"]
         if isinstance(raw_config, GPTConfig):
             config = raw_config
@@ -1405,7 +1414,10 @@ def main() -> None:
     # Print checkpoint metadata
     print(f"\nCheckpoint: {checkpoint_path}")
     try:
-        ckpt_meta = torch.load(str(checkpoint_path), map_location="cpu", weights_only=False)
+        try:
+            ckpt_meta = torch.load(str(checkpoint_path), map_location="cpu", weights_only=True)
+        except TypeError:
+            ckpt_meta = torch.load(str(checkpoint_path), map_location="cpu")
         if "step" in ckpt_meta:
             print(f"  Step: {ckpt_meta['step']}")
         if "val_loss" in ckpt_meta:

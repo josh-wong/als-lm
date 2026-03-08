@@ -30,7 +30,9 @@ def check_vocabulary_identity(meta_path, tok):
         Tuple of (passed: bool, details: dict).
     """
     with open(meta_path, "rb") as f:
-        meta = pickle.load(f)
+        meta = pickle.load(f)  # noqa: S301 — meta.pkl is project-generated
+    if not isinstance(meta, dict) or "vocab_size" not in meta:
+        return False, {"error": f"Invalid meta.pkl format: expected dict with 'vocab_size' key"}
 
     meta_vocab_size = meta["vocab_size"]
     live_vocab_size = tok.vocab_size

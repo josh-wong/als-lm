@@ -53,6 +53,12 @@ from transformers import GPT2Config, GPT2LMHeadModel
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from model.model import GPT, GPTConfig  # noqa: E402
 
+# Register GPTConfig as safe for torch.load (PyTorch >= 2.4)
+try:
+    torch.serialization.add_safe_globals([GPTConfig])
+except AttributeError:
+    pass  # PyTorch < 2.4; torch.load will fall back to weights_only=False
+
 # Weight matrix suffixes that require transposition (nn.Linear -> Conv1D).
 # These are the four projection layers in each transformer block where
 # nn.Linear stores weights as (out, in) but Conv1D expects (in, out).
@@ -94,7 +100,10 @@ def convert_checkpoint_to_hf(
         KeyError: If the checkpoint is missing required keys.
     """
     print(f"Loading checkpoint from {checkpoint_path}...")
-    ckpt = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
+    try:
+        ckpt = torch.load(checkpoint_path, map_location="cpu", weights_only=True)
+    except TypeError:
+        ckpt = torch.load(checkpoint_path, map_location="cpu")
 
     # Extract config, handling both GPTConfig dataclass and plain dict
     raw_config = ckpt["config"]
@@ -407,7 +416,10 @@ def main() -> None:
 
     # Load our model for validation
     print("\nLoading original model for validation...")
-    ckpt = torch.load(args.checkpoint, map_location="cpu", weights_only=False)
+    try:
+        ckpt = torch.load(args.checkpoint, map_location="cpu", weights_only=True)
+    except TypeError:
+        ckpt = torch.load(args.checkpoint, map_location="cpu")
     raw_config = ckpt["config"]
     if isinstance(raw_config, GPTConfig):
         config = raw_config

@@ -93,6 +93,11 @@ def _ensure_checkpoint_imports():
     Tokenizer = _Tokenizer
     GPT = _GPT
     GPTConfig = _GPTConfig
+    # Register GPTConfig as safe for torch.load (PyTorch >= 2.4)
+    try:
+        _torch.serialization.add_safe_globals([_GPTConfig])
+    except AttributeError:
+        pass  # PyTorch < 2.4
     _CHECKPOINT_IMPORTS_LOADED = True
 
 
@@ -226,7 +231,10 @@ def load_model_from_checkpoint(pt_path, device):
     """
     _ensure_checkpoint_imports()
     print(f"  Loading checkpoint: {pt_path}")
-    checkpoint = torch.load(pt_path, map_location=device, weights_only=False)
+    try:
+        checkpoint = torch.load(pt_path, map_location=device, weights_only=True)
+    except TypeError:
+        checkpoint = torch.load(pt_path, map_location=device)
 
     # Handle both GPTConfig dataclass and plain dict checkpoint formats
     raw_config = checkpoint["config"]
