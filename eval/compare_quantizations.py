@@ -69,11 +69,17 @@ DIFFICULTY_LEVELS = ["easy", "medium", "hard"]
 # Data loading
 # ---------------------------------------------------------------------------
 
-def discover_models(results_dir: Path, verbose: bool = False) -> list[dict]:
+def discover_models(results_dir: Path, verbose: bool = False,
+                    model_prefix: str = "als-lm") -> list[dict]:
     """Scan results_dir for model subdirectories and return sorted model info.
 
     Each returned dict has keys: name, path, quant_key.
     Sorted in canonical order: F16, Q8_0, Q4_K_M.
+
+    Args:
+        results_dir: Directory containing per-model result subdirectories.
+        verbose: Print progress messages.
+        model_prefix: Filter to directories starting with this prefix.
     """
     required_files = ["scores.json", "fabrications.json", "taxonomy.json", "responses.json"]
     models = []
@@ -85,7 +91,7 @@ def discover_models(results_dir: Path, verbose: bool = False) -> list[dict]:
     for subdir in sorted(results_dir.iterdir()):
         if not subdir.is_dir():
             continue
-        if not subdir.name.startswith("als-lm"):
+        if not subdir.name.startswith(model_prefix):
             continue
 
         # Check all required files exist
@@ -846,6 +852,15 @@ def main() -> int:
         help="Directory to write comparison outputs (default: eval/results)",
     )
     parser.add_argument(
+        "--model-prefix",
+        type=str,
+        default="als-lm-500m",
+        help=(
+            "Filter model directories by this prefix (default: als-lm-500m). "
+            "Use 'als-lm-gpt2-large' for GPT-2 large models."
+        ),
+    )
+    parser.add_argument(
         "--verbose",
         action="store_true",
         help="Print progress messages to stdout",
@@ -861,7 +876,8 @@ def main() -> int:
     # Discover models
     if args.verbose:
         print("Discovering model result directories...")
-    models = discover_models(args.results_dir, verbose=args.verbose)
+    models = discover_models(args.results_dir, verbose=args.verbose,
+                             model_prefix=args.model_prefix)
 
     if len(models) < 2:
         print(
@@ -922,8 +938,14 @@ def main() -> int:
     # Generate outputs
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
+    # Suffix output filenames for non-default model prefix
+    if args.model_prefix != "als-lm-500m":
+        suffix = f"_{args.model_prefix}"
+    else:
+        suffix = ""
+
     # Markdown report
-    md_path = args.output_dir / "quantization_comparison.md"
+    md_path = args.output_dir / f"quantization_comparison{suffix}.md"
     if args.verbose:
         print(f"Writing Markdown report to {md_path}...")
     md_content = generate_markdown_report(
@@ -942,7 +964,7 @@ def main() -> int:
         f.write(md_content)
 
     # JSON output
-    json_path = args.output_dir / "quantization_comparison.json"
+    json_path = args.output_dir / f"quantization_comparison{suffix}.json"
     if args.verbose:
         print(f"Writing JSON output to {json_path}...")
     json_output = build_json_output(

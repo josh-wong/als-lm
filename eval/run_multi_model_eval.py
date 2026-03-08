@@ -40,14 +40,28 @@ import requests
 # Model definitions
 # ---------------------------------------------------------------------------
 
-MODELS = [
-    {"name": "als-lm-500m:f16", "id": "f16",
-     "fs_id": "als-lm-500m_f16"},
-    {"name": "als-lm-500m:q8_0", "id": "q8_0",
-     "fs_id": "als-lm-500m_q8_0"},
-    {"name": "als-lm-500m:q4_k_m", "id": "q4_k_m",
-     "fs_id": "als-lm-500m_q4_k_m"},
+MODEL_BASE_DEFAULT = "als-lm-500m"
+QUANT_LEVELS = [
+    {"suffix": "f16", "id": "f16"},
+    {"suffix": "q8_0", "id": "q8_0"},
+    {"suffix": "q4_k_m", "id": "q4_k_m"},
 ]
+
+
+def build_models_list(model_base):
+    """Construct model definitions from base name and quant levels."""
+    return [
+        {
+            "name": f"{model_base}:{q['suffix']}",
+            "id": q["id"],
+            "fs_id": f"{model_base}_{q['suffix']}",
+        }
+        for q in QUANT_LEVELS
+    ]
+
+
+# Default MODELS list for backward compatibility
+MODELS = build_models_list(MODEL_BASE_DEFAULT)
 
 
 # ---------------------------------------------------------------------------
@@ -200,20 +214,30 @@ def copy_results_to_reports(results_dir, reports_dir, model_id):
 
 def parse_args():
     """Parse command-line arguments."""
-    model_ids = [m["id"] for m in MODELS]
+    quant_ids = [q["id"] for q in QUANT_LEVELS]
     parser = argparse.ArgumentParser(
         description="Run hallucination evaluation across multiple Ollama models",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
-            "Models evaluated (in order):\n"
-            "  f16      - als-lm-500m:f16 (full precision GGUF)\n"
-            "  q8_0     - als-lm-500m:q8_0 (8-bit quantized)\n"
-            "  q4_k_m   - als-lm-500m:q4_k_m (4-bit quantized)\n"
+            "Quantization levels evaluated (in order):\n"
+            "  f16      - full precision GGUF\n"
+            "  q8_0     - 8-bit quantized\n"
+            "  q4_k_m   - 4-bit quantized\n"
             "\n"
             "Examples:\n"
             "  python eval/run_multi_model_eval.py\n"
+            "  python eval/run_multi_model_eval.py --model-base als-lm-gpt2-large\n"
             "  python eval/run_multi_model_eval.py --models f16 q8_0\n"
             "  python eval/run_multi_model_eval.py --force\n"
+        ),
+    )
+    parser.add_argument(
+        "--model-base",
+        type=str,
+        default=MODEL_BASE_DEFAULT,
+        help=(
+            "Model base name (default: als-lm-500m). "
+            "Used to construct model names like {base}:f16"
         ),
     )
     parser.add_argument(
@@ -226,9 +250,21 @@ def parse_args():
         "--models",
         type=str,
         nargs="+",
-        choices=model_ids,
-        default=model_ids,
-        help="Model IDs to evaluate (default: all three)",
+        choices=quant_ids,
+        default=quant_ids,
+        help="Quantization IDs to evaluate (default: all three)",
+    )
+    parser.add_argument(
+        "--repeat-penalty",
+        type=float,
+        default=1.0,
+        help="Repetition penalty override for Ollama (default: 1.0)",
+    )
+    parser.add_argument(
+        "--top-p",
+        type=float,
+        default=1.0,
+        help="Top-p sampling override for Ollama (default: 1.0)",
     )
     parser.add_argument(
         "--force",
@@ -263,8 +299,11 @@ def main():
     print("  NOTE: This is a research evaluation tool, not a medical"
           " information system.\n")
 
+    # Build models list dynamically from --model-base
+    models = build_models_list(args.model_base)
+
     # Filter models to requested subset
-    requested = [m for m in MODELS if m["id"] in args.models]
+    requested = [m for m in models if m["id"] in args.models]
 
     # Pre-flight checks
     print("Pre-flight checks:")
@@ -274,6 +313,7 @@ def main():
     print(f"  All requested models available in Ollama")
     check_eval_files(project_root)
     print(f"  Benchmark and entity registry files found")
+    print(f"  Model base: {args.model_base}")
     print(f"\nWill evaluate {len(requested)} model(s): "
           f"{', '.join(m['name'] for m in requested)}\n")
 
@@ -315,6 +355,8 @@ def main():
             "--ollama-model", model_name,
             "--ollama-url", args.ollama_url,
             "--temperature", "0.0",
+            "--repeat-penalty", str(args.repeat_penalty),
+            "--top-p", str(args.top_p),
             "--results-dir", results_base_abs,
             "--reports-dir", reports_dir_for_subprocess,
         ]
