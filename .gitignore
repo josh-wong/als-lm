@@ -50,6 +50,7 @@ data/tokenized_gpt2/
 reports/*
 !reports/production_training_analysis/
 !reports/eval/
+!reports/model_comparison_report.*
 
 # Training artifacts (Phase 4.3)
 logs/
