@@ -951,7 +951,7 @@ def _ensure_ollama_running() -> Optional[str]:
             timeout=10,
         )
         if result.returncode != 0:
-            print("  Starting ollama serve in background...")
+            print("  Starting ollama serve in background (will persist after script exits)...")
             subprocess.Popen(
                 ["ollama", "serve"],
                 stdout=subprocess.DEVNULL,
@@ -959,7 +959,7 @@ def _ensure_ollama_running() -> Optional[str]:
             )
             time.sleep(5)
     except Exception:
-        print("  Starting ollama serve in background...")
+        print("  Starting ollama serve in background (will persist after script exits)...")
         subprocess.Popen(
             ["ollama", "serve"],
             stdout=subprocess.DEVNULL,
