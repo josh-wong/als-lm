@@ -413,13 +413,18 @@ def generate_markdown_report(
     add()
     s_deg = degenerate["scratch_500m"]
     f_deg = degenerate["gpt2_large_finetune"]
+    deg_ratio = (
+        f"{s_deg['non_degenerate_rate'] / f_deg['non_degenerate_rate']:.0f}x"
+        if f_deg["non_degenerate_rate"] > 0
+        else "large"
+    )
     add(
         f"The 500M from-scratch model produces {s_deg['non_degenerate']} "
         f"non-degenerate responses out of {s_deg['total']} "
         f"({s_deg['non_degenerate_rate'] * 100:.1f}%), while the GPT-2 large "
         f"fine-tuned model produces only {f_deg['non_degenerate']} "
         f"non-degenerate responses ({f_deg['non_degenerate_rate'] * 100:.1f}%). "
-        f"This {s_deg['non_degenerate_rate'] / f_deg['non_degenerate_rate']:.0f}x "
+        f"This {deg_ratio} "
         f"difference in coherent output is the defining characteristic of "
         f"the comparison."
     )
@@ -478,10 +483,15 @@ def generate_markdown_report(
         f"| {'Fabrication rate (non-degenerate)':<40} | {s_fab['non_degenerate_rate'] * 100:>21.2f}% | {f_fab['non_degenerate_rate'] * 100:>25.2f}% |"
     )
     add()
+    fab_ratio = (
+        f"{f_fab['overall_extracted'] / s_fab['overall_extracted']:.1f}x difference"
+        if s_fab["overall_extracted"] > 0
+        else "significant difference"
+    )
     add(
         f"The GPT-2 large model extracts {f_fab['overall_extracted']} entities "
         f"compared to {s_fab['overall_extracted']} for the 500M model. This "
-        f"{f_fab['overall_extracted'] / s_fab['overall_extracted']:.1f}x difference "
+        f"{fab_ratio} "
         f"reflects the larger model's tendency to generate more text per "
         f"response, including entity-like strings in degenerate output. When "
         f"filtered to non-degenerate responses only, the GPT-2 large model's "
