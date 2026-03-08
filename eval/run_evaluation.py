@@ -142,6 +142,18 @@ def parse_args():
         help="Generation temperature (default: 0.0 for deterministic results)",
     )
     parser.add_argument(
+        "--repeat-penalty",
+        type=float,
+        default=1.0,
+        help="Repetition penalty for Ollama generation (default: 1.0)",
+    )
+    parser.add_argument(
+        "--top-p",
+        type=float,
+        default=1.0,
+        help="Top-p sampling for Ollama generation (default: 1.0)",
+    )
+    parser.add_argument(
         "--force",
         action="store_true",
         help="Regenerate all stages even if intermediate files exist",
@@ -274,7 +286,8 @@ def format_duration(seconds):
 
 def build_stage_args(stage, results_dir, reports_dir, checkpoint_id,
                      benchmark, registry, checkpoint=None,
-                     ollama_model=None, ollama_url=None, temperature=0.0):
+                     ollama_model=None, ollama_url=None, temperature=0.0,
+                     repeat_penalty=1.0, top_p=1.0):
     """Build the subprocess arguments for a given stage.
 
     Args:
@@ -288,6 +301,8 @@ def build_stage_args(stage, results_dir, reports_dir, checkpoint_id,
         ollama_model: Ollama model tag (Ollama mode).
         ollama_url: Ollama server URL.
         temperature: Generation temperature.
+        repeat_penalty: Repetition penalty for Ollama (1.0 = neutral).
+        top_p: Top-p sampling for Ollama (1.0 = neutral).
 
     Returns:
         A list of command-line arguments for subprocess.run.
@@ -307,6 +322,8 @@ def build_stage_args(stage, results_dir, reports_dir, checkpoint_id,
             if ollama_url:
                 cmd += ["--ollama-url", ollama_url]
             cmd += ["--temperature", str(temperature)]
+            cmd += ["--repeat-penalty", str(repeat_penalty)]
+            cmd += ["--top-p", str(top_p)]
             cmd += ["--resume"]
         else:
             cmd += ["--checkpoint", checkpoint]
@@ -421,7 +438,7 @@ def check_model_mismatch(responses_path, checkpoint=None, ollama_model=None):
 def run_stage(stage, stage_num, total_stages, results_dir,
               reports_dir, checkpoint_id, force, benchmark, registry,
               checkpoint=None, ollama_model=None, ollama_url=None,
-              temperature=0.0):
+              temperature=0.0, repeat_penalty=1.0, top_p=1.0):
     """Execute a single pipeline stage.
 
     Handles caching (skip if output exists and not --force), subprocess
@@ -441,6 +458,8 @@ def run_stage(stage, stage_num, total_stages, results_dir,
         ollama_model: Ollama model tag (Ollama mode).
         ollama_url: Ollama server URL.
         temperature: Generation temperature.
+        repeat_penalty: Repetition penalty for Ollama (1.0 = neutral).
+        top_p: Top-p sampling for Ollama (1.0 = neutral).
 
     Returns:
         True if the stage succeeded, False otherwise.
@@ -469,6 +488,7 @@ def run_stage(stage, stage_num, total_stages, results_dir,
         benchmark, registry, checkpoint=checkpoint,
         ollama_model=ollama_model, ollama_url=ollama_url,
         temperature=temperature,
+        repeat_penalty=repeat_penalty, top_p=top_p,
     )
 
     result = subprocess.run(
@@ -620,6 +640,7 @@ def main():
             benchmark, registry, checkpoint=checkpoint,
             ollama_model=ollama_model, ollama_url=ollama_url,
             temperature=args.temperature,
+            repeat_penalty=args.repeat_penalty, top_p=args.top_p,
         )
         if not success:
             print(f"\n  Pipeline FAILED at stage '{stage['name']}'. "

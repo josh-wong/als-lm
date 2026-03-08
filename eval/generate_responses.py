@@ -133,6 +133,18 @@ def parse_args():
         help="Generation temperature (default: 0.0 for deterministic results)",
     )
     parser.add_argument(
+        "--repeat-penalty",
+        type=float,
+        default=1.0,
+        help="Repetition penalty override for Ollama (default: 1.0, neutralizes Modelfile)",
+    )
+    parser.add_argument(
+        "--top-p",
+        type=float,
+        default=1.0,
+        help="Top-p sampling override for Ollama (default: 1.0, neutralizes Modelfile)",
+    )
+    parser.add_argument(
         "--resume",
         action="store_true",
         help="Resume from last completed question if output file exists",
@@ -381,7 +393,7 @@ def is_coherent(text):
 
 
 def generate_ollama_response(ollama_url, model_name, prompt, max_tokens,
-                             temperature):
+                             temperature, repeat_penalty=1.0, top_p=1.0):
     """Generate a single response via the Ollama HTTP API.
 
     Posts to ``/api/generate`` with streaming disabled. Retries up to 3 times
@@ -394,6 +406,8 @@ def generate_ollama_response(ollama_url, model_name, prompt, max_tokens,
         prompt: The prompt text to send.
         max_tokens: Maximum tokens to generate (``num_predict``).
         temperature: Sampling temperature (0.0 for greedy).
+        repeat_penalty: Repetition penalty override (1.0 = neutral).
+        top_p: Top-p sampling override (1.0 = neutral).
 
     Returns:
         ``(response_text, tokens_generated)`` on success, or
@@ -407,6 +421,8 @@ def generate_ollama_response(ollama_url, model_name, prompt, max_tokens,
         "options": {
             "temperature": temperature,
             "num_predict": max_tokens,
+            "repeat_penalty": repeat_penalty,
+            "top_p": top_p,
         },
     }
 
@@ -507,7 +523,7 @@ def generate_responses(model, tokenizer, questions, max_tokens, device):
 
 
 def generate_responses_ollama(ollama_url, model_name, questions, max_tokens,
-                              temperature):
+                              temperature, repeat_penalty=1.0, top_p=1.0):
     """Run inference on all benchmark questions via the Ollama API.
 
     For each question, sends the ``prompt_template`` to the Ollama server and
@@ -519,6 +535,8 @@ def generate_responses_ollama(ollama_url, model_name, questions, max_tokens,
         questions: List of question dicts from questions.json.
         max_tokens: Maximum tokens to generate per response.
         temperature: Sampling temperature.
+        repeat_penalty: Repetition penalty override (1.0 = neutral).
+        top_p: Top-p sampling override (1.0 = neutral).
 
     Returns:
         List of response dicts with question metadata and generated text.
@@ -534,6 +552,7 @@ def generate_responses_ollama(ollama_url, model_name, questions, max_tokens,
 
         response_text, tokens_generated = generate_ollama_response(
             ollama_url, model_name, prompt_text, max_tokens, temperature,
+            repeat_penalty=repeat_penalty, top_p=top_p,
         )
 
         responses.append({
@@ -679,6 +698,7 @@ def main():
         new_responses = generate_responses_ollama(
             args.ollama_url, args.ollama_model, questions_to_run,
             args.max_tokens, args.temperature,
+            repeat_penalty=args.repeat_penalty, top_p=args.top_p,
         )
         elapsed = time.time() - t0
 
@@ -690,6 +710,8 @@ def main():
             "generation_params": {
                 "max_tokens": args.max_tokens,
                 "temperature": args.temperature,
+                "repeat_penalty": args.repeat_penalty,
+                "top_p": args.top_p,
             },
             "benchmark_path": relativize_path(args.benchmark),
             "timestamp": datetime.now(timezone.utc).isoformat(),
