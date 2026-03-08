@@ -110,19 +110,28 @@ def convert_checkpoint_to_hf(
     model_state = ckpt["model"]
 
     # Create matching HuggingFace GPT2Config
+    # Auto-detect GELU type: GPT-2 uses tanh-approximate GELU ("gelu_new" in HF),
+    # while the 500M from-scratch model uses exact GELU ("gelu" in HF).
+    activation = "gelu_new" if config.gelu_approximate == "tanh" else "gelu"
+
+    # GPT-2 uses token 50256 (<|endoftext|>) for both BOS and EOS.
+    # The 500M from-scratch model exported successfully with bos/eos=0,
+    # so we keep that for backward compatibility.
+    eos_bos_id = 50256 if config.vocab_size == 50257 and config.gelu_approximate == "tanh" else 0
+
     hf_config = GPT2Config(
         vocab_size=config.vocab_size,
         n_positions=config.block_size,
         n_embd=config.n_embd,
         n_layer=config.n_layer,
         n_head=config.n_head,
-        activation_function="gelu",
+        activation_function=activation,
         resid_pdrop=config.dropout,
         embd_pdrop=config.dropout,
         attn_pdrop=config.dropout,
         use_cache=True,
-        bos_token_id=0,
-        eos_token_id=0,
+        bos_token_id=eos_bos_id,
+        eos_token_id=eos_bos_id,
     )
 
     # Create HuggingFace model and get its state dict as a reference
