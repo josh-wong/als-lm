@@ -1330,7 +1330,7 @@ def main():
     print("\n=== ALS-LM Training Script ===\n")
 
     # Auto-switch data directory for fine-tuning mode
-    if args.pretrained_weights and args.data_dir == "data/tokenized":
+    if args.pretrained_weights and os.path.realpath(args.data_dir) == os.path.realpath("data/tokenized"):
         args.data_dir = "data/tokenized_gpt2"
         print(f"  Fine-tuning mode: auto-switched data dir to {args.data_dir}")
 
