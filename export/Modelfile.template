@@ -1,6 +1,9 @@
 FROM {{GGUF_PATH}}
 
 PARAMETER num_ctx 1024
+PARAMETER repeat_penalty 1.1
+PARAMETER top_p 0.9
+PARAMETER temperature 0.8
 
 SYSTEM """{{DISCLAIMER}}"""
 
