@@ -966,7 +966,8 @@ def main() -> None:
         print("  Saved: model_comparison.png")
         fig08_count = 1
     else:
-        print("Skipping FIG-08: model_comparison_report.json not found")
+        print(f"Skipping FIG-08: {model_report_path} not found "
+              "(generate with: python scripts/compare_models.py)")
 
     # Summary
     total = 3 + len(copied) + diagram_count + fig08_count
