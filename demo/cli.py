@@ -233,14 +233,16 @@ def _select_model(models: List[Dict[str, Any]]) -> Optional[str]:
 # ---------------------------------------------------------------------------
 
 
-_DISCLAIMER = f"""
+def _format_disclaimer(model_name: str) -> str:
+    """Return the medical safety disclaimer text for the given model."""
+    return f"""
 {YELLOW}{BOLD}==============================================================
                     IMPORTANT DISCLAIMER
 =============================================================={RESET}
 
 {YELLOW}This is a research artifact, NOT a medical tool.
 
-ALS-LM is a small language model (500M parameters) trained on
+ALS-LM ({model_name}) is a research language model trained on
 public ALS literature as a machine learning research project.
 It frequently generates plausible-sounding but factually
 incorrect medical claims.
@@ -255,12 +257,12 @@ medical purposes.{RESET}
 """
 
 
-def _show_disclaimer() -> bool:
+def _show_disclaimer(model_name: str) -> bool:
     """Display the medical safety disclaimer and require acknowledgment.
 
     Returns True if the user accepts, False otherwise.
     """
-    print(_DISCLAIMER)
+    print(_format_disclaimer(model_name))
     try:
         response = input(
             f"Do you understand and accept these terms? ({GREEN}yes{RESET}/{RED}no{RESET}): "
@@ -471,7 +473,7 @@ def main() -> None:
     print(f"\nUsing model: {BOLD}{model}{RESET}")
 
     # --- Medical safety disclaimer ---
-    if not _show_disclaimer():
+    if not _show_disclaimer(model):
         print("Disclaimer not accepted. Exiting.")
         sys.exit(0)
 
