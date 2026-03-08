@@ -124,9 +124,12 @@ def convert_checkpoint_to_hf(
     activation = "gelu_new" if config.gelu_approximate == "tanh" else "gelu"
 
     # GPT-2 uses token 50256 (<|endoftext|>) for both BOS and EOS.
-    # Any model with vocab_size=50257 uses the GPT-2 tokenizer and needs
-    # this token ID. The 500M from-scratch model (vocab_size=32768) uses 0.
-    eos_bos_id = 50256 if config.vocab_size == 50257 else 0
+    # Detect GPT-2 tokenizer by its canonical vocabulary size (50257).
+    # The 500M from-scratch model (vocab_size=32768) uses 0.
+    GPT2_VOCAB_SIZE = 50257
+    GPT2_EOT_TOKEN_ID = 50256
+    is_gpt2_tokenizer = config.vocab_size == GPT2_VOCAB_SIZE
+    eos_bos_id = GPT2_EOT_TOKEN_ID if is_gpt2_tokenizer else 0
 
     hf_config = GPT2Config(
         vocab_size=config.vocab_size,
