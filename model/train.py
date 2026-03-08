@@ -426,7 +426,9 @@ def load_and_validate_vocab(data_dir, tokenizer_path, is_finetune=False):
 
     # Load the canonical tokenizer and compare
     if is_finetune:
-        tok = GPT2TokenizerFast.from_pretrained("gpt2")
+        local_gpt2_tok = os.path.join(_project_root, "tokenizer", "gpt2_tokenizer")
+        tok_source = local_gpt2_tok if os.path.isdir(local_gpt2_tok) else "gpt2"
+        tok = GPT2TokenizerFast.from_pretrained(tok_source)
         tok_vocab_size = tok.vocab_size
     else:
         if not os.path.isfile(tokenizer_path):
@@ -1395,7 +1397,15 @@ def main():
         except TypeError:
             # PyTorch < 2.0 does not support weights_only
             ckpt = torch.load(args.pretrained_weights, map_location="cpu")
-        pretrained_config = ckpt["config"]
+        raw_config = ckpt["config"]
+        if isinstance(raw_config, GPTConfig):
+            pretrained_config = raw_config
+        elif isinstance(raw_config, dict):
+            pretrained_config = GPTConfig(**raw_config)
+        else:
+            raise TypeError(
+                f"Checkpoint 'config' must be GPTConfig or dict, got {type(raw_config)}"
+            )
         # Validate architecture compatibility
         assert pretrained_config.n_layer == model_config.n_layer, \
             f"n_layer mismatch: checkpoint={pretrained_config.n_layer}, model={model_config.n_layer}"
@@ -1492,7 +1502,9 @@ def main():
     tokenizer = None
     if args.pretrained_weights:
         try:
-            tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
+            local_gpt2_tok = os.path.join(_project_root, "tokenizer", "gpt2_tokenizer")
+            tok_source = local_gpt2_tok if os.path.isdir(local_gpt2_tok) else "gpt2"
+            tokenizer = GPT2TokenizerFast.from_pretrained(tok_source)
             print(f"  Tokenizer: GPT2TokenizerFast (vocab={tokenizer.vocab_size})")
         except Exception as e:
             print(f"  WARNING: Failed to load GPT-2 tokenizer for sample generation: {e}")
