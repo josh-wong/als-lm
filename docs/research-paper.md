@@ -3,7 +3,7 @@
 **Author:** [josh-wong](https://github.com/josh-wong)
 **Date:** March 6, 2026
 **Status:** Approved
-**Version:** 1.0
+**Version:** 2.0
 
 ---
 
@@ -13,7 +13,7 @@ Domain-specific language models such as BioBERT, BioGPT, and GatorTron have demo
 
 We construct a reproducible pipeline spanning data collection from three public sources (19,164 documents), BPE tokenizer training with domain-specific vocabulary (50/100 top medical terms as single tokens), and model training by using DeepSpeed ZeRO Stage 2 on consumer hardware (NVIDIA RTX 3060, 12GB VRAM). Training for 3 epochs (11,760 steps, 4h 27m) achieves a Well-fit classification with validation loss 5.4956 (relative gap +0.42%), yet the model attains only 0.52% mean factual accuracy on our 160-question ALS benchmark, demonstrating the gap between language-modeling competence and factual knowledge.
 
-We further evaluate retrieval-augmented generation (RAG) by using ChromaDB with dual embedding models. Domain-specific embeddings (PubMedBERT) outperform general-purpose embeddings (MiniLM) by 2.1x on mean accuracy (12.7% vs. 5.9%), but even the best RAG configuration (13.8%) does not exceed the no-retrieval baseline (14.3%), revealing retrieval quality as the primary bottleneck. We contribute an end-to-end open-source pipeline, a hallucination evaluation framework with a 5-mode failure taxonomy and entity-based fabrication detection (~48K entities), and honest documentation of negative results that illuminate data requirements for domain-specific model training.
+We further evaluate retrieval-augmented generation (RAG) by using ChromaDB with dual embedding models. Domain-specific embeddings (PubMedBERT) outperform general-purpose embeddings (MiniLM) by 2.1x on mean accuracy (12.7% vs. 5.9%), but even the best RAG configuration (13.8%) does not exceed the no-retrieval baseline (14.3%), revealing retrieval quality as the primary bottleneck. We extend the investigation with a controlled comparison: fine-tuning GPT-2 large (774M parameters) on the same ALS corpus. The fine-tuned model achieves 3.12% mean accuracy, a 15x improvement over from-scratch training, but produces degenerate (repetitive, non-responsive) output for 97.5% of questions, revealing that pretrained language competence does not translate to instruction-following capability without explicit alignment training. We contribute an end-to-end open-source pipeline, a hallucination evaluation framework with a 5-mode failure taxonomy and entity-based fabrication detection (~48K entities), and honest documentation of negative results that illuminate data requirements for domain-specific model training.
 
 ## 1. Introduction
 
@@ -32,7 +32,7 @@ Our investigation makes four contributions:
 3. **A RAG comparison revealing retrieval as the bottleneck.** We evaluate four RAG configurations by using ChromaDB with two embedding models (MiniLM and PubMedBERT) at two chunk sizes (200 and 500 tokens) against a no-retrieval Llama 3.1 8B baseline. The results demonstrate that embedding-model choice is the single most impactful variable (PubMedBERT outperforms MiniLM by 2.1x), but that even the best RAG configuration does not exceed the no-retrieval baseline, pointing to retrieval quality rather than generation capability as the primary limitation.
 4. **Honest documentation of a negative result.** The machine-learning literature suffers from a well-known publication bias toward positive results. We contribute a detailed analysis of a project that achieves excellent language-modeling metrics but near-zero factual accuracy, providing an empirical data point at the extreme low end of the data-scaling curve. The dual narrative of rigorous pipeline engineering alongside transparent negative results is itself a contribution to the field's understanding of data requirements for domain-specific models.
 
-The remainder of this paper is organized as follows. Section 2 surveys related work across domain-specific language models, hallucination evaluation, medical RAG, and data-scaling laws. Section 3 details our methodology, covering the data pipeline, tokenizer, model architecture, and training procedure. Section 4 describes our evaluation framework, including benchmark design, scoring methodology, fabrication detection, and failure taxonomy. Section 5 presents training results and hallucination evaluation findings across three quantization levels. Section 6 reports the RAG comparison experiment and failure decomposition analysis. Section 7 discusses the implications of our findings, with particular attention to the data deficit, embedding-model impact, and the loss-accuracy gap. Section 8 concludes with a summary and directions for future work.
+The remainder of this paper is organized as follows. Section 2 surveys related work across domain-specific language models, hallucination evaluation, medical RAG, and data-scaling laws. Section 3 details our methodology, covering the data pipeline, tokenizer, model architecture, and training procedure. Section 4 describes our evaluation framework, including benchmark design, scoring methodology, fabrication detection, and failure taxonomy. Section 5 presents training results and hallucination evaluation findings across three quantization levels. Section 6 reports the RAG comparison experiment and failure decomposition analysis. Section 7 reports a controlled comparison between the from-scratch model and a fine-tuned GPT-2 large, revealing the impact of pretrained knowledge on ALS-specific accuracy. Section 8 discusses the implications of our findings, with particular attention to the data deficit, embedding-model impact, and the loss-accuracy gap. Section 9 concludes with a summary and directions for future work.
 
 ## 2. Related work
 
@@ -46,7 +46,7 @@ The shift from encoder-only to decoder-only architectures brought BioGPT ([Luo e
 
 Table 1 summarizes the key characteristics of these models alongside ALS-LM.
 
-**Table 1.** Domain-specific biomedical language models. ALS-LM operates at 80x below the Chinchilla-optimal data ratio, with a corpus 20-35x smaller than the nearest comparable decoder model (BioGPT).
+**Table 1.** Domain-specific biomedical language models. ALS-LM operates at 80x below the Chinchilla-optimal data ratio, with a corpus 20-35x smaller than the nearest comparable decoder model (BioGPT). ALS-LM (fine-tuned) demonstrates that pretrained general knowledge provides modest accuracy improvement but does not resolve the instruction-following limitation.
 
 | Model    | Parameters | Training data                      | Architecture    | Year | Key result                                       |
 |----------|------------|------------------------------------|-----------------|------|--------------------------------------------------|
@@ -56,6 +56,7 @@ Table 1 summarizes the key characteristics of these models alongside ALS-LM.
 | GatorTron | 8.9B      | 90B+ words (82B clinical)          | BERT-like       | 2022 | Best clinical NLI on MedNLI                      |
 | BioMedLM | 2.7B       | PubMed abstracts + full text       | GPT-2 style     | 2024 | Competitive with larger models on medical QA     |
 | ALS-LM   | 516M       | 143M tokens (ALS only)             | GPT-2 (Pre-LN)  | 2026 | 0.52% accuracy; demonstrates data deficit impact |
+| ALS-LM (fine-tuned) | 774M | 143M tokens (ALS fine-tuning) | GPT-2 large | 2026 | 3.12% accuracy; 97.5% degenerate output          |
 
 The scale difference is immediately visible. Even BioBERT, the smallest model in the table, trained on a corpus approximately 125 times larger than ours (18 billion words vs. 143 million tokens). BioGPT, the closest architectural comparison at 347M parameters, used approximately 15 million abstracts that we estimate contain 3-5 billion tokens, placing it 20-35x above our data volume. Unlike these models, which benefit from broad biomedical coverage across many diseases and subdomains, our work deliberately investigates the data-starved regime: a single-disease corpus where the available literature is fundamentally insufficient for the model size. Our results confirm that this data deficit is the dominant factor in the model's near-zero factual accuracy, even as it achieves healthy language-modeling loss.
 
@@ -322,11 +323,60 @@ The per-category failure decomposition reinforces this pattern. For 500-MiniLM, 
 
 Epidemiology remains the most retrieval-resistant category across all configurations, with failure rates of 73.7% to 100.0%. This is expected: epidemiological facts (incidence rates, risk factor statistics, geographic distributions) tend to appear as isolated numerical claims within larger documents rather than as coherent retrievable passages, making them poor candidates for chunk-based retrieval regardless of embedding-model quality.
 
-## 7. Discussion
+## 7. General pre-training comparison
+
+The from-scratch results in Section 5 raise a natural question: how much of ALS-LM's failure is attributable to insufficient data versus insufficient pretrained knowledge? A model trained from scratch on 143M tokens lacks both domain-specific factual knowledge and the general language competence that larger models acquire from broad pretraining corpora. To disentangle these factors, we conduct a controlled comparison by fine-tuning GPT-2 large (774M parameters) on the same ALS corpus, holding the training data constant while introducing pretrained general knowledge as the independent variable.
+
+### 7.1 Methodology
+
+We re-tokenized the ALS corpus with GPT-2's native BPE tokenizer (50,257 vocabulary size), producing 146 million training tokens and 16 million validation tokens. The GPT-2 tokenizer produces approximately 1.14x more tokens than the ALS-specific tokenizer on the same text, which is expected given that a general-purpose vocabulary fragments domain-specific terminology more frequently than a domain-trained vocabulary. We downloaded pretrained GPT-2 large weights from Hugging Face (36 transformer layers, 20 attention heads, 1,280 embedding dimension, 774M total parameters) and applied automatic Conv1D-to-Linear weight transposition for compatibility with our custom model class, verifying correctness through logit matching against the reference implementation (maximum difference 1.53e-05).
+
+We fine-tuned for 2 epochs with a learning rate of 3e-5 using a cosine annealing schedule, micro batch size 2 with 16 gradient accumulation steps (effective batch size 32), and DeepSpeed ZeRO Stage 2 with CPU offloading on the same RTX 3060 hardware used for the from-scratch training. Training took approximately 16 hours (compared to 4.5 hours for the from-scratch model), producing validation loss improvement from 2.53 to 2.37, a 5.8% reduction over the fine-tuning run. We exported the fine-tuned model to three GGUF quantization levels (F16, Q8_0, Q4_K_M) and evaluated each against the same 160-question ALS benchmark using identical generation parameters (temperature=0, max_tokens=512). Evaluation settings include API-level parameter overrides (repeat_penalty=1.0, top_p=1.0) to neutralize Ollama Modelfile defaults, ensuring evaluation parity with the from-scratch run.
+
+### 7.2 Results
+
+Figure 10 shows the grouped bar chart comparing the two models across three key metrics.
+
+![Model comparison showing accuracy, non-degenerate rate, and fabrication rate for from-scratch vs. fine-tuned models](figures/model_comparison.png)
+
+Table 6 presents the detailed cross-model comparison at the Q8_0 quantization level.
+
+**Table 6.** Cross-model comparison on the 160-question ALS benchmark (Q8_0 quantization level). The fine-tuned model achieves higher accuracy but produces overwhelmingly degenerate output.
+
+| Metric                   | ALS-LM 500M (from-scratch) | GPT-2 large (fine-tuned) |
+|--------------------------|----------------------------:|-------------------------:|
+| Mean accuracy            |                       0.21% |                    3.12% |
+| Binary pass rate         |                       0.00% |                    1.87% |
+| Non-degenerate responses |              108/160 (67.5%) |              4/160 (2.5%) |
+| Hedging instances        |                            1 |                       22 |
+| Entities extracted       |                          128 |                      951 |
+| Fabrication rate (all)   |                       66.4% |                    77.0% |
+
+The 15x accuracy improvement from 0.21% to 3.12% is the largest single effect observed in this work, yet it still leaves the fine-tuned model 97% below useful accuracy thresholds. This result reinforces the data deficit thesis: even with 774M pretrained parameters encoding general world knowledge, fine-tuning on 143M ALS tokens produces only a marginal absolute improvement. The pretrained knowledge provides a measurable advantage, but the magnitude confirms that the training data volume, not the absence of general knowledge, is the dominant bottleneck.
+
+The most striking finding is the degenerate output dominance. The fine-tuned GPT-2 large produces degenerate (repetitive, non-responsive) output for 97.5% of evaluation questions (156 out of 160), compared to 32.5% for the from-scratch model (52 out of 160). The from-scratch model exhibits diverse failure modes: confident fabrication accounts for 33.1% of responses (53 out of 160), plausible blending for 23.8% (38 out of 160), and degenerate output for 32.5% (52 out of 160). The fine-tuned model's failures are qualitatively different, dominated almost entirely by degenerate repetition (97.5%) with only 2 instances of confident fabrication and 2 of plausible blending.
+
+When GPT-2 large does produce coherent responses (4 out of 160), those responses are substantially more likely to contain correct information than the from-scratch model's coherent outputs. The 3.12% mean accuracy concentrates almost entirely in these 4 responses, suggesting that the pretrained model retains factual knowledge that manifests when it happens to generate coherent text rather than falling into repetitive loops.
+
+The taxonomy comparison reveals the qualitative difference between the two models' failure patterns. The from-scratch 500M model distributes its failures across confident fabrication (53), plausible blending (38), outdated information (17), and degenerate output (52). The fine-tuned GPT-2 large concentrates almost all failures in the degenerate category (156), with only 2 confident fabrication and 2 plausible blending instances. This pattern is consistent with the instruction-following limitation discussed in Section 7.3: the fine-tuned model has retained factual knowledge from pretraining but cannot express it in response to structured evaluation prompts.
+
+Cross-quantization evaluation across F16, Q8_0, and Q4_K_M for GPT-2 large confirms that quantization does not meaningfully affect results. Accuracy ranges from 2.34% (Q4_K_M) to 3.44% (F16), and 151 out of 160 taxonomy classifications agree across all three quantization levels. This matches the quantization null result observed for the from-scratch model in Section 5.3, further confirming that quantization artifacts are undetectable when the base accuracy signal is near zero.
+
+### 7.3 Limitations
+
+Three limitations constrain the interpretation of these results.
+
+**Instruction-following limitation.** GPT-2 is a completion model trained to predict the next token in web text. Unlike instruction-tuned models that undergo RLHF or supervised fine-tuning on instruction-response pairs, GPT-2 has no mechanism for following the structured prompt format used in our evaluation. When given a question, it generates text that continues from the prompt rather than answering it, producing repetitive completions that the coherence filter classifies as degenerate. This is a property of the base architecture, not a failure of ALS fine-tuning. The 97.5% degenerate rate reflects the fundamental mismatch between a completion model and a question-answering evaluation format. The CLI keyword filter implemented for the interactive demo is a practical workaround that restricts outputs to ALS-relevant content at the application layer, but it does not address the underlying architectural limitation.
+
+**General knowledge confound.** GPT-2 large was pretrained on WebText, a corpus of web pages that likely contains some ALS-related medical information. When the fine-tuned model produces a correct answer about riluzole or SOD1 mutations, we cannot determine whether this knowledge originates from ALS corpus fine-tuning or from WebText pretraining. Resolving this attribution question would require ablation studies evaluating the base GPT-2 large without ALS fine-tuning on the same benchmark, which are beyond the scope of this work. We acknowledge this confound and note that the accuracy improvement we measure (0.21% to 3.12%) is an upper bound on the ALS fine-tuning contribution.
+
+**Limited coherent response pool.** With only 4 out of 160 responses classified as coherent, the qualitative comparison between models is severely constrained. Aggregate metrics such as accuracy and fabrication rate are dominated by the 97.5% degenerate majority. More extensive evaluation with diverse prompting strategies (few-shot examples, chain-of-thought formatting) might elicit coherent responses more reliably, but this would introduce prompting methodology as an additional variable that could confound the comparison between pretrained and from-scratch models.
+
+## 8. Discussion
 
 The preceding sections established the quantitative results: a Well-fit model with near-zero factual accuracy (Section 5), and a RAG comparison where even the best configuration does not exceed a no-retrieval baseline (Section 6). In this section, we move beyond reporting what happened to analyzing why it happened. Each subsection centers on a causal claim about the mechanisms driving our results, drawing on established scaling laws, embedding-model theory, and the relationship between language-modeling loss and factual knowledge.
 
-### 7.1 Data deficit and scaling laws
+### 8.1 Data deficit and scaling laws
 
 The near-zero accuracy of ALS-LM is not a surprise. It is the predicted outcome of training at 0.25 tokens per parameter, 80 times below the Chinchilla-optimal ratio of approximately 20 tokens per parameter ([Hoffmann et al., 2022](https://arxiv.org/abs/2203.15556)). What makes this result informative rather than merely expected is the specificity with which it confirms, and extends, the scaling law predictions.
 
@@ -336,7 +386,9 @@ Contextualizing against the models surveyed in Section 2.1 (Table 1) makes the s
 
 If we were to repeat this project, the most impactful change would be our data strategy. Rather than training from scratch on 143M tokens of ALS-specific text, we would first pre-train on a broad English corpus (OpenWebText, C4, or a Wikipedia subset, totaling 5-10 billion tokens) to establish general language competence and world knowledge, then fine-tune on the ALS corpus. This is precisely the approach that BioBERT and BioGPT followed: start with a strong general foundation, then specialize. Our work's negative results validate this strategy by demonstrating what happens when you skip the general pre-training step entirely. The model learns domain-specific language patterns (low loss, Well-fit classification) but has no general knowledge scaffold on which to organize the factual content of those patterns.
 
-### 7.2 Embedding-model impact
+In Section 7, we report exactly this experiment: fine-tuning GPT-2 large (774M parameters) on the ALS corpus. The results partially validate the pre-train-then-fine-tune strategy — accuracy improves 15x from 0.21% to 3.12% — but reveal an orthogonal limitation. The completion-based GPT-2 architecture produces degenerate output for 97.5% of evaluation questions because it lacks the instruction-following capability needed to respond to structured prompts. This suggests that general pretraining is necessary but not sufficient; alignment training (RLHF, instruction fine-tuning) is additionally required to bridge the gap between language-modeling competence and useful question-answering behavior.
+
+### 8.2 Embedding-model impact
 
 The 2.1x accuracy advantage of PubMedBERT over MiniLM, as shown in Section 6.2, is the strongest individual finding from the RAG comparison. This gap persists across both chunk sizes (PubMedBERT averages 12.7% vs. MiniLM's 5.9%), indicating that the advantage is fundamental to the embedding model rather than an artifact of a particular retrieval configuration.
 
@@ -348,7 +400,7 @@ The failure decomposition data from Section 6.3 (Table 5) makes this concrete. F
 
 The implication extends beyond our specific experiment. For any domain-specific RAG system operating on specialized corpora, embedding-model selection matters more than chunk size tuning. The 200-token versus 500-token difference has a modest and inconsistent effect on accuracy (sometimes favoring smaller chunks, sometimes larger), but the MiniLM-versus-PubMedBERT difference consistently produces a 2x accuracy gap. Domain-specific RAG requires domain-specific embeddings; "domain-specific" refers not only to the content in the vector store but to the model that encodes it.
 
-### 7.3 Loss-accuracy gap
+### 8.3 Loss-accuracy gap
 
 The most analytically interesting finding in this work is the disconnect between training metrics and factual accuracy. As shown in Section 5.1, ALS-LM achieved a Well-fit classification with a validation loss relative gap of just +0.42%, indicating that the model learned the statistical distribution of its training corpus without overfitting. Yet as shown in Section 5.2, the model achieved 0.52% mean factual accuracy and a 0.0% binary pass rate. This gap between language-modeling competence and factual knowledge is not a contradiction; it reveals that these are fundamentally different capabilities, and that language-modeling loss is a necessary but insufficient indicator of knowledge acquisition.
 
@@ -358,7 +410,7 @@ To illustrate: a model that has learned ALS language patterns might correctly pr
 
 This finding has implications beyond ALS-LM. The common practice of using perplexity or validation loss as a proxy for model quality can be misleading, particularly for domain-specific models. A model that achieves low perplexity on a domain-specific corpus has demonstrated that it can model the surface statistics of that domain, but without factual evaluation against a knowledge benchmark, there is no evidence that it has internalized the domain's factual content. Our results suggest that factual knowledge acquisition requires substantially more data than statistical pattern learning. The model can learn how ALS research sounds well before it learns what ALS research says. Evaluation frameworks that measure only loss will miss this distinction entirely, which is why domain-specific factual benchmarks, like the one we developed, are necessary complements to standard training metrics.
 
-### 7.4 Implications
+### 8.4 Implications
 
 Our results carry practical implications for three overlapping communities: practitioners building domain-specific language models, engineers deploying RAG systems for specialized domains, and researchers designing evaluation frameworks for language models.
 
@@ -374,9 +426,9 @@ What we would change, given the results, is the overall approach to model traini
 
 We acknowledge several limitations of this work. Our investigation covers a single medical domain (ALS), a single model size (516M parameters), a single RAG architecture (naive chunk-based retrieval with ChromaDB), and consumer hardware constraints that limited both corpus size and training duration. The 160-question benchmark, while carefully curated, is small relative to benchmarks like TruthfulQA (817 questions) or MedHallu (10,000 pairs). Our fabrication detection relies on a finite entity registry and will miss fabricated entities that happen to match real but unregistered names. The failure taxonomy, while more granular than binary accuracy, is still rule-based and may misclassify edge cases. We present these results as informative data points in the scaling law and domain-specific model literature, not as definitive thresholds.
 
-## 8. Conclusion
+## 9. Conclusion
 
-### 8.1 Summary
+### 9.1 Summary
 
 We set out to investigate what a purpose-built decoder-only transformer can learn from a narrow medical corpus, and the answer is both more and less than expected. The model learned the statistical structure of ALS research language (achieving Well-fit convergence with +0.42% validation gap) but acquired effectively zero factual knowledge (0.52% mean accuracy, 0.0% binary pass rate). This disconnect is not a failure of engineering; it is a quantitative demonstration that language-modeling competence and factual knowledge acquisition are distinct capabilities with different data requirements, and that 143M tokens is sufficient for the former but not for the latter in a 516M-parameter model.
 
@@ -384,13 +436,15 @@ This work makes a dual contribution. First, we provide a complete, reproducible,
 
 Second, we provide honest documentation of negative results that are themselves informative. The near-zero factual accuracy confirms that training at 80x below the Chinchilla-optimal ratio produces a model that cannot acquire factual knowledge, an empirical data point at the extreme low end of the scaling curve. The RAG comparison reveals that naive chunk-based retrieval with general-purpose embeddings does not exceed a no-retrieval baseline, and that embedding-model selection (PubMedBERT outperforming MiniLM by 2.1x) is the dominant variable in retrieval quality. The loss-accuracy gap demonstrates that evaluation by training loss alone is insufficient for assessing knowledge acquisition, motivating domain-specific factual benchmarks as a necessary complement to standard training metrics.
 
-Our key findings can be summarized as follows. Training at 0.25 tokens per parameter (80x below Chinchilla-optimal) is insufficient for factual knowledge acquisition in a 516M-parameter model, even when the model achieves Well-fit convergence. Language-modeling loss does not predict factual accuracy; a model can learn how a domain sounds without learning what it says. Domain-specific embeddings are essential for medical RAG, with PubMedBERT outperforming MiniLM by 2.1x across all tested configurations. The evaluation framework we developed, combining a 160-question curated benchmark, key-fact fuzzy matching, entity-based fabrication detection, and a 5-mode failure taxonomy, is reusable for other domain-specific model evaluations.
+The v0.8.0 extension demonstrates that fine-tuning a pretrained model (GPT-2 large, 774M parameters) on the ALS corpus produces a 15x accuracy improvement over from-scratch training (3.12% vs. 0.21%), confirming that pretrained knowledge provides a meaningful advantage. However, the fine-tuned model produces degenerate output for 97.5% of evaluation questions, revealing that the completion-based GPT-2 architecture lacks the instruction-following capability to function as a question-answering system. This orthogonal finding adds a second dimension to the data deficit thesis: domain-specific models require not only sufficient training data but also an architecture or training procedure that enables structured interaction.
 
-### 8.2 Future work
+Our key findings can be summarized as follows. Training at 0.25 tokens per parameter (80x below Chinchilla-optimal) is insufficient for factual knowledge acquisition in a 516M-parameter model, even when the model achieves Well-fit convergence. Language-modeling loss does not predict factual accuracy; a model can learn how a domain sounds without learning what it says. Fine-tuning a pretrained model improves accuracy 15x (0.21% to 3.12%) but does not resolve the instruction-following limitation inherent in completion-based architectures. Domain-specific embeddings are essential for medical RAG, with PubMedBERT outperforming MiniLM by 2.1x across all tested configurations. The evaluation framework we developed, combining a 160-question curated benchmark, key-fact fuzzy matching, entity-based fabrication detection, and a 5-mode failure taxonomy, is reusable for other domain-specific model evaluations.
+
+### 9.2 Future work
 
 Several directions follow naturally from our findings.
 
-- **General pre-training.** The most impactful extension would be to pre-train on a broad English corpus (OpenWebText, C4, or a Wikipedia subset, totaling 5-10 billion tokens) before fine-tuning on the ALS corpus. This follows the BioBERT and BioGPT approach, which our negative results now empirically validate as necessary rather than merely conventional. General pre-training would establish the language competence and world knowledge scaffold that our from-scratch model lacks, potentially enabling the ALS fine-tuning to specialize an already-capable model rather than building one from nothing.
+- **Instruction tuning.** Our v0.8.0 fine-tuning experiment confirmed that general pretraining improves factual accuracy (Section 7), but the GPT-2 architecture's lack of instruction-following capability limits practical utility. The natural next step would be supervised fine-tuning (SFT) or reinforcement learning from human feedback (RLHF) on instruction-response pairs, either applied to the fine-tuned GPT-2 large or to a more modern instruction-capable base model. This would test whether alignment training can convert the modest accuracy gains into usable question-answering behavior.
 - **Advanced RAG architectures.** Our RAG comparison evaluated naive chunk-based retrieval, which represents the simplest implementation approach. More sophisticated techniques including hybrid search (combining dense and sparse retrieval), query decomposition (breaking complex questions into retrieval-friendly sub-queries), re-ranking (scoring retrieved chunks with a cross-encoder before passing to the generator), and iterative retrieval (multiple retrieval rounds guided by initial generation) could substantially improve upon our baseline results. Our naive implementation establishes the performance floor that these techniques would need to exceed.
 - **Scale investigation.** Our corpus was deliberately restricted to open-access ALS literature. The full PubMed ALS literature, including subscription-access articles, would provide a substantially larger corpus. Combined with a larger model and multi-GPU training, this would allow investigation of where on the scaling curve factual knowledge acquisition begins for a narrow medical domain.
 - **Cross-domain evaluation.** Applying the same pipeline and evaluation framework to other narrow medical domains, such as multiple sclerosis, Parkinson's disease, or rare genetic disorders, would test whether the data-deficit thresholds we observe are ALS-specific or generalizable across medical subdomains. Each domain has different literature volumes and terminology patterns, which would provide natural variation for studying scaling behavior.
