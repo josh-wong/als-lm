@@ -14,6 +14,7 @@ pipeline (``python -m export.export_pipeline``) to register models.
 """
 
 import json
+import re
 try:
     import readline  # noqa: F401 — enhances input() with history/editing
 except ImportError:
@@ -39,6 +40,97 @@ RED = "\033[31m" if _IS_TTY else ""
 RESET = "\033[0m" if _IS_TTY else ""
 
 OLLAMA_BASE = "http://localhost:11434"
+
+# ---------------------------------------------------------------------------
+# ALS topic filter
+# ---------------------------------------------------------------------------
+
+# Keywords that indicate a question is related to ALS or its surrounding
+# medical context.  The filter checks whether at least one keyword appears
+# anywhere in the lowercased user input.  This is deliberately broad so that
+# legitimate ALS-adjacent questions (e.g. about respiratory support, genetics,
+# or specific drugs) pass through.  The tradeoff is that a determined user
+# could smuggle an off-topic question by including an ALS keyword, but for an
+# honest research demo this is acceptable.
+
+_ALS_KEYWORDS: List[str] = [
+    # Disease names and abbreviations
+    "als", "amyotrophic lateral sclerosis", "motor neuron disease",
+    "motor neurone disease", "mnd", "lou gehrig",
+    # Genetics
+    "sod1", "tdp-43", "tdp43", "fus", "c9orf72", "c9orf", "hexanucleotide",
+    "repeat expansion", "superoxide dismutase", "tar dna-binding",
+    "optineurin", "ubiquilin", "vcp", "ataxin",
+    # Pathology and mechanisms
+    "neurodegeneration", "neurodegenerative", "motor neuron",
+    "motor neurone", "upper motor neuron", "lower motor neuron",
+    "corticospinal", "anterior horn", "protein aggregation",
+    "glutamate excitotoxicity", "excitotoxicity", "oxidative stress",
+    "neuroinflammation", "astrocyte", "microglia", "oligodendrocyte",
+    "axonal transport", "neurofilament", "ubiquitin",
+    # Symptoms and clinical features
+    "fasciculation", "spasticity", "dysphagia", "dysarthria",
+    "muscle atrophy", "muscle weakness", "bulbar", "pseudobulbar",
+    "frontotemporal", "ftd", "respiratory failure", "ventilat",
+    "tracheostomy", "peg tube", "gastrostomy",
+    # Diagnosis
+    "electromyography", "emg", "nerve conduction", "el escorial",
+    "awaji", "mri brain", "mri spine", "lumbar puncture",
+    "biomarker", "neurofilament light",
+    # Treatments and drugs
+    "riluzole", "edaravone", "radicava", "rilutek",
+    "tofersen", "qalsody", "antisense oligonucleotide",
+    "sodium phenylbutyrate", "taurursodiol", "relyvrio", "amx0035",
+    "stem cell", "gene therapy",
+    # Clinical trials
+    "clinical trial", "randomized controlled", "placebo",
+    "phase i", "phase ii", "phase iii", "phase 1", "phase 2", "phase 3",
+    "alsfrs", "als functional rating",
+    # Care and management
+    "multidisciplinary", "palliative", "hospice", "caregiver",
+    "assistive device", "wheelchair", "communication device",
+    "eye tracking", "speech therapy", "occupational therapy",
+    "physical therapy", "respiratory therapy",
+    # Epidemiology
+    "incidence", "prevalence", "epidemiology", "risk factor",
+    "sporadic als", "familial als",
+    # Research context
+    "als research", "als study", "als model", "als literature",
+    "als patient", "als diagnosis", "als treatment", "als disease",
+    "als symptoms", "als genetics", "als therapy", "als prognosis",
+    "als progression", "als survival", "als onset",
+]
+
+# Refusal message shown when the input has no ALS-related keywords.
+_TOPIC_REFUSAL = (
+    "I am an ALS-specific research model and can only discuss topics related "
+    "to amyotrophic lateral sclerosis (ALS). Please ask a question about ALS "
+    "disease mechanisms, genetics, diagnosis, treatment, clinical trials, "
+    "epidemiology, or care management."
+)
+
+
+# Compiled regex: each keyword must start at a word boundary (prevents
+# "salsa" matching "als") and may continue with trailing characters so
+# that plurals and verb forms match (e.g. "fasciculations" matches
+# "fasciculation", "motor neurons" matches "motor neuron").  Short
+# keywords (<= 4 chars) require a trailing word boundary to avoid false
+# positives like "also" matching "als".
+_ALS_PATTERN = re.compile(
+    r"\b(?:"
+    + "|".join(
+        re.escape(kw) + (r"\b" if len(kw) <= 4 else "")
+        for kw in _ALS_KEYWORDS
+    )
+    + r")",
+    re.IGNORECASE,
+)
+
+
+def _is_als_related(text: str) -> bool:
+    """Return True if *text* contains at least one ALS-related keyword."""
+    return _ALS_PATTERN.search(text) is not None
+
 
 # ---------------------------------------------------------------------------
 # Ollama API helpers
@@ -99,13 +191,15 @@ def _select_model(models: List[Dict[str, Any]]) -> Optional[str]:
     """Display a numbered menu and return the selected model name."""
     print(f"\n{BOLD}Available ALS-LM models:{RESET}\n")
 
-    # Pick a single default: prefer als-lm-500m:q8_0, then first :q8_0, then first model
+    # Pick a single default: prefer gpt2-large:q8_0, then 500m:q8_0, then first :q8_0
     default_idx = 0
     for i, m in enumerate(models):
-        if m["name"] == "als-lm-500m:q8_0":
+        if m["name"] == "als-lm-gpt2-large:q8_0":
             default_idx = i
             break
-        if ":q8_0" in m["name"] and default_idx == 0:
+        if m["name"] == "als-lm-500m:q8_0" and default_idx == 0:
+            default_idx = i
+        elif ":q8_0" in m["name"] and default_idx == 0:
             default_idx = i
 
     for i, m in enumerate(models):
@@ -404,6 +498,11 @@ def main() -> None:
                 should_exit = _handle_slash_command(user_input, session)
                 if should_exit:
                     break
+                continue
+
+            # Topic filter: reject questions unrelated to ALS
+            if not _is_als_related(user_input):
+                print(f"\n{YELLOW}{_TOPIC_REFUSAL}{RESET}\n")
                 continue
 
             # Record prompt in session history
