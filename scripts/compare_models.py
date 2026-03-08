@@ -33,21 +33,29 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
-# Hardcoded model paths per user decision (Q8_0 representative)
-MODEL_CONFIGS = [
-    {
-        "key": "scratch_500m",
-        "label": "ALS-LM 500M (from-scratch)",
-        "short_label": "500M",
-        "path": REPO_ROOT / "eval/results/als-lm-500m_q8_0",
-    },
-    {
-        "key": "gpt2_large_finetune",
-        "label": "GPT-2 large (fine-tuned)",
-        "short_label": "GPT-2 large",
-        "path": REPO_ROOT / "eval/results/als-lm-gpt2-large_q8_0",
-    },
-]
+# Default result directory names (Q8_0 representative)
+_DEFAULT_RESULTS_DIR = REPO_ROOT / "eval" / "results"
+_MODEL_SUBDIRS = {
+    "scratch_500m": "als-lm-500m_q8_0",
+    "gpt2_large_finetune": "als-lm-gpt2-large_q8_0",
+}
+_MODEL_LABELS = {
+    "scratch_500m": ("ALS-LM 500M (from-scratch)", "500M"),
+    "gpt2_large_finetune": ("GPT-2 large (fine-tuned)", "GPT-2 large"),
+}
+
+
+def _build_model_configs(results_dir: Path) -> list:
+    """Build MODEL_CONFIGS list from a results directory."""
+    return [
+        {
+            "key": key,
+            "label": _MODEL_LABELS[key][0],
+            "short_label": _MODEL_LABELS[key][1],
+            "path": results_dir / subdir,
+        }
+        for key, subdir in _MODEL_SUBDIRS.items()
+    ]
 
 # All taxonomy modes in display order
 TAXONOMY_MODES = [
@@ -695,20 +703,29 @@ def main() -> int:
         help="Directory to write comparison outputs (default: reports/)",
     )
     parser.add_argument(
+        "--results-dir",
+        type=Path,
+        default=_DEFAULT_RESULTS_DIR,
+        help="Directory containing per-model evaluation results (default: eval/results/)",
+    )
+    parser.add_argument(
         "--verbose",
         action="store_true",
         help="Print progress messages to stdout",
     )
     args = parser.parse_args()
 
+    model_configs = _build_model_configs(args.results_dir)
+
     if args.verbose:
         print("Model Comparison Script")
         print(f"  Output dir: {args.output_dir}")
+        print(f"  Results dir: {args.results_dir}")
         print()
 
     # Load data for both models
     all_data = {}
-    for config in MODEL_CONFIGS:
+    for config in model_configs:
         if args.verbose:
             print(f"Loading {config['label']}...")
         if not config["path"].is_dir():
