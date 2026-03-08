@@ -88,7 +88,13 @@ from tokenizers import Tokenizer
 from transformers import GPT2TokenizerFast
 
 # Model class
-from model.model import GPT, MODEL_CONFIGS
+from model.model import GPT, GPTConfig, MODEL_CONFIGS
+
+# Register GPTConfig as safe for torch.load (PyTorch >= 2.4)
+try:
+    torch.serialization.add_safe_globals([GPTConfig])
+except AttributeError:
+    pass  # PyTorch < 2.4; torch.load will fall back to weights_only=False
 
 # GPU memory monitoring
 try:
@@ -347,6 +353,13 @@ def parse_args():
     config_defaults_key = args.config
     if args.pretrained_weights and args.config == "gpt2-large":
         config_defaults_key = "gpt2-large-finetune"
+    elif args.pretrained_weights:
+        print(
+            f"\nWARNING: --pretrained-weights is set but --config is '{args.config}', "
+            f"not 'gpt2-large'. Fine-tuning defaults (low LR, small batch) will NOT "
+            f"be applied. Using '{args.config}' defaults instead. If you are fine-tuning "
+            f"a pretrained model, set --lr to 1e-5–5e-5 to avoid catastrophic forgetting."
+        )
     defaults = CONFIG_DEFAULTS.get(config_defaults_key, CONFIG_DEFAULTS["tiny"])
 
     if args.lr is None:
@@ -406,7 +419,9 @@ def load_and_validate_vocab(data_dir, tokenizer_path, is_finetune=False):
     """
     meta_path = os.path.join(data_dir, "meta.pkl")
     with open(meta_path, "rb") as f:
-        meta = pickle.load(f)
+        meta = pickle.load(f)  # noqa: S301 — meta.pkl is project-generated
+    if not isinstance(meta, dict) or "vocab_size" not in meta:
+        raise ValueError(f"Invalid meta.pkl format at {meta_path}: expected dict with 'vocab_size' key")
     meta_vocab_size = meta["vocab_size"]
 
     # Load the canonical tokenizer and compare
@@ -1375,7 +1390,11 @@ def main():
 
     # Load pretrained weights if specified (MUST happen before DeepSpeed init)
     if args.pretrained_weights:
-        ckpt = torch.load(args.pretrained_weights, map_location="cpu", weights_only=False)
+        try:
+            ckpt = torch.load(args.pretrained_weights, map_location="cpu", weights_only=True)
+        except TypeError:
+            # PyTorch < 2.0 does not support weights_only
+            ckpt = torch.load(args.pretrained_weights, map_location="cpu")
         pretrained_config = ckpt["config"]
         # Validate architecture compatibility
         assert pretrained_config.n_layer == model_config.n_layer, \
