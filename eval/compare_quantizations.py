@@ -101,9 +101,10 @@ def discover_models(results_dir: Path, verbose: bool = False,
                 print(f"  Skipping {subdir.name}: missing {', '.join(missing)}")
             continue
 
-        # Extract quantization key from directory name (e.g. als-lm-500m_f16 -> f16)
-        parts = subdir.name.split("_")
-        quant_key = "_".join(parts[1:]) if len(parts) > 1 else parts[-1]
+        # Extract quantization key by stripping the model prefix
+        # e.g. als-lm-500m_f16 -> f16, als-lm-gpt2-large_q4_k_m -> q4_k_m
+        suffix = subdir.name[len(model_prefix):]
+        quant_key = suffix.lstrip("_") if suffix else subdir.name
 
         models.append({
             "name": subdir.name,
