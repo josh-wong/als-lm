@@ -124,9 +124,9 @@ def convert_checkpoint_to_hf(
     activation = "gelu_new" if config.gelu_approximate == "tanh" else "gelu"
 
     # GPT-2 uses token 50256 (<|endoftext|>) for both BOS and EOS.
-    # The 500M from-scratch model exported successfully with bos/eos=0,
-    # so we keep that for backward compatibility.
-    eos_bos_id = 50256 if config.vocab_size == 50257 and config.gelu_approximate == "tanh" else 0
+    # Any model with vocab_size=50257 uses the GPT-2 tokenizer and needs
+    # this token ID. The 500M from-scratch model (vocab_size=32768) uses 0.
+    eos_bos_id = 50256 if config.vocab_size == 50257 else 0
 
     hf_config = GPT2Config(
         vocab_size=config.vocab_size,
