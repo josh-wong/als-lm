@@ -300,6 +300,7 @@ def generate_markdown_report(
     degenerate: dict,
     fabrication: dict,
     samples: list,
+    model_configs: list | None = None,
 ) -> str:
     """Build the full Markdown comparison report."""
     lines = []
@@ -307,7 +308,7 @@ def generate_markdown_report(
     def add(text: str = "") -> None:
         lines.append(text)
 
-    configs = {c["key"]: c for c in MODEL_CONFIGS}
+    configs = {c["key"]: c for c in model_configs} if model_configs else {}
 
     # Section 1: Title
     add("# Model comparison report: from-scratch vs. fine-tuned")
@@ -654,6 +655,7 @@ def build_json_output(
     degenerate: dict,
     fabrication: dict,
     samples: list,
+    model_configs: list | None = None,
 ) -> dict:
     """Build the structured JSON comparison output.
 
@@ -661,11 +663,12 @@ def build_json_output(
     fabrication_rate_non_degenerate) are directly extractable without
     recomputation.
     """
+    _configs = model_configs or []
     return {
         "metadata": {
             "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "models_compared": [c["key"] for c in MODEL_CONFIGS],
-            "model_labels": {c["key"]: c["label"] for c in MODEL_CONFIGS},
+            "models_compared": [c["key"] for c in _configs],
+            "model_labels": {c["key"]: c["label"] for c in _configs},
             "quantization": "Q8_0",
         },
         "accuracy": accuracy,
@@ -765,6 +768,7 @@ def main() -> int:
         print(f"Writing Markdown report to {md_path}...")
     md_content = generate_markdown_report(
         accuracy, per_category, taxonomy, degenerate, fabrication, samples,
+        model_configs=model_configs,
     )
     with open(md_path, "w", encoding="utf-8") as f:
         f.write(md_content)
@@ -775,6 +779,7 @@ def main() -> int:
         print(f"Writing JSON output to {json_path}...")
     json_output = build_json_output(
         accuracy, per_category, taxonomy, degenerate, fabrication, samples,
+        model_configs=model_configs,
     )
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(json_output, f, indent=2, ensure_ascii=False)
