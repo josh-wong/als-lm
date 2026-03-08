@@ -65,17 +65,33 @@ TOKENIZER_HF_DIR = PROJECT_ROOT / "tokenizer" / "hf_tokenizer"
 MODELFILE_TEMPLATE = PROJECT_ROOT / "export" / "Modelfile.template"
 CHECKPOINTS_DIR = PROJECT_ROOT / "checkpoints"
 
-# Medical research disclaimer for the Ollama SYSTEM prompt.
-# Formal, ALS-specific, mentions model size and training data limitations.
-DISCLAIMER = (
-    "This is ALS-LM, a small experimental language model trained on a limited "
-    "curated corpus of ALS research literature. This model is a research artifact "
-    "and is frequently incorrect. It must not be used for medical decision-making, "
-    "diagnosis, treatment planning, or any clinical purpose. Its outputs about ALS, "
-    "medications, genetics, and disease progression may be fabricated, outdated, or "
-    "misleading. Consult qualified medical professionals for any health-related "
-    "questions."
-)
+# Per-size medical research disclaimers for the Ollama SYSTEM prompt.
+# Formal, ALS-specific, mentions model type and training data limitations.
+DISCLAIMERS = {
+    "500m": (
+        "This is ALS-LM, a small experimental language model trained on a limited "
+        "curated corpus of ALS research literature. This model is a research artifact "
+        "and is frequently incorrect. It must not be used for medical decision-making, "
+        "diagnosis, treatment planning, or any clinical purpose. Its outputs about ALS, "
+        "medications, genetics, and disease progression may be fabricated, outdated, or "
+        "misleading. Consult qualified medical professionals for any health-related "
+        "questions."
+    ),
+    "gpt2-large": (
+        "This is ALS-LM, a fine-tuned GPT-2 large model adapted from general English "
+        "to ALS research literature. This model is a research artifact and is frequently "
+        "incorrect. It must not be used for medical decision-making, diagnosis, treatment "
+        "planning, or any clinical purpose. Its outputs about ALS, medications, genetics, "
+        "and disease progression may be fabricated, outdated, or misleading. Consult "
+        "qualified medical professionals for any health-related questions."
+    ),
+}
+
+
+def _get_disclaimer(size: str) -> str:
+    """Get the SYSTEM disclaimer for a given model size."""
+    return DISCLAIMERS.get(size, DISCLAIMERS["500m"])
+
 
 # Quantization levels produced by the export pipeline.
 # F16 is the base conversion from HuggingFace; Q8_0 and Q4_K_M are
@@ -237,6 +253,7 @@ def find_latest_checkpoint(checkpoints_dir: Optional[Path] = None) -> Path:
 def stage_hf_convert(
     checkpoint_path: Path,
     output_dir: Path,
+    tokenizer_dir: Optional[Path] = None,
 ) -> dict:
     """Stage 1: Convert PyTorch checkpoint to HuggingFace GPT2LMHeadModel.
 
@@ -248,6 +265,8 @@ def stage_hf_convert(
     Args:
         checkpoint_path: Path to the PyTorch ``.pt`` checkpoint file.
         output_dir: Directory to save the HuggingFace model files.
+        tokenizer_dir: Path to HuggingFace tokenizer directory.
+            Defaults to ``tokenizer/hf_tokenizer/``.
 
     Returns:
         A dict with ``success``, ``output_path``, and ``error`` keys.
@@ -256,12 +275,14 @@ def stage_hf_convert(
     print("Stage 1: PyTorch -> HuggingFace")
     print("=" * 60)
 
+    effective_tokenizer_dir = tokenizer_dir if tokenizer_dir is not None else TOKENIZER_HF_DIR
+
     try:
         # Convert checkpoint to HuggingFace format
         hf_model = convert_checkpoint_to_hf(
             str(checkpoint_path),
             str(output_dir),
-            tokenizer_dir=str(TOKENIZER_HF_DIR),
+            tokenizer_dir=str(effective_tokenizer_dir),
         )
 
         # Verify config.json contains model_type: "gpt2"
@@ -376,7 +397,77 @@ def _diagnose_logit_mismatch(
         print(f"    {i+1}. index {idx.item()}: diff={val.item():.2e}")
 
 
-def _compute_tokenizer_hash() -> str:
+def _ensure_gpt2_tokenizer(output_dir: Path) -> Path:
+    """Download and save GPT-2 tokenizer files if not already present.
+
+    Downloads the fast tokenizer files (``tokenizer.json``,
+    ``tokenizer_config.json``) via ``save_pretrained``, plus
+    ``vocab.json`` and ``merges.txt`` directly from the HuggingFace hub.
+    The vocab and merges files are required by llama.cpp for GGUF
+    conversion but are not always included by ``save_pretrained`` in
+    newer transformers versions.
+
+    Args:
+        output_dir: Directory to save the tokenizer files.
+
+    Returns:
+        Path to the tokenizer directory.
+    """
+    required = ["vocab.json", "merges.txt", "tokenizer.json", "tokenizer_config.json"]
+    if all((output_dir / f).is_file() for f in required):
+        print(f"  GPT-2 tokenizer already saved at {output_dir}")
+        return output_dir
+    print(f"  Downloading GPT-2 tokenizer to {output_dir}...")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    # Save fast tokenizer files via save_pretrained
+    from transformers import GPT2TokenizerFast
+    fast_tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
+    fast_tokenizer.save_pretrained(str(output_dir))
+    # Download vocab.json and merges.txt directly from the hub if not
+    # already present (save_pretrained may not include them in newer
+    # transformers versions)
+    from huggingface_hub import hf_hub_download
+    for fname in ["vocab.json", "merges.txt"]:
+        if not (output_dir / fname).is_file():
+            hf_hub_download(
+                repo_id="gpt2",
+                filename=fname,
+                local_dir=str(output_dir),
+            )
+    # Clean up .cache directory created by hf_hub_download
+    cache_dir = output_dir / ".cache"
+    if cache_dir.is_dir():
+        shutil.rmtree(cache_dir)
+    # Verify expected files
+    for fname in required:
+        assert (output_dir / fname).is_file(), f"Missing {fname} after download"
+    print(f"  GPT-2 tokenizer saved: {[f.name for f in sorted(output_dir.iterdir())]}")
+    return output_dir
+
+
+def _is_native_tokenizer(hf_dir: Path) -> bool:
+    """Check if the tokenizer is natively recognized by llama.cpp.
+
+    A native tokenizer (e.g., GPT-2) does not require hash patching of
+    the llama.cpp converter script. Detection is based on the
+    ``tokenizer_class`` field in ``tokenizer_config.json``.
+
+    Args:
+        hf_dir: Path to a HuggingFace tokenizer directory.
+
+    Returns:
+        True if the tokenizer is natively recognized by llama.cpp.
+    """
+    config_path = hf_dir / "tokenizer_config.json"
+    if not config_path.is_file():
+        return False
+    with open(config_path) as f:
+        config = json.load(f)
+    tokenizer_class = config.get("tokenizer_class", "")
+    return tokenizer_class in ("GPT2Tokenizer", "GPT2TokenizerFast")
+
+
+def _compute_tokenizer_hash(tokenizer_dir: Path) -> str:
     """Compute the pre-tokenizer hash the same way llama.cpp does.
 
     The hash is SHA-256 of ``str(encoded_tokens)`` where ``encoded_tokens``
@@ -384,12 +475,15 @@ def _compute_tokenizer_hash() -> str:
     ``get_vocab_base_pre()`` function. The test string must match the exact
     string from the llama.cpp source code.
 
+    Args:
+        tokenizer_dir: Path to the HuggingFace tokenizer directory.
+
     Returns:
         The SHA-256 hex digest string.
     """
     from transformers import AutoTokenizer
 
-    tokenizer = AutoTokenizer.from_pretrained(str(TOKENIZER_HF_DIR))
+    tokenizer = AutoTokenizer.from_pretrained(str(tokenizer_dir))
 
     # This is the exact test string from llama.cpp's get_vocab_base_pre().
     # It MUST match character-for-character or the hash will differ.
@@ -479,6 +573,7 @@ def stage_gguf_convert(
     hf_dir: Path,
     gguf_dir: Path,
     size: str = "500m",
+    tokenizer_dir: Optional[Path] = None,
 ) -> dict:
     """Stage 2: Convert HuggingFace model to multi-quant GGUF files.
 
@@ -489,15 +584,17 @@ def stage_gguf_convert(
     - **Q4_K_M:** 4-bit quantization via ``llama-quantize``
 
     Verifies llama.cpp is cloned, builds ``llama-quantize`` if needed,
-    computes the custom tokenizer hash, patches the converter script to
-    recognize the hash, runs the F16 conversion, quantizes to Q8_0 and
-    Q4_K_M, and verifies the F16 file's tokenizer metadata.
+    conditionally computes and patches the custom tokenizer hash (skipped
+    for native GPT-2 tokenizers), runs the F16 conversion, quantizes to
+    Q8_0 and Q4_K_M, and verifies the F16 file's tokenizer metadata.
 
     Args:
         hf_dir: Path to the HuggingFace model directory from Stage 1.
         gguf_dir: Directory to write the GGUF output files.
         size: Model size qualifier (e.g., "tiny", "500m") for the output
             filenames.
+        tokenizer_dir: Path to HuggingFace tokenizer directory for hash
+            computation. Defaults to ``tokenizer/hf_tokenizer/``.
 
     Returns:
         A dict with ``success``, ``output_paths`` (list of 3 Paths), and
@@ -540,13 +637,23 @@ def stage_gguf_convert(
         # Create output directory
         gguf_dir.mkdir(parents=True, exist_ok=True)
 
-        # Compute the custom tokenizer hash
-        print("\nComputing tokenizer pre-tokenizer hash...")
-        token_hash = _compute_tokenizer_hash()
+        effective_tokenizer_dir = tokenizer_dir if tokenizer_dir is not None else TOKENIZER_HF_DIR
 
-        # Patch the converter script with our custom hash
-        print("\nPatching converter script for custom tokenizer hash...")
-        patched_script = _patch_converter_script(converter_path, token_hash)
+        # Check if the tokenizer is natively recognized by llama.cpp
+        native = _is_native_tokenizer(hf_dir)
+
+        if native:
+            print("\nNative tokenizer detected (GPT-2) -- skipping hash patching")
+            converter_to_use = converter_path
+        else:
+            # Compute the custom tokenizer hash
+            print("\nComputing tokenizer pre-tokenizer hash...")
+            token_hash = _compute_tokenizer_hash(effective_tokenizer_dir)
+
+            # Patch the converter script with our custom hash
+            print("\nPatching converter script for custom tokenizer hash...")
+            patched_script = _patch_converter_script(converter_path, token_hash)
+            converter_to_use = patched_script
 
         # Step 1: Convert HF to F16 GGUF (base file)
         print(f"\nConverting HuggingFace to F16 GGUF...")
@@ -555,7 +662,7 @@ def stage_gguf_convert(
 
         cmd = [
             sys.executable,
-            str(patched_script),
+            str(converter_to_use),
             str(hf_dir),
             "--outfile", str(f16_path),
             "--outtype", "f16",
@@ -595,7 +702,7 @@ def stage_gguf_convert(
 
         # Verify GGUF tokenizer metadata on the F16 base file
         print("\nVerifying GGUF tokenizer metadata...")
-        verification_result = _verify_gguf_tokenizer(f16_path)
+        verification_result = _verify_gguf_tokenizer(f16_path, tokenizer_dir=effective_tokenizer_dir)
         if not verification_result["success"]:
             return {
                 "success": False,
@@ -684,18 +791,25 @@ def stage_gguf_convert(
             print(f"  Cleaned up patched converter script")
 
 
-def _verify_gguf_tokenizer(gguf_path: Path) -> dict:
+def _verify_gguf_tokenizer(
+    gguf_path: Path,
+    tokenizer_dir: Optional[Path] = None,
+) -> dict:
     """Verify GGUF file contains correct tokenizer metadata.
 
-    Performs two checks per the validation criteria:
+    Performs three checks per the validation criteria:
 
     1. **Metadata fields:** Verifies ``general.architecture`` is ``"gpt2"``
        and that the tokenizer vocabulary size matches our tokenizer (50,257).
-    2. **Encode verification:** Loads our tokenizer, encodes a known ALS term
+    2. **Tokenizer model:** Checks the ``tokenizer.ggml.model`` field to
+       confirm the pre-tokenizer type.
+    3. **Encode verification:** Loads the tokenizer, encodes a known ALS term
        (``"riluzole"``), and verifies the GGUF token list produces the same IDs.
 
     Args:
         gguf_path: Path to the GGUF file to verify.
+        tokenizer_dir: Path to HuggingFace tokenizer directory for encode
+            verification. Defaults to ``tokenizer/hf_tokenizer/``.
 
     Returns:
         A dict with ``success`` and ``error`` keys.
@@ -736,11 +850,20 @@ def _verify_gguf_tokenizer(gguf_path: Path) -> dict:
     else:
         print("  WARNING: Could not find tokenizer.ggml.tokens in metadata")
 
-    # Check 2: Encode verification with a known ALS term
+    # Check 2: Verify tokenizer.ggml.model field
+    tokenizer_model_field = reader.fields.get("tokenizer.ggml.model")
+    if tokenizer_model_field is not None:
+        model_value = tokenizer_model_field.parts[-1].tobytes().decode("utf-8")
+        print(f"  Tokenizer model: {model_value}")
+    else:
+        print("  WARNING: Could not find tokenizer.ggml.model in metadata")
+
+    # Check 3: Encode verification with a known ALS term
+    effective_tokenizer_dir = tokenizer_dir if tokenizer_dir is not None else TOKENIZER_HF_DIR
     try:
         from tokenizers import Tokenizer
 
-        tokenizer = Tokenizer.from_file(str(TOKENIZER_HF_DIR / "tokenizer.json"))
+        tokenizer = Tokenizer.from_file(str(effective_tokenizer_dir / "tokenizer.json"))
         test_term = "riluzole"
         encoded = tokenizer.encode(test_term)
         print(f"  Encode verification: '{test_term}' -> token IDs {encoded.ids}")
@@ -903,7 +1026,7 @@ def stage_ollama_create(
             # Generate Modelfile for this quant level (path relative to output_dir)
             gguf_relative = os.path.relpath(str(gguf_path), str(output_dir))
             generated = template.replace("{{GGUF_PATH}}", f"./{gguf_relative}")
-            generated = generated.replace("{{DISCLAIMER}}", DISCLAIMER)
+            generated = generated.replace("{{DISCLAIMER}}", _get_disclaimer(size))
 
             with open(modelfile_path, "w") as f:
                 f.write(generated)
@@ -1227,6 +1350,12 @@ def main() -> None:
         help="Model size qualifier (default: 500m). Used for output paths and Ollama model name.",
     )
     parser.add_argument(
+        "--tokenizer-dir",
+        type=str,
+        default=None,
+        help="Path to HuggingFace tokenizer directory. Defaults to tokenizer/hf_tokenizer/.",
+    )
+    parser.add_argument(
         "--skip-ollama",
         action="store_true",
         help="Skip the Ollama and smoke test stages (useful if Ollama is not installed).",
@@ -1270,6 +1399,17 @@ def main() -> None:
     except Exception as e:
         print(f"  WARNING: Could not read checkpoint metadata: {e}")
 
+    # Resolve tokenizer directory
+    if args.tokenizer_dir:
+        tokenizer_dir = Path(args.tokenizer_dir).resolve()
+    elif args.size == "gpt2-large":
+        # For GPT-2 large, download and use the GPT-2 tokenizer
+        gpt2_tokenizer_dir = PROJECT_ROOT / "tokenizer" / "gpt2_tokenizer"
+        print("\nEnsuring GPT-2 tokenizer is available...")
+        tokenizer_dir = _ensure_gpt2_tokenizer(gpt2_tokenizer_dir)
+    else:
+        tokenizer_dir = TOKENIZER_HF_DIR
+
     # Set up output paths
     output_base = PROJECT_ROOT / "export" / "output" / args.size
     hf_dir = output_base / "hf"
@@ -1278,14 +1418,14 @@ def main() -> None:
     results = {}
 
     # Stage 1: PyTorch -> HuggingFace
-    results["hf_convert"] = stage_hf_convert(checkpoint_path, hf_dir)
+    results["hf_convert"] = stage_hf_convert(checkpoint_path, hf_dir, tokenizer_dir=tokenizer_dir)
     if not results["hf_convert"]["success"]:
         print(f"\nERROR: Stage 1 failed: {results['hf_convert']['error']}")
         print_summary(results, args.size)
         sys.exit(1)
 
     # Stage 2: HuggingFace -> GGUF (F16 + Q8_0 + Q4_K_M)
-    results["gguf_convert"] = stage_gguf_convert(hf_dir, gguf_dir, args.size)
+    results["gguf_convert"] = stage_gguf_convert(hf_dir, gguf_dir, args.size, tokenizer_dir=tokenizer_dir)
     if not results["gguf_convert"]["success"]:
         print(f"\nERROR: Stage 2 failed: {results['gguf_convert']['error']}")
         print_summary(results, args.size)
