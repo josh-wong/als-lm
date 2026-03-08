@@ -119,6 +119,12 @@ class GPTConfig:
     use_post_ln: bool = False
     gelu_approximate: str = "none"
 
+    def __post_init__(self):
+        if self.gelu_approximate not in ("none", "tanh"):
+            raise ValueError(
+                f"gelu_approximate must be 'none' or 'tanh', got '{self.gelu_approximate}'"
+            )
+
 
 # Named configurations for the ALS-LM project.
 # vocab_size is None (sentinel): it MUST be overridden from meta.pkl at
