@@ -3,7 +3,6 @@
 **Author:** [josh-wong](https://github.com/josh-wong)
 **Date:** March 6, 2026
 **Status:** Approved
-**Version:** 2.0
 
 ---
 
