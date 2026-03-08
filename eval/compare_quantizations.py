@@ -106,6 +106,11 @@ def discover_models(results_dir: Path, verbose: bool = False,
         suffix = subdir.name[len(model_prefix):]
         quant_key = suffix.lstrip("_") if suffix else subdir.name
 
+        if quant_key not in QUANT_ORDER:
+            print(f"  WARNING: unrecognized quantization key '{quant_key}' "
+                  f"from directory '{subdir.name}' (prefix '{model_prefix}'). "
+                  f"Check --model-prefix matches the directory naming convention.")
+
         models.append({
             "name": subdir.name,
             "path": subdir,
