@@ -152,8 +152,9 @@ def download_and_transpose(output_dir: str, force: bool = False) -> tuple:
         print(f"  ERROR: Missing keys in mapped state dict: {unexpected_missing}")
         sys.exit(1)
 
-    # Load with strict=True to ensure exact match
-    our_model.load_state_dict(new_sd, strict=False)
+    # Tie lm_head.weight to wte.weight so strict=True succeeds
+    new_sd["lm_head.weight"] = new_sd["transformer.wte.weight"]
+    our_model.load_state_dict(new_sd, strict=True)
 
     # Verify weights actually loaded (spot-check a few keys)
     for key in list(new_sd.keys())[:3]:
