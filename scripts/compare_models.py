@@ -353,8 +353,9 @@ def generate_markdown_report(
         f"instruction-following limitation of a completion model that has not "
         f"undergone RLHF or chat fine-tuning. Even with 774M pretrained "
         f"parameters and general English knowledge from WebText, fine-tuning "
-        f"on 143M ALS tokens produces a model that is still 97% away from "
-        f"useful accuracy, reinforcing the data deficit thesis."
+        f"on 143M ALS tokens produces a model that is still "
+        f"{100 - f_acc:.0f}% away from useful accuracy, reinforcing the "
+        f"data deficit thesis."
     )
     add()
 
@@ -389,11 +390,16 @@ def generate_markdown_report(
     # Section 4: Per-category accuracy
     add("## Per-category accuracy")
     add()
+    # Find best category for each model
+    best_ft_cat = max(CATEGORIES, key=lambda c: per_category[c]["gpt2_large_finetune"])
+    best_ft_val = per_category[best_ft_cat]["gpt2_large_finetune"] * 100
+    best_sc_cat = max(CATEGORIES, key=lambda c: per_category[c]["scratch_500m"])
+    best_sc_val = per_category[best_sc_cat]["scratch_500m"] * 100
     add(
-        "Mean accuracy broken down by the 8 evaluation categories. "
-        "The GPT-2 large model shows its strongest performance in the "
-        "gene_mutation category (13.75%), while the 500M model's only "
-        "non-zero category is patient_care (1.67%)."
+        f"Mean accuracy broken down by the 8 evaluation categories. "
+        f"The GPT-2 large model shows its strongest performance in the "
+        f"{best_ft_cat} category ({best_ft_val:.2f}%), while the 500M "
+        f"model's best category is {best_sc_cat} ({best_sc_val:.2f}%)."
     )
     add()
     add(
@@ -414,13 +420,25 @@ def generate_markdown_report(
     # Section 5: Taxonomy distribution
     add("## Taxonomy distribution")
     add()
+    s_tax = taxonomy["scratch_500m"]
+    f_tax = taxonomy["gpt2_large_finetune"]
+    # Top 3 non-degenerate failure modes for the 500M model
+    s_non_deg_modes = sorted(
+        [(m, s_tax[m]) for m in TAXONOMY_MODES if m != "degenerate"],
+        key=lambda x: x[1]["count"],
+        reverse=True,
+    )[:3]
+    s_top3_str = ", ".join(
+        f"{m.replace('_', ' ')} ({d['pct']:.1f}%)" for m, d in s_non_deg_modes
+    )
     add(
-        "Distribution of failure modes across the 7 taxonomy categories. "
-        "The most striking difference is in degenerate output: the 500M "
-        "model produces 52 degenerate responses (32.5%) while the GPT-2 "
-        "large model produces 156 (97.5%). The 500M model exhibits more "
-        "diverse failure modes, including confident fabrication (33.1%), "
-        "plausible blending (23.8%), and outdated information (10.6%)."
+        f"Distribution of failure modes across the 7 taxonomy categories. "
+        f"The most striking difference is in degenerate output: the 500M "
+        f"model produces {s_tax['degenerate']['count']} degenerate responses "
+        f"({s_tax['degenerate']['pct']:.1f}%) while the GPT-2 large model "
+        f"produces {f_tax['degenerate']['count']} ({f_tax['degenerate']['pct']:.1f}%). "
+        f"The 500M model exhibits more diverse failure modes, including "
+        f"{s_top3_str}."
     )
     add()
     add(
@@ -525,7 +543,7 @@ def generate_markdown_report(
         f"reflects the larger model's tendency to generate more text per "
         f"response, including entity-like strings in degenerate output. When "
         f"filtered to non-degenerate responses only, the GPT-2 large model's "
-        f"4 coherent responses still produce {f_fab['non_degenerate_extracted']} "
+        f"{f_fab['non_degenerate_count']} coherent responses still produce {f_fab['non_degenerate_extracted']} "
         f"entities with a {f_fab['non_degenerate_rate'] * 100:.2f}% fabrication "
         f"rate, comparable to the 500M model's "
         f"{s_fab['non_degenerate_rate'] * 100:.2f}%."
@@ -590,13 +608,15 @@ def generate_markdown_report(
         "means more text in the same style rather than an answer."
     )
     add()
+    f_deg_rate = degenerate["gpt2_large_finetune"]["non_degenerate_rate"]
+    f_nondeg_n = degenerate["gpt2_large_finetune"]["non_degenerate"]
     add(
-        "This explains the 97.5% degenerate output rate: the model is not "
-        "\"failing\" to answer questions so much as performing a different "
-        "task (text completion) than the one being evaluated (question "
-        "answering). The 4 coherent responses likely result from prompts "
-        "that happen to align with patterns in the training data where "
-        "question-like text is followed by answer-like text."
+        f"This explains the {(1 - f_deg_rate) * 100:.1f}% degenerate output "
+        f"rate: the model is not \"failing\" to answer questions so much as "
+        f"performing a different task (text completion) than the one being "
+        f"evaluated (question answering). The {f_nondeg_n} coherent responses "
+        f"likely result from prompts that happen to align with patterns in the "
+        f"training data where question-like text is followed by answer-like text."
     )
     add()
     add(
@@ -625,11 +645,12 @@ def generate_markdown_report(
     )
     add()
     add(
-        "**Limited coherent sample size.** With only 4 non-degenerate "
-        "responses from the GPT-2 large model, all per-response metrics "
-        "(accuracy, fabrication rate among non-degenerate) are computed over "
-        "an extremely small sample. These numbers should be interpreted as "
-        "indicative rather than statistically robust."
+        f"**Limited coherent sample size.** With only {f_nondeg_n} "
+        f"non-degenerate responses from the GPT-2 large model, all "
+        f"per-response metrics (accuracy, fabrication rate among "
+        f"non-degenerate) are computed over an extremely small sample. "
+        f"These numbers should be interpreted as indicative rather than "
+        f"statistically robust."
     )
     add()
     add(
@@ -652,7 +673,7 @@ def generate_markdown_report(
         "pretraining, fine-tuning on 143M ALS tokens only improves mean "
         f"accuracy from {s_acc:.2f}% to {f_acc:.2f}% -- a "
         f"{improvement:.0f}x relative improvement that still leaves the model "
-        f"97% away from useful accuracy. The fine-tuned model trades diverse "
+        f"{100 - f_acc:.0f}% away from useful accuracy. The fine-tuned model trades diverse "
         f"failure modes (fabrication, blending, outdated information) for "
         f"overwhelming degenerate output ({100 - f_nondeg:.1f}%), reflecting "
         f"the instruction-following limitation of a base completion model. "
