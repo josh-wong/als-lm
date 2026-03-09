@@ -126,17 +126,19 @@ def download_and_transpose(output_dir: str, force: bool = False) -> tuple:
             # Transpose: Conv1D (in, out) -> nn.Linear (out, in)
             hf_shape = hf_sd[key].shape
             our_shape = our_sd[key].shape
-            assert hf_shape[0] == our_shape[1] and hf_shape[1] == our_shape[0], (
-                f"Shape mismatch for {key}: HF {hf_shape} vs ours {our_shape} "
-                f"(expected transposed shapes to match)"
-            )
+            if not (hf_shape[0] == our_shape[1] and hf_shape[1] == our_shape[0]):
+                raise ValueError(
+                    f"Shape mismatch for {key}: HF {hf_shape} vs ours {our_shape} "
+                    f"(expected transposed shapes to match)"
+                )
             new_sd[key] = hf_sd[key].t()
             transposed_count += 1
         else:
             # Direct copy (biases, LayerNorm, embeddings)
-            assert hf_sd[key].shape == our_sd[key].shape, (
-                f"Shape mismatch for {key}: HF {hf_sd[key].shape} vs ours {our_sd[key].shape}"
-            )
+            if hf_sd[key].shape != our_sd[key].shape:
+                raise ValueError(
+                    f"Shape mismatch for {key}: HF {hf_sd[key].shape} vs ours {our_sd[key].shape}"
+                )
             new_sd[key] = hf_sd[key]
             copied_count += 1
 
@@ -158,9 +160,8 @@ def download_and_transpose(output_dir: str, force: bool = False) -> tuple:
 
     # Verify weights actually loaded (spot-check a few keys)
     for key in list(new_sd.keys())[:3]:
-        assert torch.equal(our_model.state_dict()[key], new_sd[key]), (
-            f"Weight verification failed for {key}"
-        )
+        if not torch.equal(our_model.state_dict()[key], new_sd[key]):
+            raise ValueError(f"Weight verification failed for {key}")
     print("  Weight loading verified (strict load + spot check)")
 
     # Step 4: Save checkpoint
@@ -229,9 +230,10 @@ def run_loss_test(our_model) -> tuple:
     x = torch.from_numpy(val_data[:n_tokens].astype(np.int64)).unsqueeze(0)
     y = torch.from_numpy(val_data[1:n_tokens + 1].astype(np.int64)).unsqueeze(0)
 
-    # Use block_size chunks (1024) to stay within positional embedding range
+    # Use block_size chunks to stay within positional embedding range
+    block_size = our_model.config.block_size
     with torch.no_grad():
-        _, loss = our_model(x[:, :1024], targets=y[:, :1024])
+        _, loss = our_model(x[:, :block_size], targets=y[:, :block_size])
 
     val_loss = loss.item()
     passed = val_loss < 5.0
