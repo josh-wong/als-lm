@@ -1398,8 +1398,8 @@ def main():
     if args.pretrained_weights:
         try:
             ckpt = torch.load(args.pretrained_weights, map_location="cpu", weights_only=True)
-        except TypeError:
-            # PyTorch < 2.0 does not support weights_only
+        except (TypeError, RuntimeError):
+            # PyTorch < 2.0 (no weights_only) or < 2.4 (no add_safe_globals)
             ckpt = torch.load(args.pretrained_weights, map_location="cpu")
         raw_config = ckpt["config"]
         if isinstance(raw_config, GPTConfig):
