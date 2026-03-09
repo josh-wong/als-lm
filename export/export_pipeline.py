@@ -671,6 +671,13 @@ def stage_gguf_convert(
 
         effective_tokenizer_dir = tokenizer_dir if tokenizer_dir is not None else TOKENIZER_HF_DIR
 
+        if not effective_tokenizer_dir.is_dir():
+            return {
+                "success": False,
+                "output_paths": [str(p) for p in output_paths],
+                "error": f"Tokenizer directory not found: {effective_tokenizer_dir}",
+            }
+
         # Check if the tokenizer is natively recognized by llama.cpp
         native = _is_native_tokenizer(effective_tokenizer_dir)
 
@@ -892,6 +899,11 @@ def _verify_gguf_tokenizer(
 
     # Check 3: Encode verification with a known ALS term
     effective_tokenizer_dir = tokenizer_dir if tokenizer_dir is not None else TOKENIZER_HF_DIR
+    if not effective_tokenizer_dir.is_dir():
+        return {
+            "success": False,
+            "error": f"Tokenizer directory not found: {effective_tokenizer_dir}",
+        }
     try:
         from tokenizers import Tokenizer
 
