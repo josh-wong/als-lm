@@ -42,7 +42,6 @@ import os
 import shutil
 import sys
 import tempfile
-from dataclasses import asdict
 from pathlib import Path
 from typing import Optional
 
