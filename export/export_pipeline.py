@@ -507,6 +507,16 @@ def _compute_tokenizer_hash(tokenizer_dir: Path) -> str:
     ``get_vocab_base_pre()`` function. The test string must match the exact
     string from the llama.cpp source code.
 
+    .. warning::
+
+        This function is part of the legacy hash-patching mechanism used only
+        for custom (non-GPT-2) tokenizers. It is bypassed entirely when
+        ``_is_native_tokenizer()`` returns True. The hash computation depends
+        on the exact test string used by llama.cpp's ``get_vocab_base_pre()``
+        function, which may change across llama.cpp versions. If this function
+        is needed in the future, pin the llama.cpp version to a known-good
+        commit and verify the test string still matches.
+
     Args:
         tokenizer_dir: Path to the HuggingFace tokenizer directory.
 
@@ -539,6 +549,18 @@ def _patch_converter_script(converter_path: Path, token_hash: str) -> Path:
     The llama.cpp converter uses a series of independent ``if`` statements
     (not ``if/elif/else``), so the injected block must also be an ``if``
     statement to match the surrounding code style.
+
+    .. warning::
+
+        This function is legacy/fragile. It is only used for custom (non-GPT-2)
+        tokenizers and is bypassed entirely when ``_is_native_tokenizer()``
+        returns True (the GPT-2 fine-tuning path). The patching approach
+        depends on the internal structure of llama.cpp's
+        ``get_vocab_base_pre()`` function and may break if llama.cpp updates
+        the hash-checking pattern (e.g., switching from flat ``if`` statements
+        to ``elif`` chains, or renaming the ``res`` variable). If this function
+        is needed in the future, pin the llama.cpp version and test the
+        patching against the specific converter script.
 
     Args:
         converter_path: Path to the original ``convert_hf_to_gguf.py``.
@@ -678,7 +700,10 @@ def stage_gguf_convert(
                 "error": f"Tokenizer directory not found: {effective_tokenizer_dir}",
             }
 
-        # Check if the tokenizer is natively recognized by llama.cpp
+        # Hash-patching decision: GPT-2 native tokenizers are recognized by
+        # llama.cpp and need no patching. Custom tokenizers (e.g., the ALS
+        # BPE tokenizer) require hash injection into the converter script.
+        # See _patch_converter_script() docstring for fragility warnings.
         native = _is_native_tokenizer(effective_tokenizer_dir)
 
         if native:
