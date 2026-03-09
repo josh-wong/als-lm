@@ -119,6 +119,8 @@ CONFIG_DEFAULTS = {
         "warmup": 200,
         "max_epochs": 2,
         "dropout": 0.1,
+        "betas": [0.9, 0.999],
+        "weight_decay": 0.01,
     },
 }
 
@@ -383,6 +385,9 @@ def parse_args():
     # Override dropout for fine-tuning (MODEL_CONFIGS gpt2-large has 0.0, but fine-tuning needs 0.1 per experiment design)
     if "dropout" in defaults and args.dropout is None:
         args.dropout = defaults["dropout"]
+
+    # Store resolved defaults for downstream use (e.g. DeepSpeed config overrides)
+    args._config_defaults = defaults
 
     return args
 
@@ -1080,8 +1085,13 @@ def log_checkpoint_event(log_file, event_type, step, details):
 # ---------------------------------------------------------------------------
 # DeepSpeed config resolution
 # ---------------------------------------------------------------------------
-def resolve_ds_config(ds_config_path, args):
+def resolve_ds_config(ds_config_path, args, config_defaults=None):
     """Load the DeepSpeed JSON config and override 'auto' values programmatically.
+
+    If *config_defaults* contains ``betas`` or ``weight_decay``, they override
+    the values in the JSON config. This allows fine-tuning configs to use
+    standard Adam betas (0.9, 0.999) and lower weight decay (0.01) instead of
+    the aggressive pretraining defaults (0.9, 0.95) and (0.1).
 
     Returns the resolved config dict ready for deepspeed.initialize().
     """
@@ -1095,6 +1105,13 @@ def resolve_ds_config(ds_config_path, args):
 
     # Optimizer LR
     ds_config["optimizer"]["params"]["lr"] = args.lr
+
+    # Optimizer betas and weight_decay (config-specific overrides)
+    if config_defaults:
+        if "betas" in config_defaults:
+            ds_config["optimizer"]["params"]["betas"] = config_defaults["betas"]
+        if "weight_decay" in config_defaults:
+            ds_config["optimizer"]["params"]["weight_decay"] = config_defaults["weight_decay"]
 
     # Scheduler steps
     ds_config["scheduler"]["params"]["warmup_num_steps"] = args.warmup_steps
@@ -1381,7 +1398,8 @@ def main():
         print(f"\nFATAL: DeepSpeed config not found at {ds_config_path}")
         sys.exit(1)
 
-    ds_config = resolve_ds_config(ds_config_path, args)
+    ds_config = resolve_ds_config(ds_config_path, args,
+                                   config_defaults=getattr(args, "_config_defaults", None))
 
     # ---- Build model -------------------------------------------------------
     model_overrides = {}
