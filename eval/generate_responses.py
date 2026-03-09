@@ -39,6 +39,7 @@ Usage examples::
 """
 
 import argparse
+import dataclasses
 import json
 import os
 import re
@@ -240,7 +241,7 @@ def load_model_from_checkpoint(pt_path, device):
     raw_config = checkpoint["config"]
     if isinstance(raw_config, GPTConfig):
         config_dict = {f.name: getattr(raw_config, f.name)
-                       for f in raw_config.__dataclass_fields__.values()}
+                       for f in dataclasses.fields(raw_config)}
     elif isinstance(raw_config, dict):
         config_dict = raw_config
     else:
