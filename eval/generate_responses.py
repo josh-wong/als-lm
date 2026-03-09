@@ -279,15 +279,44 @@ def load_model_from_checkpoint(pt_path, device):
     return model, config_dict
 
 
-def load_tokenizer(tokenizer_path=None):
-    """Load the canonical ALS tokenizer.
+def load_tokenizer(tokenizer_path=None, vocab_size=None):
+    """Load the appropriate tokenizer for a checkpoint.
 
-    If no path is provided, resolves the default location using
-    ``_PROJECT_ROOT`` so the script works from any working directory.
+    Auto-detection logic (when *tokenizer_path* is ``None``):
 
-    Returns the Tokenizer instance or exits with an error message.
+    - If *vocab_size* is 50257 (GPT-2 vocabulary), loads the GPT-2 tokenizer
+      from ``tokenizer/gpt2_tokenizer/`` via ``GPT2TokenizerFast``.
+    - Otherwise, loads the ALS BPE tokenizer from
+      ``tokenizer/als_tokenizer.json`` via the ``tokenizers`` library.
+
+    An explicit *tokenizer_path* bypasses auto-detection entirely.
+
+    Returns the tokenizer instance (either ``Tokenizer`` or
+    ``GPT2TokenizerFast``) or exits with an error message.
     """
     _ensure_checkpoint_imports()
+
+    # --- GPT-2 tokenizer path (auto-detected or explicit) ---
+    _GPT2_VOCAB_SIZE = 50257
+
+    if tokenizer_path is None and vocab_size == _GPT2_VOCAB_SIZE:
+        # Auto-detect: checkpoint uses GPT-2 vocabulary
+        if _PROJECT_ROOT is not None:
+            gpt2_dir = str(_PROJECT_ROOT / "tokenizer" / "gpt2_tokenizer")
+        else:
+            gpt2_dir = "tokenizer/gpt2_tokenizer"
+
+        if os.path.isdir(gpt2_dir):
+            from transformers import GPT2TokenizerFast as _GPT2Tok
+            tok = _GPT2Tok.from_pretrained(gpt2_dir)
+            print(f"  GPT-2 tokenizer loaded: {tok.vocab_size:,} tokens "
+                  f"(auto-detected from vocab_size={vocab_size})")
+            return tok
+
+        print(f"WARNING: vocab_size={vocab_size} suggests GPT-2 tokenizer but "
+              f"{gpt2_dir} not found. Falling back to ALS tokenizer.")
+
+    # --- ALS tokenizer path (default) ---
     if tokenizer_path is None:
         if _PROJECT_ROOT is not None:
             tokenizer_path = str(_PROJECT_ROOT / "tokenizer" / "als_tokenizer.json")
@@ -477,6 +506,28 @@ def generate_ollama_response(ollama_url, model_name, prompt, max_tokens,
     return "[ollama error: max retries exceeded]", 0
 
 
+def _encode_ids(tokenizer, text):
+    """Encode text to token IDs, compatible with both tokenizer types.
+
+    Works with both ``tokenizers.Tokenizer`` (returns ``.ids``) and
+    ``GPT2TokenizerFast`` (returns a list directly).
+    """
+    result = tokenizer.encode(text)
+    # tokenizers.Tokenizer returns an Encoding object with .ids
+    return result.ids if hasattr(result, "ids") else result
+
+
+def _get_eos_id(tokenizer):
+    """Return the EOS token ID for either tokenizer type, or None."""
+    # GPT2TokenizerFast exposes .eos_token_id directly
+    if hasattr(tokenizer, "eos_token_id"):
+        return tokenizer.eos_token_id
+    # tokenizers.Tokenizer uses .token_to_id()
+    if hasattr(tokenizer, "token_to_id"):
+        return tokenizer.token_to_id("<|endoftext|>")
+    return None
+
+
 def generate_responses(model, tokenizer, questions, max_tokens, device):
     """Run inference on all benchmark questions.
 
@@ -485,7 +536,8 @@ def generate_responses(model, tokenizer, questions, max_tokens, device):
 
     Args:
         model: GPT model in eval mode.
-        tokenizer: Tokenizer instance.
+        tokenizer: Tokenizer instance (``tokenizers.Tokenizer`` or
+            ``GPT2TokenizerFast``).
         questions: List of question dicts from questions.json.
         max_tokens: Maximum tokens to generate per response.
         device: Torch device.
@@ -493,7 +545,7 @@ def generate_responses(model, tokenizer, questions, max_tokens, device):
     Returns:
         List of response dicts with question metadata and generated text.
     """
-    eos_token_id = tokenizer.token_to_id("<|endoftext|>")
+    eos_token_id = _get_eos_id(tokenizer)
     if eos_token_id is not None:
         print(f"  EOS token ID: {eos_token_id}")
     else:
@@ -511,7 +563,7 @@ def generate_responses(model, tokenizer, questions, max_tokens, device):
 
         try:
             # Encode prompt
-            input_ids = tokenizer.encode(prompt_text).ids
+            input_ids = _encode_ids(tokenizer, prompt_text)
 
             # Generate response
             new_tokens, tokens_generated = generate_greedy(
@@ -753,8 +805,8 @@ def main():
         pt_path = resolve_checkpoint_path(args.checkpoint)
         model, model_config_dict = load_model_from_checkpoint(pt_path, device)
 
-        # Load tokenizer
-        tokenizer = load_tokenizer()
+        # Load tokenizer (auto-detects GPT-2 vs ALS from checkpoint vocab_size)
+        tokenizer = load_tokenizer(vocab_size=model_config_dict.get("vocab_size"))
 
         print(f"\n  Starting inference (max_tokens={args.max_tokens}, "
               f"temperature=0.0)...\n")
