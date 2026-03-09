@@ -1,7 +1,8 @@
 # ALS-LM: Exploring Domain-Specific Language Models for Sensitive Medical Knowledge
 
 **Author:** [josh-wong](https://github.com/josh-wong)
-**Date:** February 21, 2026 | Last revised: March 9, 2026
+**Date:** February 21, 2026
+**Last revised:** March 9, 2026
 **Status:** Complete
 
 ---

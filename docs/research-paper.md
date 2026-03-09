@@ -385,7 +385,7 @@ Contextualizing against the models surveyed in Section 2.1 (Table 1) makes the s
 
 If we were to repeat this project, the most impactful change would be our data strategy. Rather than training from scratch on 143M tokens of ALS-specific text, we would first pre-train on a broad English corpus (OpenWebText, C4, or a Wikipedia subset, totaling 5-10 billion tokens) to establish general language competence and world knowledge, then fine-tune on the ALS corpus. This is precisely the approach that BioBERT and BioGPT followed: start with a strong general foundation, then specialize. Our work's negative results validate this strategy by demonstrating what happens when you skip the general pre-training step entirely. The model learns domain-specific language patterns (low loss, Well-fit classification) but has no general knowledge scaffold on which to organize the factual content of those patterns.
 
-In Section 7, we report exactly this experiment: fine-tuning GPT-2 large (774M parameters) on the ALS corpus. The results partially validate the pre-train-then-fine-tune strategy — accuracy improves 15x from 0.21% to 3.12% — but reveal an orthogonal limitation. The completion-based GPT-2 architecture produces degenerate output for 97.5% of evaluation questions because it lacks the instruction-following capability needed to respond to structured prompts. This suggests that general pretraining is necessary but not sufficient; alignment training (RLHF, instruction fine-tuning) is additionally required to bridge the gap between language-modeling competence and useful question-answering behavior.
+In Section 7, we report exactly this experiment: fine-tuning GPT-2 large (774M parameters) on the ALS corpus. The results partially validate the pre-train-then-fine-tune strategy—accuracy improves 15x from 0.21% to 3.12%—but reveal an orthogonal limitation. The completion-based GPT-2 architecture produces degenerate output for 97.5% of evaluation questions because it lacks the instruction-following capability needed to respond to structured prompts. This suggests that general pretraining is necessary but not sufficient; alignment training (RLHF, instruction fine-tuning) is additionally required to bridge the gap between language-modeling competence and useful question-answering behavior.
 
 ### 8.2 Embedding-model impact
 
@@ -455,21 +455,21 @@ We emphasize again that this project is a machine-learning research and educatio
 
 The following references are cited in this paper. Each entry includes a hyperlink to the primary publication or preprint.
 
-- [Beltagy et al., 2019](https://aclanthology.org/D19-1371.pdf) — "SciBERT: A Pretrained Language Model for Scientific Text." EMNLP 2019.
-- [Bolton et al., 2024](https://arxiv.org/html/2403.18421v1) — "BioMedLM: A 2.7B Parameter Language Model Trained On Biomedical Text." arXiv 2024.
-- [Chen et al., 2025](https://arxiv.org/abs/2502.14302) — "MedHallu: A Comprehensive Benchmark for Detecting LLM Hallucinations in Medical Contexts." arXiv 2025.
-- [Hoffmann et al., 2022](https://arxiv.org/abs/2203.15556) — "Training Compute-Optimal Large Language Models." NeurIPS 2022.
-- [Kaplan et al., 2020](https://arxiv.org/abs/2001.08361) — "Scaling Laws for Neural Language Models." arXiv 2020.
-- [Lee et al., 2020](https://academic.oup.com/bioinformatics/article/36/4/1234/5566506) — "BioBERT: A Pre-trained Biomedical Language Representation Model for Biomedical Text Mining." Bioinformatics, 36(4), 2020.
-- [Lin et al., 2022](https://arxiv.org/abs/2109.07958) — "TruthfulQA: Measuring How Models Mimic Human Falsehoods." ACL 2022.
-- [Luo et al., 2022](https://arxiv.org/abs/2210.10341) — "BioGPT: Generative Pre-trained Transformer for Biomedical Text Generation and Mining." Briefings in Bioinformatics, 2022.
-- [Manakul et al., 2023](https://arxiv.org/abs/2303.08896) — "SelfCheckGPT: Zero-Resource Black-Box Hallucination Detection for Generative Large Language Models." EMNLP 2023.
-- [Meta, 2024](https://llama.meta.com/) — "Llama 3.1 Model Card." Meta AI, 2024.
-- [Min et al., 2023](https://arxiv.org/abs/2305.14251) — "FActScore: Fine-grained Atomic Evaluation of Factual Precision in Long Form Text Generation." EMNLP 2023.
-- [Radford et al., 2019](https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf) — "Language Models are Unsupervised Multitask Learners." OpenAI Technical Report, 2019.
-- [Rajbhandari et al., 2020](https://arxiv.org/abs/1910.02054) — "ZeRO: Memory Optimizations Toward Training Trillion Parameter Models." SC 2020.
-- [Tsatsaronis et al., 2015](https://link.springer.com/article/10.1186/s12859-015-0564-6) — "An Overview of the BioASQ Large-Scale Biomedical Semantic Indexing and Question Answering Competition." BMC Bioinformatics, 2015.
-- [Umapathi et al., 2023](https://arxiv.org/abs/2307.15343) — "Med-HALT: Medical Domain Hallucination Test for Large Language Models." CoNLL 2023.
-- [Xiong et al., 2020](https://arxiv.org/abs/2002.04745) — "On Layer Normalization in the Transformer Architecture." ICML 2020.
-- [Xiong et al., 2024](https://arxiv.org/abs/2402.13178) — "Benchmarking Large Language Models in Retrieval-Augmented Generation." ACL Findings 2024.
-- [Yang et al., 2022](https://arxiv.org/abs/2203.03540) — "GatorTron: A Large Language Model for Electronic Health Records." Nature NPJ Digital Medicine, 2022.
+- [Beltagy et al., 2019](https://aclanthology.org/D19-1371.pdf) – "SciBERT: A Pretrained Language Model for Scientific Text." EMNLP 2019.
+- [Bolton et al., 2024](https://arxiv.org/html/2403.18421v1) – "BioMedLM: A 2.7B Parameter Language Model Trained On Biomedical Text." arXiv 2024.
+- [Chen et al., 2025](https://arxiv.org/abs/2502.14302) – "MedHallu: A Comprehensive Benchmark for Detecting LLM Hallucinations in Medical Contexts." arXiv 2025.
+- [Hoffmann et al., 2022](https://arxiv.org/abs/2203.15556) – "Training Compute-Optimal Large Language Models." NeurIPS 2022.
+- [Kaplan et al., 2020](https://arxiv.org/abs/2001.08361) – "Scaling Laws for Neural Language Models." arXiv 2020.
+- [Lee et al., 2020](https://academic.oup.com/bioinformatics/article/36/4/1234/5566506) – "BioBERT: A Pre-trained Biomedical Language Representation Model for Biomedical Text Mining." Bioinformatics, 36(4), 2020.
+- [Lin et al., 2022](https://arxiv.org/abs/2109.07958) – "TruthfulQA: Measuring How Models Mimic Human Falsehoods." ACL 2022.
+- [Luo et al., 2022](https://arxiv.org/abs/2210.10341) – "BioGPT: Generative Pre-trained Transformer for Biomedical Text Generation and Mining." Briefings in Bioinformatics, 2022.
+- [Manakul et al., 2023](https://arxiv.org/abs/2303.08896) – "SelfCheckGPT: Zero-Resource Black-Box Hallucination Detection for Generative Large Language Models." EMNLP 2023.
+- [Meta, 2024](https://llama.meta.com/) – "Llama 3.1 Model Card." Meta AI, 2024.
+- [Min et al., 2023](https://arxiv.org/abs/2305.14251) – "FActScore: Fine-grained Atomic Evaluation of Factual Precision in Long Form Text Generation." EMNLP 2023.
+- [Radford et al., 2019](https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf) – "Language Models are Unsupervised Multitask Learners." OpenAI Technical Report, 2019.
+- [Rajbhandari et al., 2020](https://arxiv.org/abs/1910.02054) – "ZeRO: Memory Optimizations Toward Training Trillion Parameter Models." SC 2020.
+- [Tsatsaronis et al., 2015](https://link.springer.com/article/10.1186/s12859-015-0564-6) – "An Overview of the BioASQ Large-Scale Biomedical Semantic Indexing and Question Answering Competition." BMC Bioinformatics, 2015.
+- [Umapathi et al., 2023](https://arxiv.org/abs/2307.15343) – "Med-HALT: Medical Domain Hallucination Test for Large Language Models." CoNLL 2023.
+- [Xiong et al., 2020](https://arxiv.org/abs/2002.04745) – "On Layer Normalization in the Transformer Architecture." ICML 2020.
+- [Xiong et al., 2024](https://arxiv.org/abs/2402.13178) – "Benchmarking Large Language Models in Retrieval-Augmented Generation." ACL Findings 2024.
+- [Yang et al., 2022](https://arxiv.org/abs/2203.03540) – "GatorTron: A Large Language Model for Electronic Health Records." Nature NPJ Digital Medicine, 2022.

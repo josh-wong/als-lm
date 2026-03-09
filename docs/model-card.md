@@ -8,7 +8,7 @@
 
 ## Model details
 
-ALS-LM is a 516M-parameter decoder-only transformer trained from scratch on 143M tokens of curated amyotrophic lateral sclerosis (ALS) research. We built the model to investigate what a purpose-built language model can learn from a narrow medical corpus, how it fails, and how those failure modes compare to retrieval-augmented generation (RAG) approaches. The near-zero factual accuracy we observed is a central research finding, not a shortcoming — it demonstrates the data deficit threshold below which domain-specific models cannot internalize factual knowledge.
+ALS-LM is a 516M-parameter decoder-only transformer trained from scratch on 143M tokens of curated amyotrophic lateral sclerosis (ALS) research. We built the model to investigate what a purpose-built language model can learn from a narrow medical corpus, how it fails, and how those failure modes compare to retrieval-augmented generation (RAG) approaches. The near-zero factual accuracy we observed is a central research finding, not a shortcoming—it demonstrates the data deficit threshold below which domain-specific models cannot internalize factual knowledge.
 
 We use a GPT-2-style architecture with Pre-LN (layer normalization before attention) for training stability. As a controlled comparison experiment, we also fine-tuned GPT-2 large (774M parameters) on the same ALS corpus; see the [Model variants](#model-variants) section below for details.
 
@@ -83,7 +83,7 @@ We explicitly prohibit the following uses of ALS-LM:
 - Any application requiring factual accuracy about ALS or any other medical topic
 - Generating text presented as medical information to any audience
 
-Neither model variant — the from-scratch model at 0.0% and the fine-tuned model at 1.87% binary pass rate — achieves accuracy sufficient for any information-retrieval purpose.
+Neither model variant—the from-scratch model at 0.0% and the fine-tuned model at 1.87% binary pass rate—achieves accuracy sufficient for any information-retrieval purpose.
 
 ## Training data
 
@@ -111,7 +111,7 @@ We trained for 3 epochs (11,760 steps) over 4 hours and 27 minutes.
 | Precision            | FP16 mixed precision                         |
 | Memory strategy      | DeepSpeed ZeRO Stage 2, CPU offloading       |
 
-Training converged to a final validation loss of 5.4956 with a loss relative gap of +0.42%, which we classify as Well-fit. Despite this healthy training dynamic, the model achieves near-zero factual accuracy — a central finding of the research that we analyze in detail in the [research paper](research-paper.md).
+Training converged to a final validation loss of 5.4956 with a loss relative gap of +0.42%, which we classify as Well-fit. Despite this healthy training dynamic, the model achieves near-zero factual accuracy—a central finding of the research that we analyze in detail in the [research paper](research-paper.md).
 
 ## Evaluation results
 
@@ -133,7 +133,7 @@ We also conducted a RAG comparison experiment using four configurations (two emb
 
 ALS-LM has demonstrated a near-complete inability to produce factually accurate medical content. Across 480 evaluations (160 questions x 3 quantization levels), the model achieves 0.0% binary pass rate, fabricates medical entities at a 66% rate, and produces degenerate output (repetitive or incoherent text) 27.5% of the time. Anyone who encounters this model should understand it as a research artifact demonstrating failure modes, not a functional information source.
 
-The fine-tuned GPT-2 large model exhibits a distinct failure profile. While the from-scratch model fails primarily through fabrication — inventing plausible but false medical content with high confidence — the fine-tuned model fails through degeneration, with 97.5% of responses producing repetitive or incoherent output. Both failure profiles make the models unsuitable for any medical use, but for different reasons: the from-scratch model is dangerously confident in wrong answers, while the fine-tuned model mostly fails to produce coherent responses at all.
+The fine-tuned GPT-2 large model exhibits a distinct failure profile. While the from-scratch model fails primarily through fabrication—inventing plausible but false medical content with high confidence—the fine-tuned model fails through degeneration, with 97.5% of responses producing repetitive or incoherent output. Both failure profiles make the models unsuitable for any medical use, but for different reasons: the from-scratch model is dangerously confident in wrong answers, while the fine-tuned model mostly fails to produce coherent responses at all.
 
 ### Technical limitations
 
