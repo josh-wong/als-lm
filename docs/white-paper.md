@@ -119,11 +119,11 @@ This project aims to contribute to the understanding of domain-specific language
 - **A structured framework for evaluating medical hallucinations.** The failure taxonomy and benchmark methodology are designed to be reusable. Other researchers working on domain-specific medical models can adopt the evaluation framework for their own domains.
 - **An empirical comparison of architectural approaches for sensitive knowledge.** The from-scratch versus RAG comparison, with its emphasis on failure severity rather than simple accuracy, offers practical guidance for practitioners deciding how to deploy medical knowledge systems.
 
-## 6.5 Extended investigation
+## 7. Extended investigation
 
 Having established the data deficit finding with the from-scratch model, the project tested whether pretrained general knowledge could bridge the gap by fine-tuning OpenAI's GPT-2 large (774M parameters) on the same ALS corpus (146M tokens re-tokenized with the GPT-2 tokenizer, trained for 2 epochs). At the Q8_0 quantization level, the fine-tuned model achieved 3.12% mean accuracy compared to the from-scratch model's 0.21%, a 15x improvement that confirms pretrained knowledge partially compensates for the data deficit. However, 97.5% of the fine-tuned model's responses were degenerate (repetitive or incoherent), compared to 67.5% coherent responses from the from-scratch model. This result reveals that data deficit (which governs factual accuracy) and instruction-following (which governs response coherence) are two orthogonal dimensions of model failure. GPT-2 is a completion-based architecture trained on next-token prediction without instruction-following alignment, which explains why it produces degenerate output when evaluated on a Q&A benchmark despite having access to more relevant knowledge. See the [research paper](research-paper.md), Section 7, for the full methodology and analysis.
 
-## 7. Limitations
+## 8. Limitations
 
 This project has several known limitations that should be acknowledged:
 
@@ -135,7 +135,7 @@ This project has several known limitations that should be acknowledged:
 
 Subsequent experimental results confirmed these limitations. See the [research paper](research-paper.md) for the full analysis of how data deficit, model scale, and corpus scope affected outcomes.
 
-## 8. Conclusion
+## 9. Conclusion
 
 ALS-LM is an intentionally focused project that asks a big question: what is the right way to build AI systems that handle sensitive medical knowledge? By training a model from scratch, evaluating its failures rigorously, and comparing it against retrieval-augmented alternatives, the project has produced findings that are useful beyond its specific domain and scale. See the [research paper](research-paper.md) for the complete results and analysis.
 
