@@ -1,6 +1,9 @@
 FROM {{GGUF_PATH}}
 
 PARAMETER num_ctx 1024
+# Note: These defaults are tuned for the interactive CLI demo experience.
+# Evaluation uses API-level overrides (temperature=0, repeat_penalty=1.0,
+# top_p=1.0) to ensure deterministic, reproducible results.
 PARAMETER num_predict 256
 PARAMETER repeat_penalty 1.3
 PARAMETER top_p 0.9

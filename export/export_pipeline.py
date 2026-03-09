@@ -912,12 +912,12 @@ def _verify_gguf_tokenizer(
         encoded = tokenizer.encode(test_term)
         print(f"  Encode verification: '{test_term}' -> token IDs {encoded.ids}")
 
-        # Verify the GGUF file has the expected vocab size (50,257)
-        expected_vocab = 50257
+        # Verify the GGUF file has the expected vocab size (derived from tokenizer)
+        expected_vocab = tokenizer.get_vocab_size()
         if vocab_size_field is not None and gguf_vocab_size != expected_vocab:
             print(
                 f"  WARNING: GGUF vocab size ({gguf_vocab_size}) does not match "
-                f"expected ({expected_vocab})"
+                f"tokenizer vocab size ({expected_vocab})"
             )
     except ImportError:
         print("  WARNING: tokenizers package not available for encode verification")
