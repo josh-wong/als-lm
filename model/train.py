@@ -515,7 +515,7 @@ def generate_sample(model, tokenizer, prompt, max_new_tokens=128, temperature=0.
     (temperature=0) and sampled decoding.
     """
     model.eval()
-    if hasattr(tokenizer, 'get_vocab_size'):
+    if isinstance(tokenizer, Tokenizer):
         # tokenizers.Tokenizer API (ALS)
         input_ids = tokenizer.encode(prompt).ids
     else:
