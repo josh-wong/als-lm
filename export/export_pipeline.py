@@ -672,7 +672,7 @@ def stage_gguf_convert(
         effective_tokenizer_dir = tokenizer_dir if tokenizer_dir is not None else TOKENIZER_HF_DIR
 
         # Check if the tokenizer is natively recognized by llama.cpp
-        native = _is_native_tokenizer(hf_dir)
+        native = _is_native_tokenizer(effective_tokenizer_dir)
 
         if native:
             print("\nNative tokenizer detected (GPT-2) -- skipping hash patching")
