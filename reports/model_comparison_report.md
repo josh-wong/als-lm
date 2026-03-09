@@ -14,7 +14,7 @@ Mean accuracy, binary pass rate, and hedging instances for each model, evaluated
 
 ## Per-category accuracy
 
-Mean accuracy broken down by the 8 evaluation categories. The GPT-2 large model shows its strongest performance in the gene_mutation category (13.75%), while the 500M model's only non-zero category is patient_care (1.67%).
+Mean accuracy broken down by the 8 evaluation categories. The GPT-2 large model shows its strongest performance in the gene_mutation category (13.75%), while the 500M model's best category is patient_care (1.67%).
 
 | Category                  |    500M (from-scratch) |   GPT-2 large (fine-tuned) |
 | ------------------------- | ---------------------- | -------------------------- |
