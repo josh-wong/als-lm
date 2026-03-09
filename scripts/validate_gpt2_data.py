@@ -31,8 +31,10 @@ def check_vocabulary_identity(meta_path, tok):
     """
     with open(meta_path, "rb") as f:
         meta = pickle.load(f)  # noqa: S301 — meta.pkl is project-generated
-    if not isinstance(meta, dict) or "vocab_size" not in meta:
-        return False, {"error": f"Invalid meta.pkl format: expected dict with 'vocab_size' key"}
+    required_keys = {"vocab_size", "stoi", "itos"}
+    if not isinstance(meta, dict) or not required_keys.issubset(meta):
+        missing = required_keys - set(meta) if isinstance(meta, dict) else required_keys
+        return False, {"error": f"Invalid meta.pkl format: missing keys {missing}"}
 
     meta_vocab_size = meta["vocab_size"]
     live_vocab_size = tok.vocab_size
