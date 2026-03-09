@@ -1,0 +1,349 @@
+{
+  "metadata": {
+    "timestamp": "2026-03-08T10:11:42Z",
+    "models_compared": [
+      "als-lm-gpt2-large_f16",
+      "als-lm-gpt2-large_q8_0",
+      "als-lm-gpt2-large_q4_k_m"
+    ],
+    "thresholds": {
+      "accuracy": 0.05,
+      "fabrication": 0.1
+    }
+  },
+  "overall_accuracy": {
+    "als-lm-gpt2-large_f16": {
+      "mean_accuracy": 0.0344,
+      "binary_pass_rate": 0.025,
+      "hedging": 22
+    },
+    "als-lm-gpt2-large_q8_0": {
+      "mean_accuracy": 0.0312,
+      "binary_pass_rate": 0.0187,
+      "hedging": 22
+    },
+    "als-lm-gpt2-large_q4_k_m": {
+      "mean_accuracy": 0.0234,
+      "binary_pass_rate": 0.0063,
+      "hedging": 2
+    }
+  },
+  "per_category_accuracy": {
+    "clinical_trials": {
+      "als-lm-gpt2-large_f16": 0.0375,
+      "als-lm-gpt2-large_q8_0": 0.0375,
+      "als-lm-gpt2-large_q4_k_m": 0.025
+    },
+    "diagnostic_criteria": {
+      "als-lm-gpt2-large_f16": 0.025,
+      "als-lm-gpt2-large_q8_0": 0.0125,
+      "als-lm-gpt2-large_q4_k_m": 0.0375
+    },
+    "disease_mechanisms": {
+      "als-lm-gpt2-large_f16": 0.0125,
+      "als-lm-gpt2-large_q8_0": 0.0125,
+      "als-lm-gpt2-large_q4_k_m": 0.0
+    },
+    "drug_treatment": {
+      "als-lm-gpt2-large_f16": 0.025,
+      "als-lm-gpt2-large_q8_0": 0.025,
+      "als-lm-gpt2-large_q4_k_m": 0.025
+    },
+    "epidemiology": {
+      "als-lm-gpt2-large_f16": 0.0125,
+      "als-lm-gpt2-large_q8_0": 0.0125,
+      "als-lm-gpt2-large_q4_k_m": 0.0
+    },
+    "gene_mutation": {
+      "als-lm-gpt2-large_f16": 0.15,
+      "als-lm-gpt2-large_q8_0": 0.1375,
+      "als-lm-gpt2-large_q4_k_m": 0.0875
+    },
+    "patient_care": {
+      "als-lm-gpt2-large_f16": 0.0,
+      "als-lm-gpt2-large_q8_0": 0.0,
+      "als-lm-gpt2-large_q4_k_m": 0.0
+    },
+    "temporal_accuracy": {
+      "als-lm-gpt2-large_f16": 0.0125,
+      "als-lm-gpt2-large_q8_0": 0.0125,
+      "als-lm-gpt2-large_q4_k_m": 0.0125
+    }
+  },
+  "per_difficulty_accuracy": {
+    "easy": {
+      "als-lm-gpt2-large_f16": 0.0263,
+      "als-lm-gpt2-large_q8_0": 0.0263,
+      "als-lm-gpt2-large_q4_k_m": 0.0263
+    },
+    "medium": {
+      "als-lm-gpt2-large_f16": 0.0471,
+      "als-lm-gpt2-large_q8_0": 0.0435,
+      "als-lm-gpt2-large_q4_k_m": 0.0254
+    },
+    "hard": {
+      "als-lm-gpt2-large_f16": 0.0236,
+      "als-lm-gpt2-large_q8_0": 0.0189,
+      "als-lm-gpt2-large_q4_k_m": 0.0189
+    }
+  },
+  "fabrication_rates": {
+    "als-lm-gpt2-large_f16": {
+      "total_extracted": 911,
+      "total_flagged": 693,
+      "flagged_rate": 0.7607,
+      "by_type": {
+        "drugs": {
+          "extracted": 488,
+          "flagged": 460,
+          "rate": 0.9426
+        },
+        "genes": {
+          "extracted": 422,
+          "flagged": 232,
+          "rate": 0.5498
+        },
+        "trials": {
+          "extracted": 1,
+          "flagged": 1,
+          "rate": 1.0
+        }
+      }
+    },
+    "als-lm-gpt2-large_q8_0": {
+      "total_extracted": 951,
+      "total_flagged": 732,
+      "flagged_rate": 0.7697,
+      "by_type": {
+        "drugs": {
+          "extracted": 519,
+          "flagged": 488,
+          "rate": 0.9403
+        },
+        "genes": {
+          "extracted": 431,
+          "flagged": 243,
+          "rate": 0.5638
+        },
+        "trials": {
+          "extracted": 1,
+          "flagged": 1,
+          "rate": 1.0
+        }
+      }
+    },
+    "als-lm-gpt2-large_q4_k_m": {
+      "total_extracted": 1048,
+      "total_flagged": 732,
+      "flagged_rate": 0.6985,
+      "by_type": {
+        "drugs": {
+          "extracted": 582,
+          "flagged": 553,
+          "rate": 0.9502
+        },
+        "genes": {
+          "extracted": 465,
+          "flagged": 178,
+          "rate": 0.3828
+        },
+        "trials": {
+          "extracted": 1,
+          "flagged": 1,
+          "rate": 1.0
+        }
+      }
+    }
+  },
+  "taxonomy_distribution": {
+    "als-lm-gpt2-large_f16": {
+      "confident_fabrication": {
+        "count": 3,
+        "pct": 1.9
+      },
+      "plausible_blending": {
+        "count": 2,
+        "pct": 1.2
+      },
+      "outdated_information": {
+        "count": 0,
+        "pct": 0.0
+      },
+      "boundary_confusion": {
+        "count": 0,
+        "pct": 0.0
+      },
+      "accurate_but_misleading": {
+        "count": 0,
+        "pct": 0.0
+      },
+      "accurate": {
+        "count": 0,
+        "pct": 0.0
+      },
+      "degenerate": {
+        "count": 155,
+        "pct": 96.9
+      }
+    },
+    "als-lm-gpt2-large_q8_0": {
+      "confident_fabrication": {
+        "count": 2,
+        "pct": 1.2
+      },
+      "plausible_blending": {
+        "count": 2,
+        "pct": 1.2
+      },
+      "outdated_information": {
+        "count": 0,
+        "pct": 0.0
+      },
+      "boundary_confusion": {
+        "count": 0,
+        "pct": 0.0
+      },
+      "accurate_but_misleading": {
+        "count": 0,
+        "pct": 0.0
+      },
+      "accurate": {
+        "count": 0,
+        "pct": 0.0
+      },
+      "degenerate": {
+        "count": 156,
+        "pct": 97.5
+      }
+    },
+    "als-lm-gpt2-large_q4_k_m": {
+      "confident_fabrication": {
+        "count": 4,
+        "pct": 2.5
+      },
+      "plausible_blending": {
+        "count": 2,
+        "pct": 1.2
+      },
+      "outdated_information": {
+        "count": 0,
+        "pct": 0.0
+      },
+      "boundary_confusion": {
+        "count": 0,
+        "pct": 0.0
+      },
+      "accurate_but_misleading": {
+        "count": 0,
+        "pct": 0.0
+      },
+      "accurate": {
+        "count": 0,
+        "pct": 0.0
+      },
+      "degenerate": {
+        "count": 154,
+        "pct": 96.2
+      }
+    }
+  },
+  "severity_distribution": {
+    "als-lm-gpt2-large_f16": {
+      "high": 3,
+      "medium": 2,
+      "low": 155
+    },
+    "als-lm-gpt2-large_q8_0": {
+      "high": 2,
+      "medium": 2,
+      "low": 156
+    },
+    "als-lm-gpt2-large_q4_k_m": {
+      "high": 4,
+      "medium": 2,
+      "low": 154
+    }
+  },
+  "disagreements": {
+    "total_questions": 160,
+    "agreed": 151,
+    "disagreed": 9,
+    "examples": [
+      {
+        "question_id": "GENE-004",
+        "modes": {
+          "als-lm-gpt2-large_f16": "confident_fabrication",
+          "als-lm-gpt2-large_q8_0": "confident_fabrication",
+          "als-lm-gpt2-large_q4_k_m": "degenerate"
+        },
+        "responses": {
+          "als-lm-gpt2-large_f16": {
+            "prompt": "Explain the function of FUS and how FUS mutations lead to ALS.",
+            "response": "\n\nThe FUS protein is a key component of the RNA-binding protein superfamily. It is a member of the FUS superfamily, which includes the RNA-binding protein superfamily members (RBP1, RBP2, RBP3, RBP4, "
+          },
+          "als-lm-gpt2-large_q8_0": {
+            "prompt": "Explain the function of FUS and how FUS mutations lead to ALS.",
+            "response": "\n\nThe FUS protein is a key component of the RNA-binding protein superfamily. It is a member of the FUS superfamily, which includes the RNA-binding protein superfamily members (RBP1, RBP2, RBP3, RBP4, "
+          },
+          "als-lm-gpt2-large_q4_k_m": {
+            "prompt": "Explain the function of FUS and how FUS mutations lead to ALS.",
+            "response": "\n\nThe FUS protein is a central component of the RNA-binding protein superfamily. It is a highly conserved RNA-binding protein that plays a crucial role in RNA processing and translation. FUS is a memb"
+          }
+        }
+      },
+      {
+        "question_id": "GENE-011",
+        "modes": {
+          "als-lm-gpt2-large_f16": "confident_fabrication",
+          "als-lm-gpt2-large_q8_0": "confident_fabrication",
+          "als-lm-gpt2-large_q4_k_m": "degenerate"
+        },
+        "responses": {
+          "als-lm-gpt2-large_f16": {
+            "prompt": "Describe the OPTN (optineurin) gene and its role in ALS pathogenesis.",
+            "response": "\n\nThe OPTN gene encodes a protein that plays a crucial role in regulating the expression of the OPTN protein. The OPTN protein is a member of the OPTN family of proteins, which includes the OPTN1, OPT"
+          },
+          "als-lm-gpt2-large_q8_0": {
+            "prompt": "Describe the OPTN (optineurin) gene and its role in ALS pathogenesis.",
+            "response": "\n\nThe OPTN gene encodes a protein that plays a crucial role in regulating the expression of the OPTN protein. The OPTN protein is a member of the OPTN family of proteins, which includes the OPTN1, OPT"
+          },
+          "als-lm-gpt2-large_q4_k_m": {
+            "prompt": "Describe the OPTN (optineurin) gene and its role in ALS pathogenesis.",
+            "response": "\n\nThe OPTN gene encodes a protein that is highly expressed in the brain and spinal cord of ALS patients. The OPTN gene is located on chromosome 5q13.2 and encodes a protein that is highly expressed in"
+          }
+        }
+      },
+      {
+        "question_id": "GENE-012",
+        "modes": {
+          "als-lm-gpt2-large_f16": "plausible_blending",
+          "als-lm-gpt2-large_q8_0": "plausible_blending",
+          "als-lm-gpt2-large_q4_k_m": "degenerate"
+        },
+        "responses": {
+          "als-lm-gpt2-large_f16": {
+            "prompt": "Explain the role of NEK1 in ALS and how it was identified as a risk gene.",
+            "response": "\n\nThe NEK1 gene encodes the nuclear factor kappa-light-chain-enhancer of activated B cells (NF-κB), a key transcription factor that regulates inflammatory responses and plays a critical role in the pa"
+          },
+          "als-lm-gpt2-large_q8_0": {
+            "prompt": "Explain the role of NEK1 in ALS and how it was identified as a risk gene.",
+            "response": "\n\nThe NEK1 gene encodes the nuclear factor kappa-light-chain-enhancer of activated B cells (NF-κB), a key transcription factor that regulates inflammatory responses and plays a critical role in the pa"
+          },
+          "als-lm-gpt2-large_q4_k_m": {
+            "prompt": "Explain the role of NEK1 in ALS and how it was identified as a risk gene.",
+            "response": "\n\nThe NEK1 gene encodes a protein that plays a crucial role in the regulation of the cell cycle. It is a key regulator of the cell cycle, and its deficiency can lead to abnormal cell division and abno"
+          }
+        }
+      }
+    ]
+  },
+  "threshold_judgments": {
+    "accuracy_meaningful": false,
+    "accuracy_max_diff": 0.011,
+    "accuracy_worst_category": "gene_mutation",
+    "accuracy_category_max_diff": 0.0625,
+    "fabrication_meaningful": false,
+    "fabrication_max_diff": 0.0712
+  },
+  "summary_judgment": "Quantization does not meaningfully affect evaluation quality. The maximum accuracy difference across models is 0.0110 (threshold: 0.05), and the maximum fabrication rate difference is 0.0712 (threshold: 0.1). All 3 quantization levels produce statistically indistinguishable results on this benchmark, confirming that the model's evaluation behavior is a property of the model itself rather than an artifact of quantization. The most aggressively quantized variant is recommended for deployment as it offers the smallest file size with no measurable quality loss."
+}

@@ -21,6 +21,11 @@ Diagram figures (FIG-05 through FIG-07):
   - model_architecture.png: GPT-2 Pre-LN transformer block diagram
   - eval_framework.png: 6-stage evaluation pipeline flow
 
+Model comparison figure (FIG-08):
+  - model_comparison.png: Grouped bar chart comparing from-scratch 500M vs
+    fine-tuned GPT-2 large across accuracy, non-degenerate rate, and
+    fabrication rate (non-degenerate)
+
 Usage:
     python scripts/generate_figures.py [--report PATH] [--output-dir DIR]
                                        [--diagrams-only]
@@ -801,6 +806,77 @@ def create_eval_framework_diagram(output_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
+# FIG-08: Model comparison (from-scratch vs fine-tuned)
+# ---------------------------------------------------------------------------
+
+def plot_model_comparison(report_path: Path, output_path: Path) -> None:
+    """Generate grouped bar chart comparing from-scratch 500M vs fine-tuned GPT-2 large.
+
+    Reads the model comparison JSON report and plots three metric groups:
+    accuracy, non-degenerate rate, and fabrication rate among non-degenerate
+    responses. Each group has two bars (blue for 500M, orange for GPT-2 large).
+
+    The accuracy bars are near-zero (0.21% and 3.12%) on a 0-100% scale,
+    so bar value annotations ensure exact numbers are readable.
+    """
+    with open(report_path, encoding="utf-8") as f:
+        data = json.load(f)
+
+    # Extract the three metric groups in percentage form
+    accuracy_scratch = data["accuracy"]["scratch_500m"]["mean_accuracy"] * 100
+    accuracy_finetune = data["accuracy"]["gpt2_large_finetune"]["mean_accuracy"] * 100
+
+    nondeg_scratch = data["non_degenerate_rate"]["scratch_500m"] * 100
+    nondeg_finetune = data["non_degenerate_rate"]["gpt2_large_finetune"] * 100
+
+    fab_scratch = data["fabrication_rate_non_degenerate"]["scratch_500m"] * 100
+    fab_finetune = data["fabrication_rate_non_degenerate"]["gpt2_large_finetune"] * 100
+
+    scratch_vals = [accuracy_scratch, nondeg_scratch, fab_scratch]
+    finetune_vals = [accuracy_finetune, nondeg_finetune, fab_finetune]
+
+    fig, ax = plt.subplots(figsize=FIGURE_SIZE)
+
+    metrics = ["Accuracy", "Non-degenerate\nrate", "Fabrication rate\n(non-degenerate)"]
+    x = np.arange(len(metrics))
+    width = 0.30
+
+    bars1 = ax.bar(
+        x - width / 2, scratch_vals, width,
+        color="#1f77b4", label="ALS-LM 500M (from-scratch)",
+        edgecolor="white", linewidth=0.5,
+    )
+    bars2 = ax.bar(
+        x + width / 2, finetune_vals, width,
+        color="#ff7f0e", label="GPT-2 large (fine-tuned)",
+        edgecolor="white", linewidth=0.5,
+    )
+
+    # Annotate each bar with its percentage value
+    for bars in [bars1, bars2]:
+        for bar in bars:
+            height = bar.get_height()
+            ax.text(
+                bar.get_x() + bar.get_width() / 2, height + 0.5,
+                f"{height:.1f}%",
+                ha="center", va="bottom", fontsize=9, fontweight="bold",
+            )
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(metrics, fontsize=10)
+    ax.legend(loc="upper right", fontsize=9, framealpha=0.9)
+    setup_axes(
+        ax, "Model comparison: from-scratch vs. fine-tuned",
+        "", "Percentage (%)",
+    )
+    ax.set_ylim(0, 105)
+
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=DPI, bbox_inches="tight")
+    plt.close(fig)
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -881,8 +957,20 @@ def main() -> None:
     # Generate FIG-05 through FIG-07: Diagrams
     diagram_count = _generate_diagrams(args.output_dir)
 
+    # Generate FIG-08: Model comparison
+    model_report_path = REPO_ROOT / "reports/model_comparison_report.json"
+    fig08_count = 0
+    if model_report_path.exists():
+        print("Generating FIG-08: Model comparison...")
+        plot_model_comparison(model_report_path, args.output_dir / "model_comparison.png")
+        print("  Saved: model_comparison.png")
+        fig08_count = 1
+    else:
+        print(f"Skipping FIG-08: {model_report_path} not found "
+              "(generate with: python scripts/compare_models.py)")
+
     # Summary
-    total = 3 + len(copied) + diagram_count
+    total = 3 + len(copied) + diagram_count + fig08_count
     print(f"\nComplete: {total} figures in {args.output_dir}/")
 
 

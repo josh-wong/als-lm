@@ -39,6 +39,7 @@ Usage examples::
 """
 
 import argparse
+import dataclasses
 import json
 import os
 import re
@@ -93,6 +94,11 @@ def _ensure_checkpoint_imports():
     Tokenizer = _Tokenizer
     GPT = _GPT
     GPTConfig = _GPTConfig
+    # Register GPTConfig as safe for torch.load (PyTorch >= 2.4)
+    try:
+        _torch.serialization.add_safe_globals([_GPTConfig])
+    except AttributeError:
+        pass  # PyTorch < 2.4
     _CHECKPOINT_IMPORTS_LOADED = True
 
 
@@ -131,6 +137,18 @@ def parse_args():
         type=float,
         default=0.0,
         help="Generation temperature (default: 0.0 for deterministic results)",
+    )
+    parser.add_argument(
+        "--repeat-penalty",
+        type=float,
+        default=1.0,
+        help="Repetition penalty override for Ollama (default: 1.0, neutralizes Modelfile)",
+    )
+    parser.add_argument(
+        "--top-p",
+        type=float,
+        default=1.0,
+        help="Top-p sampling override for Ollama (default: 1.0, neutralizes Modelfile)",
     )
     parser.add_argument(
         "--resume",
@@ -214,9 +232,22 @@ def load_model_from_checkpoint(pt_path, device):
     """
     _ensure_checkpoint_imports()
     print(f"  Loading checkpoint: {pt_path}")
-    checkpoint = torch.load(pt_path, map_location=device, weights_only=False)
+    try:
+        checkpoint = torch.load(pt_path, map_location=device, weights_only=True)
+    except TypeError:
+        checkpoint = torch.load(pt_path, map_location=device)
 
-    config_dict = checkpoint["config"]
+    # Handle both GPTConfig dataclass and plain dict checkpoint formats
+    raw_config = checkpoint["config"]
+    if isinstance(raw_config, GPTConfig):
+        config_dict = {f.name: getattr(raw_config, f.name)
+                       for f in dataclasses.fields(raw_config)}
+    elif isinstance(raw_config, dict):
+        config_dict = raw_config
+    else:
+        raise TypeError(
+            f"Checkpoint 'config' must be GPTConfig or dict, got {type(raw_config)}"
+        )
     print(f"  Model config: n_layer={config_dict['n_layer']}, "
           f"n_embd={config_dict['n_embd']}, "
           f"n_head={config_dict['n_head']}, "
@@ -231,6 +262,8 @@ def load_model_from_checkpoint(pt_path, device):
         n_embd=config_dict["n_embd"],
         dropout=0.0,
         bias=config_dict["bias"],
+        use_post_ln=config_dict.get("use_post_ln", False),
+        gelu_approximate=config_dict.get("gelu_approximate", "none"),
     )
 
     model = GPT(config)
@@ -246,15 +279,44 @@ def load_model_from_checkpoint(pt_path, device):
     return model, config_dict
 
 
-def load_tokenizer(tokenizer_path=None):
-    """Load the canonical ALS tokenizer.
+def load_tokenizer(tokenizer_path=None, vocab_size=None):
+    """Load the appropriate tokenizer for a checkpoint.
 
-    If no path is provided, resolves the default location using
-    ``_PROJECT_ROOT`` so the script works from any working directory.
+    Auto-detection logic (when *tokenizer_path* is ``None``):
 
-    Returns the Tokenizer instance or exits with an error message.
+    - If *vocab_size* is 50257 (GPT-2 vocabulary), loads the GPT-2 tokenizer
+      from ``tokenizer/gpt2_tokenizer/`` via ``GPT2TokenizerFast``.
+    - Otherwise, loads the ALS BPE tokenizer from
+      ``tokenizer/als_tokenizer.json`` via the ``tokenizers`` library.
+
+    An explicit *tokenizer_path* bypasses auto-detection entirely.
+
+    Returns the tokenizer instance (either ``Tokenizer`` or
+    ``GPT2TokenizerFast``) or exits with an error message.
     """
     _ensure_checkpoint_imports()
+
+    # --- GPT-2 tokenizer path (auto-detected or explicit) ---
+    _GPT2_VOCAB_SIZE = 50257
+
+    if tokenizer_path is None and vocab_size == _GPT2_VOCAB_SIZE:
+        # Auto-detect: checkpoint uses GPT-2 vocabulary
+        if _PROJECT_ROOT is not None:
+            gpt2_dir = str(_PROJECT_ROOT / "tokenizer" / "gpt2_tokenizer")
+        else:
+            gpt2_dir = "tokenizer/gpt2_tokenizer"
+
+        if os.path.isdir(gpt2_dir):
+            from transformers import GPT2TokenizerFast as _GPT2Tok
+            tok = _GPT2Tok.from_pretrained(gpt2_dir)
+            print(f"  GPT-2 tokenizer loaded: {tok.vocab_size:,} tokens "
+                  f"(auto-detected from vocab_size={vocab_size})")
+            return tok
+
+        print(f"WARNING: vocab_size={vocab_size} suggests GPT-2 tokenizer but "
+              f"{gpt2_dir} not found. Falling back to ALS tokenizer.")
+
+    # --- ALS tokenizer path (default) ---
     if tokenizer_path is None:
         if _PROJECT_ROOT is not None:
             tokenizer_path = str(_PROJECT_ROOT / "tokenizer" / "als_tokenizer.json")
@@ -381,7 +443,7 @@ def is_coherent(text):
 
 
 def generate_ollama_response(ollama_url, model_name, prompt, max_tokens,
-                             temperature):
+                             temperature, repeat_penalty=1.0, top_p=1.0):
     """Generate a single response via the Ollama HTTP API.
 
     Posts to ``/api/generate`` with streaming disabled. Retries up to 3 times
@@ -394,6 +456,8 @@ def generate_ollama_response(ollama_url, model_name, prompt, max_tokens,
         prompt: The prompt text to send.
         max_tokens: Maximum tokens to generate (``num_predict``).
         temperature: Sampling temperature (0.0 for greedy).
+        repeat_penalty: Repetition penalty override (1.0 = neutral).
+        top_p: Top-p sampling override (1.0 = neutral).
 
     Returns:
         ``(response_text, tokens_generated)`` on success, or
@@ -407,6 +471,8 @@ def generate_ollama_response(ollama_url, model_name, prompt, max_tokens,
         "options": {
             "temperature": temperature,
             "num_predict": max_tokens,
+            "repeat_penalty": repeat_penalty,
+            "top_p": top_p,
         },
     }
 
@@ -440,6 +506,28 @@ def generate_ollama_response(ollama_url, model_name, prompt, max_tokens,
     return "[ollama error: max retries exceeded]", 0
 
 
+def _encode_ids(tokenizer, text):
+    """Encode text to token IDs, compatible with both tokenizer types.
+
+    Works with both ``tokenizers.Tokenizer`` (returns ``.ids``) and
+    ``GPT2TokenizerFast`` (returns a list directly).
+    """
+    result = tokenizer.encode(text)
+    # tokenizers.Tokenizer returns an Encoding object with .ids
+    return result.ids if hasattr(result, "ids") else result
+
+
+def _get_eos_id(tokenizer):
+    """Return the EOS token ID for either tokenizer type, or None."""
+    # GPT2TokenizerFast exposes .eos_token_id directly
+    if hasattr(tokenizer, "eos_token_id"):
+        return tokenizer.eos_token_id
+    # tokenizers.Tokenizer uses .token_to_id()
+    if hasattr(tokenizer, "token_to_id"):
+        return tokenizer.token_to_id("<|endoftext|>")
+    return None
+
+
 def generate_responses(model, tokenizer, questions, max_tokens, device):
     """Run inference on all benchmark questions.
 
@@ -448,7 +536,8 @@ def generate_responses(model, tokenizer, questions, max_tokens, device):
 
     Args:
         model: GPT model in eval mode.
-        tokenizer: Tokenizer instance.
+        tokenizer: Tokenizer instance (``tokenizers.Tokenizer`` or
+            ``GPT2TokenizerFast``).
         questions: List of question dicts from questions.json.
         max_tokens: Maximum tokens to generate per response.
         device: Torch device.
@@ -456,7 +545,7 @@ def generate_responses(model, tokenizer, questions, max_tokens, device):
     Returns:
         List of response dicts with question metadata and generated text.
     """
-    eos_token_id = tokenizer.token_to_id("<|endoftext|>")
+    eos_token_id = _get_eos_id(tokenizer)
     if eos_token_id is not None:
         print(f"  EOS token ID: {eos_token_id}")
     else:
@@ -474,7 +563,7 @@ def generate_responses(model, tokenizer, questions, max_tokens, device):
 
         try:
             # Encode prompt
-            input_ids = tokenizer.encode(prompt_text).ids
+            input_ids = _encode_ids(tokenizer, prompt_text)
 
             # Generate response
             new_tokens, tokens_generated = generate_greedy(
@@ -507,7 +596,7 @@ def generate_responses(model, tokenizer, questions, max_tokens, device):
 
 
 def generate_responses_ollama(ollama_url, model_name, questions, max_tokens,
-                              temperature):
+                              temperature, repeat_penalty=1.0, top_p=1.0):
     """Run inference on all benchmark questions via the Ollama API.
 
     For each question, sends the ``prompt_template`` to the Ollama server and
@@ -519,6 +608,8 @@ def generate_responses_ollama(ollama_url, model_name, questions, max_tokens,
         questions: List of question dicts from questions.json.
         max_tokens: Maximum tokens to generate per response.
         temperature: Sampling temperature.
+        repeat_penalty: Repetition penalty override (1.0 = neutral).
+        top_p: Top-p sampling override (1.0 = neutral).
 
     Returns:
         List of response dicts with question metadata and generated text.
@@ -534,6 +625,7 @@ def generate_responses_ollama(ollama_url, model_name, questions, max_tokens,
 
         response_text, tokens_generated = generate_ollama_response(
             ollama_url, model_name, prompt_text, max_tokens, temperature,
+            repeat_penalty=repeat_penalty, top_p=top_p,
         )
 
         responses.append({
@@ -679,6 +771,7 @@ def main():
         new_responses = generate_responses_ollama(
             args.ollama_url, args.ollama_model, questions_to_run,
             args.max_tokens, args.temperature,
+            repeat_penalty=args.repeat_penalty, top_p=args.top_p,
         )
         elapsed = time.time() - t0
 
@@ -690,6 +783,8 @@ def main():
             "generation_params": {
                 "max_tokens": args.max_tokens,
                 "temperature": args.temperature,
+                "repeat_penalty": args.repeat_penalty,
+                "top_p": args.top_p,
             },
             "benchmark_path": relativize_path(args.benchmark),
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -710,8 +805,8 @@ def main():
         pt_path = resolve_checkpoint_path(args.checkpoint)
         model, model_config_dict = load_model_from_checkpoint(pt_path, device)
 
-        # Load tokenizer
-        tokenizer = load_tokenizer()
+        # Load tokenizer (auto-detects GPT-2 vs ALS from checkpoint vocab_size)
+        tokenizer = load_tokenizer(vocab_size=model_config_dict.get("vocab_size"))
 
         print(f"\n  Starting inference (max_tokens={args.max_tokens}, "
               f"temperature=0.0)...\n")

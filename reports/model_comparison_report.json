@@ -1,0 +1,216 @@
+{
+  "metadata": {
+    "timestamp": "2026-03-08T14:23:38Z",
+    "models_compared": [
+      "scratch_500m",
+      "gpt2_large_finetune"
+    ],
+    "model_labels": {
+      "scratch_500m": "ALS-LM 500M (from-scratch)",
+      "gpt2_large_finetune": "GPT-2 large (fine-tuned)"
+    },
+    "quantization": "Q8_0"
+  },
+  "accuracy": {
+    "scratch_500m": {
+      "mean_accuracy": 0.0021,
+      "binary_pass_rate": 0,
+      "hedging": 1
+    },
+    "gpt2_large_finetune": {
+      "mean_accuracy": 0.0312,
+      "binary_pass_rate": 0.0187,
+      "hedging": 22
+    }
+  },
+  "per_category_accuracy": {
+    "clinical_trials": {
+      "scratch_500m": 0.0,
+      "gpt2_large_finetune": 0.0375
+    },
+    "diagnostic_criteria": {
+      "scratch_500m": 0.0,
+      "gpt2_large_finetune": 0.0125
+    },
+    "disease_mechanisms": {
+      "scratch_500m": 0.0,
+      "gpt2_large_finetune": 0.0125
+    },
+    "drug_treatment": {
+      "scratch_500m": 0.0,
+      "gpt2_large_finetune": 0.025
+    },
+    "epidemiology": {
+      "scratch_500m": 0.0,
+      "gpt2_large_finetune": 0.0125
+    },
+    "gene_mutation": {
+      "scratch_500m": 0.0,
+      "gpt2_large_finetune": 0.1375
+    },
+    "patient_care": {
+      "scratch_500m": 0.0167,
+      "gpt2_large_finetune": 0.0
+    },
+    "temporal_accuracy": {
+      "scratch_500m": 0.0,
+      "gpt2_large_finetune": 0.0125
+    }
+  },
+  "taxonomy_distribution": {
+    "scratch_500m": {
+      "confident_fabrication": {
+        "count": 53,
+        "pct": 33.1
+      },
+      "plausible_blending": {
+        "count": 38,
+        "pct": 23.8
+      },
+      "outdated_information": {
+        "count": 17,
+        "pct": 10.6
+      },
+      "boundary_confusion": {
+        "count": 0,
+        "pct": 0.0
+      },
+      "accurate_but_misleading": {
+        "count": 0,
+        "pct": 0.0
+      },
+      "accurate": {
+        "count": 0,
+        "pct": 0.0
+      },
+      "degenerate": {
+        "count": 52,
+        "pct": 32.5
+      }
+    },
+    "gpt2_large_finetune": {
+      "confident_fabrication": {
+        "count": 2,
+        "pct": 1.2
+      },
+      "plausible_blending": {
+        "count": 2,
+        "pct": 1.2
+      },
+      "outdated_information": {
+        "count": 0,
+        "pct": 0.0
+      },
+      "boundary_confusion": {
+        "count": 0,
+        "pct": 0.0
+      },
+      "accurate_but_misleading": {
+        "count": 0,
+        "pct": 0.0
+      },
+      "accurate": {
+        "count": 0,
+        "pct": 0.0
+      },
+      "degenerate": {
+        "count": 156,
+        "pct": 97.5
+      }
+    }
+  },
+  "non_degenerate_rate": {
+    "scratch_500m": 0.675,
+    "gpt2_large_finetune": 0.025
+  },
+  "degenerate_details": {
+    "scratch_500m": {
+      "total": 160,
+      "degenerate": 52,
+      "non_degenerate": 108,
+      "non_degenerate_rate": 0.675
+    },
+    "gpt2_large_finetune": {
+      "total": 160,
+      "degenerate": 156,
+      "non_degenerate": 4,
+      "non_degenerate_rate": 0.025
+    }
+  },
+  "fabrication": {
+    "scratch_500m": {
+      "overall_extracted": 128,
+      "overall_flagged": 85,
+      "overall_rate": 0.6641,
+      "non_degenerate_extracted": 128,
+      "non_degenerate_flagged": 85,
+      "non_degenerate_rate": 0.6640625,
+      "non_degenerate_count": 108
+    },
+    "gpt2_large_finetune": {
+      "overall_extracted": 951,
+      "overall_flagged": 732,
+      "overall_rate": 0.7697,
+      "non_degenerate_extracted": 241,
+      "non_degenerate_flagged": 158,
+      "non_degenerate_rate": 0.6556016597510373,
+      "non_degenerate_count": 4
+    }
+  },
+  "fabrication_rate_non_degenerate": {
+    "scratch_500m": 0.6640625,
+    "gpt2_large_finetune": 0.6556016597510373
+  },
+  "qualitative_samples": [
+    {
+      "pattern": "both_coherent_different_taxonomy",
+      "question_id": "DRUG-010",
+      "category": "drug_treatment",
+      "prompt": "Describe masitinib and explain how it is proposed to help in ALS treatment.",
+      "scratch_response": "\n\n\nThe study, we have a recent study, we found that the first study, we identified a significant differences in the disease progression of AD pathology. The most common tau pathology in AD patients with AD, and tau pathology, and tau pathology, and tau pathology, and tau pathology, and tau pathology",
+      "finetune_response": "\n\nThe authors declare no conflicts of interest.\n",
+      "scratch_taxonomy": "confident_fabrication",
+      "finetune_taxonomy": "plausible_blending"
+    },
+    {
+      "pattern": "both_degenerate",
+      "question_id": "CARE-002",
+      "category": "patient_care",
+      "prompt": "Describe the indications and timing for PEG tube placement in ALS patients.",
+      "scratch_response": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,",
+      "finetune_response": "\n\nA. The patient was diagnosed with ALS at the age of 35 years.\n\nB. The patient was treated with riluzole for 3 months.\n\nC. The patient was treated with edaravone for 3 months.\n\nD. The patient was treated with riluzole for 3 months.\n\nE. The patient was treated with edaravone for 3 months.\n\nF. The pa",
+      "scratch_taxonomy": "degenerate",
+      "finetune_taxonomy": "degenerate"
+    },
+    {
+      "pattern": "scratch_coherent_finetune_degenerate",
+      "question_id": "CARE-001",
+      "category": "patient_care",
+      "prompt": "Describe the criteria and guidelines for starting non-invasive ventilation (NIV) in ALS patients.",
+      "scratch_response": "\n\n\nThe study, we have a study, we found that the study, we used to evaluate the need for the importance of the future research.\n\n\n\n\n\n\nThe study, we conducted a comprehensive studies, we identified a comprehensive and clinical trials, we have been developed a comprehensive understanding of ALS. We ha",
+      "finetune_response": "\n\nA. The criteria for starting NIV in ALS patients are as follows:\n\n1. The patient is able to communicate and understand the instructions given by the healthcare professional.\n\n2. The patient has a stable respiratory rate (RPR) of at least 60% of predicted RPR.\n\n3. The patient has a normal vital cap",
+      "scratch_taxonomy": "confident_fabrication",
+      "finetune_taxonomy": "degenerate"
+    },
+    {
+      "pattern": "scratch_coherent_finetune_degenerate",
+      "question_id": "DIAG-005",
+      "category": "diagnostic_criteria",
+      "prompt": "Describe the electromyography (EMG) findings typically seen in ALS patients.",
+      "scratch_response": "\n\n, we investigated the study of the study. We have a significant differences between the disease progression and AD. The results in the most common genetic changes in AD pathology in AD pathology in AD pathology in AD pathology in AD pathology in AD pathology.\n\n\n\n, we identified a recent study, we ",
+      "finetune_response": "\n\nThe ALSFRS-R is a validated tool for assessing the functional status of ALS patients. The ALSFRS-R is a self-report scale that consists of 10 items, each rated on a 5-point Likert scale. The total score ranges from 0 to 48, with higher scores indicating greater functional impairment. The ALSFRS-R ",
+      "scratch_taxonomy": "confident_fabrication",
+      "finetune_taxonomy": "degenerate"
+    },
+    {
+      "pattern": "scratch_coherent_finetune_degenerate",
+      "question_id": "DRUG-002",
+      "category": "drug_treatment",
+      "prompt": "Explain how riluzole works to treat ALS at the molecular level.",
+      "scratch_response": "\n\n\n\n\n\n\n\n\n\nThe first study, we used a comprehensive data from the model. The study, we identified a single-based approach for the data.\n\n\n\n\n\n\n\n\n\n\n\n\nand the first study, we have a single-based sequencing and RNA-seq analysis of the RNA sequencing (43)\nand the RNA sequencing. We used the RNA sequencing",
+      "finetune_response": "\n\nThe ALS-associated protein TDP-43 is a key pathological feature of ALS. TDP-43 is a nuclear protein that is ubiquitously expressed in the cytoplasm of neurons and glial cells. TDP-43 is a highly conserved RNA-binding protein that is highly expressed in the cytoplasm of neurons and glial cells. TDP",
+      "scratch_taxonomy": "confident_fabrication",
+      "finetune_taxonomy": "degenerate"
+    }
+  ]
+}

@@ -29,7 +29,7 @@ Key design choices:
 - **Learned positional embeddings:** Standard GPT-2 positional embeddings
   (up to ``block_size`` positions), not RoPE.
 
-Three named configurations are provided:
+Four named configurations are provided:
 
 - ``tiny`` (~9M params): 6 layers, 6 heads, 192 embed dim. For pipeline
   validation and fast iteration during development.
@@ -37,6 +37,9 @@ Three named configurations are provided:
   GPT-2 Small dimensions for intermediate testing.
 - ``500M`` (~516M params): 24 layers, 16 heads, 1280 embed dim. Production
   training target for the ALS domain model.
+- ``gpt2-large`` (~774M params): 36 layers, 20 heads, 1280 embed dim.
+  Matches GPT-2 large architecture with approximate GELU (tanh) for
+  loading pretrained HuggingFace weights.
 
 All named configs set ``vocab_size=None`` as a sentinel value. The actual
 vocabulary size must be supplied at model construction time (typically read
@@ -55,7 +58,7 @@ Usage::
 """
 
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from typing import Optional
 
 import torch
@@ -93,6 +96,16 @@ class GPTConfig:
             ~30-40% at the cost of ~20-30% slower training. Only active during
             training (eval mode skips checkpointing automatically). Defaults
             to False to preserve existing behavior.
+        use_post_ln: Whether to use Post-LN computation order instead of
+            Pre-LN. When False (default), uses Pre-LN: ``x = x + sublayer(ln(x))``.
+            When True, uses Post-LN: ``x = ln(x + sublayer(x))``. GPT-2 uses
+            Pre-LN, so this should remain False for GPT-2 configs. The Post-LN
+            option is available for architecture experiments.
+        gelu_approximate: GELU approximation mode passed to ``nn.GELU``.
+            ``'none'`` (default) uses exact GELU, preserving existing behavior.
+            ``'tanh'`` uses the tanh approximation matching GPT-2's ``gelu_new``
+            activation. Must be ``'tanh'`` when loading pretrained GPT-2 weights
+            to ensure numerical equivalence.
     """
 
     block_size: int = 1024
@@ -103,6 +116,14 @@ class GPTConfig:
     dropout: float = 0.0
     bias: bool = True
     use_gradient_checkpointing: bool = False
+    use_post_ln: bool = False
+    gelu_approximate: str = "none"
+
+    def __post_init__(self):
+        if self.gelu_approximate not in ("none", "tanh"):
+            raise ValueError(
+                f"gelu_approximate must be 'none' or 'tanh', got '{self.gelu_approximate}'"
+            )
 
 
 # Named configurations for the ALS-LM project.
@@ -135,6 +156,17 @@ MODEL_CONFIGS: dict[str, GPTConfig] = {
         n_embd=1280,
         dropout=0.1,
         bias=True,
+    ),
+    "gpt2-large": GPTConfig(
+        block_size=1024,
+        vocab_size=None,
+        n_layer=36,
+        n_head=20,
+        n_embd=1280,
+        dropout=0.0,
+        bias=True,
+        use_post_ln=False,
+        gelu_approximate="tanh",
     ),
 }
 
@@ -213,15 +245,16 @@ class MLP(nn.Module):
     provides the model's primary nonlinear transformation capacity.
 
     GELU (Gaussian Error Linear Unit) is the activation used in the original
-    GPT-2. PyTorch's ``nn.GELU()`` with default ``approximate='none'``
-    matches the original implementation exactly.
+    GPT-2. The approximation mode is configurable via ``GPTConfig.gelu_approximate``:
+    ``'none'`` for exact GELU (default), ``'tanh'`` for the tanh approximation
+    matching GPT-2's ``gelu_new`` activation.
     """
 
     def __init__(self, config: GPTConfig) -> None:
         super().__init__()
         # Up-projection: (n_embd) -> (4 * n_embd)
         self.c_fc = nn.Linear(config.n_embd, 4 * config.n_embd, bias=config.bias)
-        self.gelu = nn.GELU()
+        self.gelu = nn.GELU(approximate=config.gelu_approximate)
         # Down-projection: (4 * n_embd) -> (n_embd)
         self.c_proj = nn.Linear(4 * config.n_embd, config.n_embd, bias=config.bias)
         self.dropout = nn.Dropout(config.dropout)
@@ -235,17 +268,22 @@ class MLP(nn.Module):
 
 
 class Block(nn.Module):
-    """Transformer block with Pre-LN (layer norm before sublayers).
+    """Transformer block with configurable Pre-LN or Post-LN normalization.
 
-    Pre-LN applies layer normalization before each sublayer (attention and
-    MLP), then adds the sublayer output as a residual:
+    Pre-LN (default, ``use_post_ln=False``) applies layer normalization
+    before each sublayer, then adds the sublayer output as a residual:
 
         x = x + attn(ln_1(x))
         x = x + mlp(ln_2(x))
 
-    This differs from the original transformer's Post-LN design, which
-    normalizes after the residual addition. Pre-LN provides several
-    advantages for training:
+    Post-LN (``use_post_ln=True``) applies layer normalization after the
+    residual addition:
+
+        x = ln_1(x + attn(x))
+        x = ln_2(x + mlp(x))
+
+    GPT-2 uses Pre-LN. The Post-LN option is available for architecture
+    experiments. Pre-LN provides several advantages for training:
 
     - More stable gradients, especially in deeper networks (24+ layers)
     - Tolerance for higher learning rates without divergence
@@ -262,18 +300,28 @@ class Block(nn.Module):
         self.ln_2 = nn.LayerNorm(config.n_embd, bias=config.bias)
         self.mlp = MLP(config)
         self.use_gradient_checkpointing = config.use_gradient_checkpointing
+        self.use_post_ln = config.use_post_ln
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # Pre-LN: normalize before each sublayer, add residual after.
-        # When gradient checkpointing is enabled (and model is training),
-        # activations are recomputed during backward instead of stored,
-        # trading ~20-30% compute for ~30-40% memory savings.
-        if self.use_gradient_checkpointing and self.training:
-            x = x + torch_checkpoint(self.attn, self.ln_1(x), use_reentrant=False)
-            x = x + torch_checkpoint(self.mlp, self.ln_2(x), use_reentrant=False)
+        if self.use_post_ln:
+            # Post-LN: normalize after residual addition.
+            if self.use_gradient_checkpointing and self.training:
+                x = self.ln_1(x + torch_checkpoint(self.attn, x, use_reentrant=False))
+                x = self.ln_2(x + torch_checkpoint(self.mlp, x, use_reentrant=False))
+            else:
+                x = self.ln_1(x + self.attn(x))
+                x = self.ln_2(x + self.mlp(x))
         else:
-            x = x + self.attn(self.ln_1(x))
-            x = x + self.mlp(self.ln_2(x))
+            # Pre-LN (default): normalize before each sublayer, add residual after.
+            # When gradient checkpointing is enabled (and model is training),
+            # activations are recomputed during backward instead of stored,
+            # trading ~20-30% compute for ~30-40% memory savings.
+            if self.use_gradient_checkpointing and self.training:
+                x = x + torch_checkpoint(self.attn, self.ln_1(x), use_reentrant=False)
+                x = x + torch_checkpoint(self.mlp, self.ln_2(x), use_reentrant=False)
+            else:
+                x = x + self.attn(self.ln_1(x))
+                x = x + self.mlp(self.ln_2(x))
         return x
 
 
@@ -457,7 +505,7 @@ class GPT(nn.Module):
         Args:
             config_name: Name of the configuration to use. Must be one of
                 the keys in ``MODEL_CONFIGS`` (currently "tiny", "medium",
-                "500M").
+                "500M", "gpt2-large").
             vocab_size: Vocabulary size to use. Required because named configs
                 set ``vocab_size=None`` as a sentinel.
             **overrides: Additional configuration overrides (e.g.,
@@ -485,16 +533,10 @@ class GPT(nn.Module):
         # Start from the named config template
         base_config = MODEL_CONFIGS[config_name]
 
-        # Build a dict of all config fields, applying overrides
-        config_dict = {
-            "block_size": base_config.block_size,
-            "vocab_size": base_config.vocab_size,
-            "n_layer": base_config.n_layer,
-            "n_head": base_config.n_head,
-            "n_embd": base_config.n_embd,
-            "dropout": base_config.dropout,
-            "bias": base_config.bias,
-        }
+        # Build a dict of all config fields, applying overrides.
+        # Uses dataclass fields iteration to automatically propagate ALL
+        # fields, preventing new fields from being silently dropped.
+        config_dict = {f.name: getattr(base_config, f.name) for f in fields(base_config)}
 
         # Apply vocab_size override (required for named configs)
         if vocab_size is not None:

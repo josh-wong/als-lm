@@ -42,7 +42,6 @@ import os
 import shutil
 import sys
 import tempfile
-from dataclasses import asdict
 from pathlib import Path
 from typing import Optional
 
@@ -52,6 +51,12 @@ from transformers import GPT2Config, GPT2LMHeadModel
 # Add project root to path for model imports
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from model.model import GPT, GPTConfig  # noqa: E402
+
+# Register GPTConfig as safe for torch.load (PyTorch >= 2.4)
+try:
+    torch.serialization.add_safe_globals([GPTConfig])
+except AttributeError:
+    pass  # PyTorch < 2.4; torch.load will fall back to weights_only=False
 
 # Weight matrix suffixes that require transposition (nn.Linear -> Conv1D).
 # These are the four projection layers in each transformer block where
@@ -94,7 +99,10 @@ def convert_checkpoint_to_hf(
         KeyError: If the checkpoint is missing required keys.
     """
     print(f"Loading checkpoint from {checkpoint_path}...")
-    ckpt = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
+    try:
+        ckpt = torch.load(checkpoint_path, map_location="cpu", weights_only=True)
+    except TypeError:
+        ckpt = torch.load(checkpoint_path, map_location="cpu")
 
     # Extract config, handling both GPTConfig dataclass and plain dict
     raw_config = ckpt["config"]
@@ -110,19 +118,31 @@ def convert_checkpoint_to_hf(
     model_state = ckpt["model"]
 
     # Create matching HuggingFace GPT2Config
+    # Auto-detect GELU type: GPT-2 uses tanh-approximate GELU ("gelu_new" in HF),
+    # while the 500M from-scratch model uses exact GELU ("gelu" in HF).
+    activation = "gelu_new" if config.gelu_approximate == "tanh" else "gelu"
+
+    # GPT-2 uses token 50256 (<|endoftext|>) for both BOS and EOS.
+    # Detect GPT-2 tokenizer by its canonical vocabulary size (50257).
+    # The 500M from-scratch model (vocab_size=32768) uses 0.
+    GPT2_VOCAB_SIZE = 50257
+    GPT2_EOT_TOKEN_ID = 50256
+    is_gpt2_tokenizer = config.vocab_size == GPT2_VOCAB_SIZE
+    eos_bos_id = GPT2_EOT_TOKEN_ID if is_gpt2_tokenizer else 0
+
     hf_config = GPT2Config(
         vocab_size=config.vocab_size,
         n_positions=config.block_size,
         n_embd=config.n_embd,
         n_layer=config.n_layer,
         n_head=config.n_head,
-        activation_function="gelu",
+        activation_function=activation,
         resid_pdrop=config.dropout,
         embd_pdrop=config.dropout,
         attn_pdrop=config.dropout,
         use_cache=True,
-        bos_token_id=0,
-        eos_token_id=0,
+        bos_token_id=eos_bos_id,
+        eos_token_id=eos_bos_id,
     )
 
     # Create HuggingFace model and get its state dict as a reference
@@ -398,7 +418,10 @@ def main() -> None:
 
     # Load our model for validation
     print("\nLoading original model for validation...")
-    ckpt = torch.load(args.checkpoint, map_location="cpu", weights_only=False)
+    try:
+        ckpt = torch.load(args.checkpoint, map_location="cpu", weights_only=True)
+    except TypeError:
+        ckpt = torch.load(args.checkpoint, map_location="cpu")
     raw_config = ckpt["config"]
     if isinstance(raw_config, GPTConfig):
         config = raw_config
