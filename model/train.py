@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""DeepSpeed ZeRO Stage 2 training script for ALS-LM.
+"""DeepSpeed ZeRO Stage 2 training script for ALS-LM (from-scratch and fine-tuning).
 
 Trains a GPT-2 style decoder-only transformer on the tokenized ALS corpus
 using DeepSpeed ZeRO Stage 2 with CPU offloading. Launched via the DeepSpeed
@@ -38,6 +38,9 @@ Key features:
   ``--resume`` path. Appends to existing JSONL log with a resume marker.
 - **Dry-run mode:** ``--dry-run`` validates config and prints training plan
   without GPU time.
+- **Fine-tuning mode:** ``--pretrained-weights`` flag enables fine-tuning a
+  pretrained model (e.g., GPT-2 large) with auto-switched data directory,
+  tokenizer, dropout, and checkpoint naming.
 
 Usage::
 
@@ -52,6 +55,9 @@ Usage::
 
     # Resume from checkpoint
     deepspeed model/train.py --deepspeed --deepspeed_config config/ds_zero2.json --config tiny --resume checkpoints/tiny_20260224_143022/
+
+    # Fine-tune GPT-2 large on ALS corpus
+    deepspeed model/train.py --deepspeed --deepspeed_config config/ds_zero2.json --config gpt2-large --pretrained-weights checkpoints/gpt2large_init/init.pt
 """
 
 import argparse
