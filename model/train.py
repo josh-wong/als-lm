@@ -1407,12 +1407,18 @@ def main():
                 f"Checkpoint 'config' must be GPTConfig or dict, got {type(raw_config)}"
             )
         # Validate architecture compatibility
-        assert pretrained_config.n_layer == model_config.n_layer, \
-            f"n_layer mismatch: checkpoint={pretrained_config.n_layer}, model={model_config.n_layer}"
-        assert pretrained_config.n_head == model_config.n_head, \
-            f"n_head mismatch: checkpoint={pretrained_config.n_head}, model={model_config.n_head}"
-        assert pretrained_config.n_embd == model_config.n_embd, \
-            f"n_embd mismatch: checkpoint={pretrained_config.n_embd}, model={model_config.n_embd}"
+        if pretrained_config.n_layer != model_config.n_layer:
+            raise ValueError(
+                f"n_layer mismatch: checkpoint={pretrained_config.n_layer}, model={model_config.n_layer}"
+            )
+        if pretrained_config.n_head != model_config.n_head:
+            raise ValueError(
+                f"n_head mismatch: checkpoint={pretrained_config.n_head}, model={model_config.n_head}"
+            )
+        if pretrained_config.n_embd != model_config.n_embd:
+            raise ValueError(
+                f"n_embd mismatch: checkpoint={pretrained_config.n_embd}, model={model_config.n_embd}"
+            )
         model.load_state_dict(ckpt["model"], strict=True)
         print(f"  Loaded pretrained weights from {args.pretrained_weights}")
         print(f"  Pretrained config: n_layer={pretrained_config.n_layer}, n_head={pretrained_config.n_head}, n_embd={pretrained_config.n_embd}")
