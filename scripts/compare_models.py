@@ -99,6 +99,24 @@ def load_model_data(model_dir: Path) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _safe_get(data: dict, keys: list, model_key: str):
+    """Navigate nested dict keys, raising KeyError with model context on failure."""
+    current = data
+    for k in keys:
+        try:
+            current = current[k]
+        except (KeyError, TypeError):
+            path = " -> ".join(str(p) for p in keys)
+            raise KeyError(
+                f"Missing key path [{path}] in {model_key} data (failed at '{k}')"
+            )
+    return current
+
+
+# ---------------------------------------------------------------------------
 # Analysis functions
 # ---------------------------------------------------------------------------
 
@@ -106,7 +124,7 @@ def compute_accuracy_comparison(all_data: dict) -> dict:
     """Extract mean_accuracy, binary_pass_rate, hedging for each model."""
     result = {}
     for key, data in all_data.items():
-        overall = data["scores"]["aggregate"]["overall"]
+        overall = _safe_get(data, ["scores", "aggregate", "overall"], key)
         result[key] = {
             "mean_accuracy": overall["mean_accuracy"],
             "binary_pass_rate": overall.get("binary_pass_rate", 0),
@@ -121,7 +139,8 @@ def compute_per_category_accuracy(all_data: dict) -> dict:
     for cat in CATEGORIES:
         result[cat] = {}
         for key, data in all_data.items():
-            cat_data = data["scores"]["aggregate"]["by_category"].get(cat, {})
+            by_cat = _safe_get(data, ["scores", "aggregate", "by_category"], key)
+            cat_data = by_cat.get(cat, {})
             result[cat][key] = cat_data.get("mean_accuracy", 0.0)
     return result
 
@@ -130,7 +149,7 @@ def compute_taxonomy_comparison(all_data: dict) -> dict:
     """Extract taxonomy distribution counts and percentages for each model."""
     result = {}
     for key, data in all_data.items():
-        dist = data["taxonomy"]["distribution"]
+        dist = _safe_get(data, ["taxonomy", "distribution"], key)
         result[key] = {}
         for mode in TAXONOMY_MODES:
             mode_data = dist.get(mode, {"count": 0, "pct": 0.0})
@@ -145,7 +164,7 @@ def compute_degenerate_rates(all_data: dict) -> dict:
     """Derive non-degenerate count and rate from taxonomy distribution."""
     result = {}
     for key, data in all_data.items():
-        dist = data["taxonomy"]["distribution"]
+        dist = _safe_get(data, ["taxonomy", "distribution"], key)
         total = sum(mode_data["count"] for mode_data in dist.values())
         degenerate = dist.get("degenerate", {}).get("count", 0)
         non_degenerate = total - degenerate
@@ -166,18 +185,20 @@ def compute_fabrication_comparison(all_data: dict) -> dict:
     """
     result = {}
     for key, data in all_data.items():
-        summary = data["fabrications"]["summary"]
+        summary = _safe_get(data, ["fabrications", "summary"], key)
 
         # Build is_coherent lookup from responses.json
+        responses_list = _safe_get(data, ["responses", "responses"], key)
         coherent_lookup = {
             r["question_id"]: r.get("is_coherent", True)
-            for r in data["responses"]["responses"]
+            for r in responses_list
         }
 
         # Per-question fabrication data filtered to coherent responses only
         coherent_extracted = 0
         coherent_flagged = 0
-        for pq in data["fabrications"]["per_question"]:
+        per_question = _safe_get(data, ["fabrications", "per_question"], key)
+        for pq in per_question:
             if coherent_lookup.get(pq["question_id"], True):
                 coherent_extracted += len(pq["entities_extracted"])
                 coherent_flagged += len(pq["flagged_entities"])
