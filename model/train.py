@@ -963,6 +963,8 @@ def write_config_header(log_file, args, model_config_dict, ds_config, vocab_size
             "data_dir": args.data_dir,
             "tokenizer_path": args.tokenizer_path,
             "gradient_checkpointing": args.gradient_checkpointing,
+            "pretrained_weights": getattr(args, "pretrained_weights", None),
+            "dropout": args.dropout,
         },
         "data_info": {
             "vocab_size": vocab_size,
@@ -1818,7 +1820,7 @@ def main():
                         wall_elapsed = time.time() - training_start_time
                         best_save_duration = save_best_checkpoint_atomic(
                             model_engine, run_dir, step, val_loss,
-                            model_config_dict, args.config,
+                            model_config_dict, config_label,
                             epoch_tracker.epoch, wall_elapsed,
                         )
                         best_dir = os.path.join(run_dir, "best")
@@ -1866,13 +1868,13 @@ def main():
                     "wall_clock_elapsed": wall_elapsed,
                     "lr": current_lr,
                     "timestamp": datetime.now(timezone.utc).isoformat(),
-                    "config_name": args.config,
+                    "config_name": config_label,
                 }
 
                 try:
                     save_duration = save_checkpoint_atomic(
                         model_engine, run_dir, step, client_state,
-                        checkpoint_meta, args.config,
+                        checkpoint_meta, config_label,
                     )
                     ds_dir = os.path.join(run_dir, f"step_{step}")
                     ds_size = sum(
