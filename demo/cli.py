@@ -192,15 +192,17 @@ def _select_model(models: List[Dict[str, Any]]) -> Optional[str]:
     print(f"\n{BOLD}Available ALS-LM models:{RESET}\n")
 
     # Pick a single default: prefer gpt2-large:q8_0, then 500m:q8_0, then first :q8_0
-    default_idx = 0
+    default_idx = None
     for i, m in enumerate(models):
         if m["name"] == "als-lm-gpt2-large:q8_0":
             default_idx = i
             break
-        if m["name"] == "als-lm-500m:q8_0" and default_idx == 0:
+        if m["name"] == "als-lm-500m:q8_0" and default_idx is None:
             default_idx = i
-        elif ":q8_0" in m["name"] and default_idx == 0:
+        elif ":q8_0" in m["name"] and default_idx is None:
             default_idx = i
+    if default_idx is None:
+        default_idx = 0
 
     for i, m in enumerate(models):
         name = m["name"]
