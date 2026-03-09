@@ -2,7 +2,7 @@
 
 > [!NOTE]
 >
-> This project produced two model variants, neither suitable for medical use. The from-scratch 500M model achieves a 0.0% binary pass rate and fabricates medical entities at a 66% rate. The fine-tuned GPT-2 large 774M model achieves only 3.12% mean accuracy, with 97.5% of its responses degrading into repetitive or incoherent output. Neither model should ever be used for clinical decision-making, patient education, or any application where factual accuracy matters.
+> This project produced two model variants, neither suitable for medical use. The from-scratch 500M model achieves a 0.0% binary pass rate and fabricates medical entities at a 66.4% rate. The fine-tuned GPT-2 large 774M model achieves only 3.12% mean accuracy, with 97.5% of its responses degrading into repetitive or incoherent output. Neither model should ever be used for clinical decision-making, patient education, or any application where factual accuracy matters.
 >
 > For reliable ALS information, please consult the [ALS Association](https://www.als.org/), [Mayo Clinic](https://www.mayoclinic.org/diseases-conditions/amyotrophic-lateral-sclerosis/symptoms-causes/syc-20354022), or [NIH NINDS](https://www.ninds.nih.gov/health-information/disorders/amyotrophic-lateral-sclerosis-als).
 
@@ -32,7 +32,7 @@ We trained the model with PyTorch and DeepSpeed ZeRO Stage 2 with CPU offloading
 
 ## Model variants
 
-As a controlled comparison experiment, we fine-tuned OpenAI's GPT-2 large (774M parameters) on the same ALS corpus to test whether pretrained general knowledge could overcome the data deficit limitation observed with the from-scratch model. See [Section 7 of the research paper](research-paper.md#7-general-pre-training-comparison) for the full methodology and analysis.
+As a controlled comparison experiment, we fine-tuned OpenAI's GPT-2 large (774M parameters) on the same ALS corpus to test whether pretrained general knowledge could overcome the data deficit limitation observed with the from-scratch model. See [Section 7 of the research paper](research-paper.md#7-general-pretraining-comparison) for the full methodology and analysis.
 
 ### Fine-tuned GPT-2 large (774M)
 
@@ -131,7 +131,7 @@ We also conducted a RAG comparison experiment using four configurations (two emb
 
 ### Medical safety
 
-ALS-LM has demonstrated a near-complete inability to produce factually accurate medical content. Across 480 evaluations (160 questions x 3 quantization levels), the model achieves 0.0% binary pass rate, fabricates medical entities at a 66% rate, and produces degenerate output (repetitive or incoherent text) 27.5% of the time. Anyone who encounters this model should understand it as a research artifact demonstrating failure modes, not a functional information source.
+ALS-LM has demonstrated a near-complete inability to produce factually accurate medical content. Across 480 evaluations (160 questions x 3 quantization levels), the model achieves 0.0% binary pass rate, fabricates medical entities at a 66.4% rate, and produces degenerate output (repetitive or incoherent text) 27.5% of the time. Anyone who encounters this model should understand it as a research artifact demonstrating failure modes, not a functional information source.
 
 The fine-tuned GPT-2 large model exhibits a distinct failure profile. While the from-scratch model fails primarily through fabrication—inventing plausible but false medical content with high confidence—the fine-tuned model fails through degeneration, with 97.5% of responses producing repetitive or incoherent output. Both failure profiles make the models unsuitable for any medical use, but for different reasons: the from-scratch model is dangerously confident in wrong answers, while the fine-tuned model mostly fails to produce coherent responses at all.
 
