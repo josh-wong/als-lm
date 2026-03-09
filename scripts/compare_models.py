@@ -21,6 +21,8 @@ Usage examples::
     python scripts/compare_models.py --verbose
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import sys
@@ -340,12 +342,16 @@ def generate_markdown_report(
     f_acc = accuracy["gpt2_large_finetune"]["mean_accuracy"] * 100
     s_nondeg = degenerate["scratch_500m"]["non_degenerate_rate"] * 100
     f_nondeg = degenerate["gpt2_large_finetune"]["non_degenerate_rate"] * 100
-    improvement = f_acc / s_acc if s_acc > 0 else 0
+    if s_acc > 0:
+        improvement = f_acc / s_acc
+        improvement_str = f"a {improvement:.0f}x relative improvement"
+    else:
+        improvement_str = "an improvement from zero"
 
     add(
         f"The fine-tuned GPT-2 large model (774M parameters) achieves "
         f"{f_acc:.2f}% mean accuracy compared to {s_acc:.2f}% for the "
-        f"from-scratch 500M model, a {improvement:.0f}x relative improvement. "
+        f"from-scratch 500M model, {improvement_str}. "
         f"However, the GPT-2 large model produces {f_nondeg:.1f}% "
         f"non-degenerate responses compared to {s_nondeg:.1f}% for the "
         f"from-scratch model, meaning {100 - f_nondeg:.1f}% of its output "
