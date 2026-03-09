@@ -2,7 +2,7 @@
 
 ALS-LM is a 516M-parameter decoder-only transformer trained from scratch on 143M tokens of curated amyotrophic lateral sclerosis (ALS) research. The project investigates what a purpose-built model can learn from a narrow medical corpus, how it fails, and how its failure modes compare to retrieval-augmented generation (RAG). A controlled comparison experiment fine-tuning GPT-2 large (774M parameters) on the same corpus validates the data deficit finding and reveals instruction-following as a separate failure dimension.
 
-> [!NOTE]
+> [!CAUTION]
 >
 > This is a machine-learning research and education project, not a medical tool. It is an independent personal project and is not affiliated with any employer or medical institution. The models should never be used for clinical decision-making.
 >
@@ -20,7 +20,7 @@ The central result is a disconnect between language-modeling competence and fact
 - **Best RAG 13.8% vs. baseline 14.3%**, meaning that retrieval-augmented generation does not outperform the no-retrieval baseline
 - **PubMedBERT outperforms MiniLM by 2.1x** for medical retrieval (12.7% vs. 5.9% mean accuracy)
 - **80x below Chinchilla-optimal** data ratio (0.25 tokens/parameter vs. the recommended ~20)
-- **3.12% mean accuracy with GPT-2 large fine-tuning** — 15x improvement over the from-scratch model, validating that pretrained knowledge helps even on a narrow medical corpus
+- **3.12% mean accuracy with GPT-2 large fine-tuning**, meaning a 15x improvement over the from-scratch model, validating that pretrained knowledge helps even on a narrow medical corpus
 - **97.5% degenerate output** from the fine-tuned model, indicating that instruction-following capability is not preserved through domain fine-tuning alone
 
 ## Pipeline
@@ -126,7 +126,7 @@ deepspeed model/train.py --deepspeed --deepspeed_config config/ds_zero2.json --c
 deepspeed model/train.py --deepspeed --deepspeed_config config/ds_zero2.json --config gpt2-large --pretrained-weights checkpoints/gpt2large_init/init.pt --max-epochs 2
 ```
 
-This fine-tunes GPT-2 large on the ALS corpus using pretrained weights. Run `python scripts/load_gpt2_weights.py` first to download the pretrained checkpoint.
+This fine-tunes GPT-2 large on the ALS corpus by using pretrained weights. Run `python scripts/load_gpt2_weights.py` first to download the pretrained checkpoint.
 
 ### Export
 
