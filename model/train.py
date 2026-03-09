@@ -1367,6 +1367,10 @@ def main():
         print(f"    steps_per_epoch = {train_tokens:,} // {tokens_per_step:,} = {steps_per_epoch:,}")
         print(f"    max_steps = {args.max_epochs} * {steps_per_epoch:,} = {args.max_steps:,}")
 
+    if args.max_steps is None:
+        print("FATAL: max_steps is not set. Provide --max-steps or --max-epochs.")
+        sys.exit(1)
+
     # Instantiate EpochTracker
     epoch_tracker = EpochTracker(train_tokens, tokens_per_step)
     epoch_tracker.total_epochs = args.max_steps // epoch_tracker.steps_per_epoch if epoch_tracker.steps_per_epoch > 0 else 0
