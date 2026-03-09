@@ -1,14 +1,14 @@
 # ALS-LM: Exploring Domain-Specific Language Models for Sensitive Medical Knowledge
 
 **Author:** [josh-wong](https://github.com/josh-wong)
-**Date:** February 21, 2026
-**Status:** Approved
+**Date:** February 21, 2026 | Last revised: March 9, 2026
+**Status:** Complete
 
 ---
 
 ## Abstract
 
-Large language models have demonstrated impressive general-purpose capabilities, but their behavior in specialized medical domains raises significant questions about accuracy, safety, and trustworthiness. This paper presents ALS-LM, a project that trains a domain-specific language model (500M–1B parameters) from scratch on a curated corpus of amyotrophic lateral sclerosis (ALS) research and educational content. The project's primary contribution is not the model itself but a structured investigation into how domain-specific, from-scratch models internalize medical knowledge, where they fail, and how their failure modes compare to retrieval-augmented generation (RAG) approaches that use the same corpus. By treating hallucination measurement as a first-class research objective, the project aims to contribute practical insights into the question of which architectures are most appropriate for sensitive domain knowledge.
+Large language models have demonstrated impressive general-purpose capabilities, but their behavior in specialized medical domains raises significant questions about accuracy, safety, and trustworthiness. This paper presents ALS-LM, a project that trains a domain-specific language model (500M–1B parameters) from scratch on a curated corpus of amyotrophic lateral sclerosis (ALS) research and educational content. The project's primary contribution is not the model itself but a structured investigation into how domain-specific, from-scratch models internalize medical knowledge, where they fail, and how their failure modes compare to retrieval-augmented generation (RAG) approaches that use the same corpus. A controlled comparison experiment fine-tuning a pre-trained GPT-2 large model (774M parameters) on the same corpus validated the data deficit hypothesis, yielding a 15x accuracy improvement (0.21% to 3.12% at Q8_0) but revealing instruction-following as an orthogonal limitation, with 97.5% of responses degrading into repetitive or incoherent output. By treating hallucination measurement as a first-class research objective, the project aims to contribute practical insights into the question of which architectures are most appropriate for sensitive domain knowledge.
 
 ## 1. Introduction
 
@@ -118,6 +118,10 @@ This project aims to contribute to the understanding of domain-specific language
 - **A structured framework for evaluating medical hallucinations.** The failure taxonomy and benchmark methodology are designed to be reusable. Other researchers working on domain-specific medical models can adopt the evaluation framework for their own domains.
 - **An empirical comparison of architectural approaches for sensitive knowledge.** The from-scratch versus RAG comparison, with its emphasis on failure severity rather than simple accuracy, offers practical guidance for practitioners deciding how to deploy medical knowledge systems.
 
+## 6.5 Extended investigation
+
+Having established the data deficit finding with the from-scratch model, the project tested whether pre-trained general knowledge could bridge the gap by fine-tuning OpenAI's GPT-2 large (774M parameters) on the same ALS corpus (146M tokens re-tokenized with the GPT-2 tokenizer, trained for 2 epochs). At the Q8_0 quantization level, the fine-tuned model achieved 3.12% mean accuracy compared to the from-scratch model's 0.21%, a 15x improvement that confirms pre-trained knowledge partially compensates for the data deficit. However, 97.5% of the fine-tuned model's responses were degenerate (repetitive or incoherent), compared to 67.5% coherent responses from the from-scratch model. This result reveals that data deficit (which governs factual accuracy) and instruction-following (which governs response coherence) are two orthogonal dimensions of model failure. GPT-2 is a completion-based architecture trained on next-token prediction without instruction-following alignment, which explains why it produces degenerate output when evaluated on a Q&A benchmark despite having access to more relevant knowledge. See the [research paper](research-paper.md), Section 7, for the full methodology and analysis.
+
 ## 7. Limitations
 
 This project has several known limitations that should be acknowledged:
@@ -128,8 +132,10 @@ This project has several known limitations that should be acknowledged:
 - **Hardware constraints.** Consumer-grade GPU training with CPU offloading may introduce training dynamics (slower convergence, different batch size constraints) that would not be present at larger scales.
 - **Evaluation subjectivity.** Some failure taxonomy categories (particularly "accurate but misleading") require subjective judgment. The project will document inter-rater agreement where applicable.
 
+Subsequent experimental results confirmed these limitations. See the [research paper](research-paper.md) for the full analysis of how data deficit, model scale, and corpus scope affected outcomes.
+
 ## 8. Conclusion
 
-ALS-LM is an intentionally focused project that asks a big question: what is the right way to build AI systems that handle sensitive medical knowledge? By training a model from scratch, evaluating its failures rigorously, and comparing it against retrieval-augmented alternatives, the project aims to produce insights that are useful beyond its specific domain and scale.
+ALS-LM is an intentionally focused project that asks a big question: what is the right way to build AI systems that handle sensitive medical knowledge? By training a model from scratch, evaluating its failures rigorously, and comparing it against retrieval-augmented alternatives, the project has produced findings that are useful beyond its specific domain and scale. See the [research paper](research-paper.md) for the complete results and analysis.
 
 The project prioritizes transparency, reproducibility, and ethical responsibility. Every decision—from data sourcing to model publication—is documented and justified. The goal is not to build a better medical chatbot but to understand the tradeoffs involved in doing so, and to share that understanding openly.
