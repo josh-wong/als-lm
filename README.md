@@ -1,16 +1,16 @@
 # ALS-LM: A domain-specific language model for ALS knowledge
 
-ALS-LM is a 516M-parameter decoder-only transformer trained from scratch on 143M tokens of curated amyotrophic lateral sclerosis (ALS) research. The project investigates what a purpose-built model can learn from a narrow medical corpus, how it fails, and how its failure modes compare to retrieval-augmented generation (RAG).
+ALS-LM is a 516M-parameter decoder-only transformer trained from scratch on 143M tokens of curated amyotrophic lateral sclerosis (ALS) research. The project investigates what a purpose-built model can learn from a narrow medical corpus, how it fails, and how its failure modes compare to retrieval-augmented generation (RAG). A controlled comparison experiment fine-tuning GPT-2 large (774M parameters) on the same corpus validates the data deficit finding and reveals instruction-following as a separate failure dimension.
 
 > [!NOTE]
 >
-> This is a machine-learning research and education project, not a medical tool. It is an independent personal project and is not affiliated with any employer or medical institution. The model should never be used for clinical decision-making.
+> This is a machine-learning research and education project, not a medical tool. It is an independent personal project and is not affiliated with any employer or medical institution. The models should never be used for clinical decision-making.
 >
 > *If you find an issue with this project's approach to medical content or data ethics, please open an issue. Constructive feedback on the ethical framework is especially welcome.*
 
 ## Key findings
 
-The central result is a disconnect between language-modeling competence and factual knowledge. The model achieves a Well-fit training classification (validation loss relative gap of +0.42%), yet scores 0.0% on a 160-question factual benchmark. Naive RAG over the same corpus does not help: the best RAG configuration (13.8% accuracy) fails to exceed a no-retrieval baseline (14.3%), revealing retrieval quality as the primary bottleneck.
+The central result is a disconnect between language-modeling competence and factual knowledge. The model achieves a Well-fit training classification (validation loss relative gap of +0.42%), yet scores 0.0% on a 160-question factual benchmark. Naive RAG over the same corpus does not help: the best RAG configuration (13.8% accuracy) fails to exceed a no-retrieval baseline (14.3%), revealing retrieval quality as the primary bottleneck. Fine-tuning GPT-2 large on the same corpus achieves 15x higher accuracy (3.12%) but produces degenerate output in 97.5% of responses, revealing data deficit and instruction-following as two orthogonal failure dimensions.
 
 ![Cross-approach accuracy comparison showing ALS-LM, baseline, and RAG configurations](docs/figures/accuracy_comparison.png)
 
@@ -18,6 +18,8 @@ The central result is a disconnect between language-modeling competence and fact
 - **Best RAG 13.8% vs. baseline 14.3%**, meaning that retrieval-augmented generation does not outperform the no-retrieval baseline
 - **PubMedBERT outperforms MiniLM by 2.1x** for medical retrieval (12.7% vs. 5.9% mean accuracy)
 - **80x below Chinchilla-optimal** data ratio (0.25 tokens/parameter vs. the recommended ~20)
+- **3.12% mean accuracy with GPT-2 large fine-tuning** — 15x improvement over the from-scratch model, validating that pretrained knowledge helps even on a narrow medical corpus
+- **97.5% degenerate output** from the fine-tuned model, indicating that instruction-following capability is not preserved through domain fine-tuning alone
 
 ## Pipeline
 
@@ -29,6 +31,7 @@ The project implements an end-to-end pipeline from data collection through evalu
 - **Data processing.** An 11-step source-aware cleaning pipeline handles deduplication (MinHash), normalization, filtering, and train/validation splitting (90/10).
 - **Tokenizer training.** A custom BPE tokenizer (50,257 vocabulary) trained on the ALS corpus encodes 50 of the top 100 ALS-specific medical terms as single tokens.
 - **Model training.** A GPT-2-style transformer with Pre-LN normalization (516M parameters) trains for 3 epochs by using DeepSpeed ZeRO Stage 2 with CPU offloading on an NVIDIA RTX 3060 (12GB VRAM).
+- **Fine-tuning comparison.** GPT-2 large (774M parameters) fine-tuned on the same ALS corpus for 2 epochs by using DeepSpeed ZeRO Stage 2 with pretrained weights, serving as a controlled comparison against the from-scratch model.
 - **Export.** A unified pipeline converts PyTorch checkpoints to Hugging Face format, then to GGUF (Q4_K_M, Q8_0, F16) for local inference via Ollama.
 - **Evaluation.** A hallucination evaluation framework scores model responses against 160 curated questions by using key-fact fuzzy matching, entity-based fabrication detection (~48K entities), and a 5-mode failure taxonomy.
 - **RAG comparison.** Four RAG configurations (two embedding models at two chunk sizes) that use ChromaDB are benchmarked against the from-scratch model and a no-retrieval Llama 3.1 8B baseline.
