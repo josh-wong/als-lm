@@ -12,7 +12,7 @@ ALS-LM is a 516M-parameter decoder-only transformer trained from scratch on 143M
 
 The central result is a disconnect between language-modeling competence and factual knowledge. The model achieves a Well-fit training classification (validation loss relative gap of +0.42%), yet scores 0.0% on a 160-question factual benchmark. Naive RAG over the same corpus does not help: the best RAG configuration (13.8% accuracy) fails to exceed a no-retrieval baseline (14.3%), revealing retrieval quality as the primary bottleneck. Fine-tuning GPT-2 large on the same corpus achieves 15x higher accuracy (3.12%) but produces degenerate output in 97.5% of responses, revealing data deficit and instruction-following as two orthogonal failure dimensions.
 
-![Cross-approach accuracy comparison showing ALS-LM, baseline, and RAG configurations](docs/figures/accuracy_comparison.png)
+![Accuracy comparison across all six approaches: ALS-LM, baseline, and four RAG configurations](docs/figures/accuracy_comparison.png)
 
 *The fine-tuned GPT-2 large model is not shown in this figure; see the [cross-model comparison](#cross-model-comparison) table below.*
 
@@ -27,7 +27,7 @@ The central result is a disconnect between language-modeling competence and fact
 
 The project implements an end-to-end pipeline from data collection through evaluation, with every stage scripted and reproducible.
 
-![End-to-end pipeline diagram showing data collection, processing, training, export, and evaluation stages](docs/figures/pipeline_diagram.png)
+![Data pipeline showing the flow from data collection through cleaning, deduplication, tokenization, training, export, evaluation, and RAG comparison](docs/figures/pipeline_diagram.png)
 
 - **Data collection.** Scrapers for PubMed Central, ClinicalTrials.gov, and educational sources collect 19,164 documents into a standardized JSON format.
 - **Data processing.** An 11-step source-aware cleaning pipeline handles deduplication (MinHash), normalization, filtering, and train/validation splitting (90/10).
@@ -46,7 +46,7 @@ The results below summarize training performance, hallucination evaluation, and 
 
 Training ran for 3 epochs (11,760 steps) in 4 hours 27 minutes on a single RTX 3060.
 
-![Training and validation loss curves over 11,760 steps](docs/figures/train_val_loss.png)
+![Training and validation loss curves over 11,760 steps showing convergence with minimal overfitting](docs/figures/train_val_loss.png)
 
 | Metric                | Value    |
 |-----------------------|----------|
@@ -72,7 +72,7 @@ All three quantization levels achieve 0.0% binary pass rate across the 160-quest
 
 The failure taxonomy reveals three dominant modes: confident fabrication (33.8%), degenerate output (27.5%), and plausible blending (26.9%).
 
-![Failure taxonomy distribution showing confident fabrication, degenerate output, plausible blending, and outdated information](docs/figures/failure_taxonomy.png)
+![Failure taxonomy distribution showing the proportions of confident fabrication, plausible blending, outdated information, and degenerate output](docs/figures/failure_taxonomy.png)
 
 ### RAG comparison
 

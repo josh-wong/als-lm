@@ -32,7 +32,7 @@ We trained the model with PyTorch and DeepSpeed ZeRO Stage 2 with CPU offloading
 
 ## Model variants
 
-As a controlled comparison experiment, we fine-tuned OpenAI's GPT-2 large (774M parameters) on the same ALS corpus to test whether pre-trained general knowledge could overcome the data deficit limitation observed with the from-scratch model. See [Section 7 of the research paper](research-paper.md#7-general-pre-training-comparison) for the full methodology and analysis.
+As a controlled comparison experiment, we fine-tuned OpenAI's GPT-2 large (774M parameters) on the same ALS corpus to test whether pretrained general knowledge could overcome the data deficit limitation observed with the from-scratch model. See [Section 7 of the research paper](research-paper.md#7-general-pre-training-comparison) for the full methodology and analysis.
 
 ### Fine-tuned GPT-2 large (774M)
 
@@ -62,7 +62,7 @@ The following table compares both model variants at the Q8_0 quantization level.
 | Fabrication rate    | 66.4%                 | 77.0%                   |
 | Dominant failure    | Confident fabrication (33.1%) | Degenerate output (97.5%) |
 
-The 15x accuracy improvement (0.21% to 3.12%) confirms that pre-trained knowledge partially bridges the data deficit gap. However, 97.5% degenerate output reveals that GPT-2's completion-based architecture lacks the instruction-following capability needed for the Q&A evaluation format. Data deficit and instruction-following are two orthogonal dimensions of model failure.
+The 15x accuracy improvement (0.21% to 3.12%) confirms that pretrained knowledge partially bridges the data deficit gap. However, 97.5% degenerate output reveals that GPT-2's completion-based architecture lacks the instruction-following capability needed for the Q&A evaluation format. Data deficit and instruction-following are two orthogonal dimensions of model failure.
 
 ## Intended use
 
@@ -137,7 +137,7 @@ The fine-tuned GPT-2 large model exhibits a distinct failure profile. While the 
 
 ### Technical limitations
 
-We trained on only 143M tokens, which is 80x below the Chinchilla-optimal ratio of ~20 tokens per parameter for a 516M model. This severe data deficit is the primary explanation for the near-zero factual accuracy despite healthy training loss convergence. The fine-tuning experiment confirmed the data deficit as the primary accuracy bottleneck, with pre-trained knowledge yielding a 15x improvement, while revealing instruction-following as a separate limitation not addressed by domain-specific training alone. Additional limitations include single-domain training (ALS literature only, with no general English pre-training), a single model size (516M parameters, with no scaling experiments), and a 1,024-token context window that constrains the complexity of questions the model can address.
+We trained on only 143M tokens, which is 80x below the Chinchilla-optimal ratio of ~20 tokens per parameter for a 516M model. This severe data deficit is the primary explanation for the near-zero factual accuracy despite healthy training loss convergence. The fine-tuning experiment confirmed the data deficit as the primary accuracy bottleneck, with pretrained knowledge yielding a 15x improvement, while revealing instruction-following as a separate limitation not addressed by domain-specific training alone. Additional limitations include single-domain training (ALS literature only, with no general English pretraining), a single model size (516M parameters, with no scaling experiments), and a 1,024-token context window that constrains the complexity of questions the model can address.
 
 ### Recommendations
 
