@@ -112,6 +112,12 @@ CONFIG_DEFAULTS = {
     "tiny": {"lr": 6e-4, "batch_size": 16, "grad_accum": 2, "warmup": 100, "max_steps": 2000},
     "medium": {"lr": 3e-4, "batch_size": 8, "grad_accum": 4, "warmup": 200, "max_steps": 10000},
     "500M": {"lr": 3e-4, "batch_size": 4, "grad_accum": 8, "warmup": 500, "max_steps": 50000},
+    # Note: The fine-tuning experiment (v0.8.0) used the shared ds_zero2.json
+    # optimizer defaults (betas=[0.9, 0.95], weight_decay=0.1) rather than
+    # standard fine-tuning values (betas=[0.9, 0.999], weight_decay=0.01).
+    # These are preserved here for reproducibility of the published results.
+    # Future fine-tuning runs may benefit from overriding via --lr or a
+    # separate DeepSpeed config.
     "gpt2-large-finetune": {
         "lr": 2e-5,
         "batch_size": 2,
@@ -119,8 +125,6 @@ CONFIG_DEFAULTS = {
         "warmup": 200,
         "max_epochs": 2,
         "dropout": 0.1,
-        "betas": [0.9, 0.999],
-        "weight_decay": 0.01,
     },
 }
 
@@ -385,9 +389,6 @@ def parse_args():
     # Override dropout for fine-tuning (MODEL_CONFIGS gpt2-large has 0.0, but fine-tuning needs 0.1 per experiment design)
     if "dropout" in defaults and args.dropout is None:
         args.dropout = defaults["dropout"]
-
-    # Store resolved defaults for downstream use (e.g. DeepSpeed config overrides)
-    args._config_defaults = defaults
 
     return args
 
@@ -1087,13 +1088,8 @@ def log_checkpoint_event(log_file, event_type, step, details):
 # ---------------------------------------------------------------------------
 # DeepSpeed config resolution
 # ---------------------------------------------------------------------------
-def resolve_ds_config(ds_config_path, args, config_defaults=None):
+def resolve_ds_config(ds_config_path, args):
     """Load the DeepSpeed JSON config and override 'auto' values programmatically.
-
-    If *config_defaults* contains ``betas`` or ``weight_decay``, they override
-    the values in the JSON config. This allows fine-tuning configs to use
-    standard Adam betas (0.9, 0.999) and lower weight decay (0.01) instead of
-    the aggressive pretraining defaults (0.9, 0.95) and (0.1).
 
     Returns the resolved config dict ready for deepspeed.initialize().
     """
@@ -1107,13 +1103,6 @@ def resolve_ds_config(ds_config_path, args, config_defaults=None):
 
     # Optimizer LR
     ds_config["optimizer"]["params"]["lr"] = args.lr
-
-    # Optimizer betas and weight_decay (config-specific overrides)
-    if config_defaults:
-        if "betas" in config_defaults:
-            ds_config["optimizer"]["params"]["betas"] = config_defaults["betas"]
-        if "weight_decay" in config_defaults:
-            ds_config["optimizer"]["params"]["weight_decay"] = config_defaults["weight_decay"]
 
     # Scheduler steps
     ds_config["scheduler"]["params"]["warmup_num_steps"] = args.warmup_steps
@@ -1400,8 +1389,7 @@ def main():
         print(f"\nFATAL: DeepSpeed config not found at {ds_config_path}")
         sys.exit(1)
 
-    ds_config = resolve_ds_config(ds_config_path, args,
-                                   config_defaults=getattr(args, "_config_defaults", None))
+    ds_config = resolve_ds_config(ds_config_path, args)
 
     # ---- Build model -------------------------------------------------------
     model_overrides = {}
