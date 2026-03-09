@@ -46,6 +46,9 @@ data/tokenized/
 # GPT-2 re-tokenized data (Phase 22 - binary files, regenerable from corpus + GPT-2 tokenizer)
 data/tokenized_gpt2/
 
+# GPT-2 tokenizer files (standard upstream HuggingFace files, auto-downloaded by export pipeline)
+tokenizer/gpt2_tokenizer/
+
 # Environment validation reports (Phase 4.1), except production training analysis (committed deliverable)
 reports/*
 !reports/production_training_analysis/
