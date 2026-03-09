@@ -14,6 +14,8 @@ The central result is a disconnect between language-modeling competence and fact
 
 ![Cross-approach accuracy comparison showing ALS-LM, baseline, and RAG configurations](docs/figures/accuracy_comparison.png)
 
+*The fine-tuned GPT-2 large model is not shown in this figure; see the [cross-model comparison](#cross-model-comparison) table below.*
+
 - **0.0% binary pass rate** across all quantization levels on the hallucination benchmark (0/480 responses)
 - **Best RAG 13.8% vs. baseline 14.3%**, meaning that retrieval-augmented generation does not outperform the no-retrieval baseline
 - **PubMedBERT outperforms MiniLM by 2.1x** for medical retrieval (12.7% vs. 5.9% mean accuracy)
@@ -76,11 +78,11 @@ The failure taxonomy reveals three dominant modes: confident fabrication (33.8%)
 
 The best RAG configuration (500-token chunks with PubMedBERT) achieves 13.8% mean accuracy but does not exceed the no-retrieval Llama 3.1 8B baseline at 14.3%.
 
-**Table 2.** Cross-approach accuracy comparison on the 160-question ALS benchmark. ALS-LM values use Q4_K_M as the representative quantization level (all three levels produce equivalent results). Baseline is Llama 3.1 8B without retrieval.
+**Table 2.** Cross-approach accuracy comparison on the 160-question ALS benchmark. ALS-LM values use Q8_0 as the representative quantization level (all three levels produce equivalent results). Baseline is Llama 3.1 8B without retrieval.
 
 | Approach                | Mean accuracy | Binary pass | Fabrication rate |
 |-------------------------|---------------|-------------|------------------|
-| ALS-LM (Q4_K_M)         |        0.0052 |       0.0%  |            66.2% |
+| ALS-LM (Q8_0)           |        0.0021 |       0.0%  |            66.4% |
 | Baseline (no retrieval) |        0.1432 |      13.8%  |            87.2% |
 | RAG 500-MiniLM          |        0.0219 |       1.9%  |            51.4% |
 | RAG 200-MiniLM          |        0.0969 |       8.1%  |            81.0% |
@@ -88,6 +90,17 @@ The best RAG configuration (500-token chunks with PubMedBERT) achieves 13.8% mea
 | RAG 200-PubMedBERT      |        0.1151 |      12.5%  |            84.0% |
 
 Failure decomposition shows retrieval failures account for 52-89% of wrong answers depending on configuration, confirming retrieval quality as the primary bottleneck.
+
+### Cross-model comparison
+
+The following table compares all three approaches on the 160-question ALS benchmark at Q8_0 quantization. Degenerate output rate measures the proportion of responses that are incoherent (repetitive loops, token salad, or empty); this metric is not applicable to RAG configurations where Llama 3.1 8B generates coherent text.
+
+| Approach                       | Mean accuracy | Fabrication rate | Degenerate output rate |
+|--------------------------------|---------------|------------------|------------------------|
+| ALS-LM 500M (from-scratch)    |        0.0021 |           66.4%  |                 32.5%  |
+| GPT-2 large 774M (fine-tuned) |        0.0312 |           77.0%  |                 97.5%  |
+| RAG 500-PubMedBERT            |        0.1380 |           80.3%  |                    —   |
+| Baseline (no retrieval)       |        0.1432 |           87.2%  |                    —   |
 
 ## Getting started
 
@@ -106,6 +119,14 @@ This script validates system prerequisites, creates a virtual environment, insta
 ```bash
 deepspeed model/train.py --deepspeed --deepspeed_config config/ds_zero2.json --config 500M --max-epochs 3
 ```
+
+### Fine-tuning (GPT-2 large)
+
+```bash
+deepspeed model/train.py --deepspeed --deepspeed_config config/ds_zero2.json --config gpt2-large --pretrained-weights checkpoints/gpt2large_init/init.pt --max-epochs 2
+```
+
+This fine-tunes GPT-2 large on the ALS corpus using pretrained weights. Run `python scripts/load_gpt2_weights.py` first to download the pretrained checkpoint.
 
 ### Export
 
@@ -145,7 +166,7 @@ Please read the following disclaimers carefully before using or referencing ALS-
 
 ### This is not a medical resource
 
-ALS-LM is a machine-learning research project. It is **not** a diagnostic tool, treatment guide, or substitute for professional medical advice. The model generates text that sounds authoritative but is factually incorrect—the 0.0% binary pass rate on our benchmark confirms this quantitatively.
+ALS-LM is a machine-learning research project. It is **not** a diagnostic tool, treatment guide, or substitute for professional medical advice. The models generate text that sounds authoritative but is factually incorrect—the from-scratch model scores 0.0% on our benchmark while the fine-tuned variant achieves only 3.12% accuracy with 97.5% of responses being degenerate.
 
 **If you or someone you know is affected by ALS, please consult qualified healthcare providers and trusted resources such as:**
 
@@ -155,7 +176,7 @@ ALS-LM is a machine-learning research project. It is **not** a diagnostic tool, 
 
 ### On hallucinations and medical safety
 
-The model hallucinates at a rate of 66% fabricated entities across all quantization levels. In a medical context, this is a potential harm. This project treats hallucination measurement as a primary research question, not a side effect to be minimized.
+The from-scratch model hallucinates at a rate of 66.4% fabricated entities across all quantization levels. The fine-tuned GPT-2 large variant produces 77.0% fabrication among coherent responses, but only generates coherent responses 2.5% of the time. In a medical context, both models represent a potential harm. This project treats hallucination measurement as a primary research question, not a side effect to be minimized.
 
 All model outputs should be treated as experimental results, not as medical information.
 
