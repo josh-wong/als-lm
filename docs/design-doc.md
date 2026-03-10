@@ -50,14 +50,14 @@ The development environment is set up to ensure reproducibility and compatibilit
 ```
 Windows 11
 └── WSL2 (Ubuntu 22.04+)
-    ├── Miniconda (Python 3.12)
+    ├── Python 3.12 (venv)
     ├── CUDA Toolkit 12.x
     ├── PyTorch 2.x (with CUDA support)
     ├── DeepSpeed
     └── Ollama (Linux build)
 ```
 
-Environment setup is scripted in `scripts/setup_env.sh` for reproducibility.
+Environment setup is scripted in `setup.sh` for reproducibility.
 
 ## 2. Data pipeline
 
@@ -205,32 +205,23 @@ Supplementary scientific context provides background material relevant to ALS.
 
 ### 2.3 Processing pipeline
 
-Processing runs as a sequential pipeline, each step reading from the previous step's output:
+Processing runs as a sequential pipeline implemented in `data/processing/clean.py`, with source-aware handling that processes PubMed papers, clinical trial records, and patient narratives differently. The implemented pipeline has 11 steps:
 
-1. **HTML/XML stripping**
-  - Remove all markup, boilerplate navigation, headers, footers, and non-content elements. Extract clean prose text only.
-2. **Deduplication**
-  - Document-level: MinHash with Jaccard similarity threshold of 0.85 to catch near-duplicate documents (common with papers published in multiple venues).
-  - Paragraph-level: Exact and near-exact paragraph deduplication by using SHA-256 hashing after whitespace normalization.
-3. **Volatile content filtering**
-  - Remove or flag content containing temporal markers that indicate volatility:
-    - Pattern matching for phrases like "currently," "as of [date]," "hours:" "contact us," "call [phone number]"
-    - Sentences referencing specific schedules, prices, or contact information
-    - "Last updated" sections
-4. **Text normalization**
-  - Unicode normalization (NFC)
-  - Consistent whitespace handling
-  - Standardize medical abbreviations where unambiguous (e.g., normalize both "amyotrophic lateral sclerosis" and "ALS" to appear naturally)
-  - Remove excessively short documents (< 100 tokens)
-5. **Train/validation split**
-  90/10 split at the document level (not sentence level, to prevent data leakage). Stratified by source category to ensure the validation set is representative.
-6. **Statistics generation**
-   - Output to `data/stats.md`:
-     - Total corpus size (bytes, tokens, documents)
-   - Distribution by source category
-   - Vocabulary statistics (unique tokens, token frequency distribution)
-   - Average document length
-   - Top medical terms by frequency
+1. **HTML/XML stripping** — Remove all markup using BeautifulSoup.
+2. **Non-content section removal** — Strip references, acknowledgments, funding, tables, figure captions, and author affiliations from scientific papers.
+3. **Citation stripping** — Remove in-text citations (both numbered and author-year formats).
+4. **Volatile content filtering** — Remove URLs, emails, phone numbers, temporal qualifiers, copyright notices, calls-to-action, and license text.
+5. **Clinical trial status stripping** — Remove status lines specific to trial documents.
+6. **PII re-scrubbing** — Second-pass PII detection using Presidio on patient narratives.
+7. **Encoding normalization** — Fix encoding errors with ftfy and normalize Unicode to NFC form (NFC chosen over NFKC to preserve Greek letters, superscripts, and math symbols common in medical text).
+8. **Whitespace normalization** — Normalize whitespace while preserving paragraph structure.
+9. **English language safety net** — Heuristic filter for non-English content.
+10. **Medical abbreviation normalization** — Canonicalize domain-specific terms (ALS, SOD1, TDP-43, C9orf72, and others).
+11. **Title embedding** — Embed the document title as a header.
+
+Documents shorter than 100 words after cleaning are rejected. For full details on deduplication (MinHash LSH with document-level and paragraph-level passes), source caps, and train/validation split methodology, see the [research paper](research-paper.md#31-data-pipeline).
+
+After the train/validation split (90/10 at the document level, stratified by source category), statistics are generated to `data/stats.md` covering total corpus size, source distribution, vocabulary analysis, and medical term frequency.
 
 ### 2.4 Corpus size targets
 
@@ -306,15 +297,17 @@ Decoder-only transformer following the GPT-2 architecture, implemented starting 
 
 ### 4.2 Model configurations
 
-| Parameter              | Base (500M) | Large (1B) |
-|------------------------|-------------|------------|
-| Layers (n_layer)       | 24          | 32         |
-| Attention heads        | 16          | 16         |
-| Embedding dimension    | 1280        | 2048       |
-| Context length         | 1024        | 1024       |
-| Vocabulary size        | 50257       | 50257      |
-| Dropout                | 0.1         | 0.1        |
-| Approximate parameters | ~500M       | ~1B        |
+The following table shows the originally planned configurations. The 500M configuration was implemented and trained; the 1B configuration was not implemented due to time constraints. A GPT-2 large (774M) fine-tuning experiment was added instead as a controlled comparison (see Section 7.1 of the [research paper](research-paper.md#71-methodology)).
+
+| Parameter              | 500M (implemented)  | 1B (not implemented) | GPT-2 large (fine-tuned) |
+|------------------------|---------------------|----------------------|--------------------------|
+| Layers (n_layer)       | 24                  | 32                   | 36                       |
+| Attention heads        | 16                  | 16                   | 20                       |
+| Embedding dimension    | 1280                | 2048                 | 1280                     |
+| Context length         | 1024                | 1024                 | 1024                     |
+| Vocabulary size        | 50257               | 50257                | 50257                    |
+| Dropout                | 0.1                 | 0.1                  | 0.1                      |
+| Approximate parameters | ~516M               | ~1B                  | ~774M                    |
 
 ### 4.3 Architecture details
 
@@ -385,6 +378,10 @@ DeepSpeed ZeRO Stage 2 is the primary strategy, with Stage 3 as a fallback for t
 
 ```json
 {
+  "train_batch_size": "auto",
+  "train_micro_batch_size_per_gpu": "auto",
+  "gradient_accumulation_steps": "auto",
+  "gradient_clipping": 1.0,
   "fp16": {
     "enabled": true,
     "loss_scale": 0,
@@ -399,20 +396,39 @@ DeepSpeed ZeRO Stage 2 is the primary strategy, with Stage 3 as a fallback for t
       "device": "cpu",
       "pin_memory": true
     },
-    "offload_param": {
-      "device": "none"
-    },
-    "allgather_partitions": true,
-    "allgather_bucket_size": 2e8,
+    "contiguous_gradients": true,
+    "overlap_comm": true,
     "reduce_scatter": true,
-    "reduce_bucket_size": 2e8
+    "reduce_bucket_size": 5e8,
+    "allgather_bucket_size": 5e8
   },
-  "gradient_checkpointing": true,
-  "gradient_accumulation_steps": 8,
-  "train_micro_batch_size_per_gpu": 4,
-  "wall_clock_breakdown": true
+  "optimizer": {
+    "type": "Adam",
+    "params": {
+      "lr": "auto",
+      "betas": [0.9, 0.95],
+      "eps": 1e-8,
+      "weight_decay": 0.1
+    }
+  },
+  "scheduler": {
+    "type": "WarmupCosineLR",
+    "params": {
+      "warmup_min_ratio": 0.0,
+      "warmup_num_steps": "auto",
+      "total_num_steps": "auto",
+      "cos_min_ratio": 0.0
+    }
+  },
+  "tensorboard": {
+    "enabled": true,
+    "output_path": "logs/tensorboard/",
+    "job_name": "als_lm_training"
+  }
 }
 ```
+
+Batch size, gradient accumulation, learning rate, and scheduler steps are set to `"auto"` in the config file and resolved at runtime from the per-model configuration defaults in `train.py`. This allows the same DeepSpeed config to serve both from-scratch and fine-tuning runs.
 
 **Gradient checkpointing** trades compute for memory by recomputing activations during the backward pass instead of storing them. This roughly halves activation memory at the cost of ~30% more compute time.
 
@@ -443,19 +459,19 @@ Estimated training duration is calculated based on corpus size and throughput.
 - **Tokens per epoch:** 25M
 - **Chinchilla-optimal ratio:** ~20 tokens per parameter → for 500M params, ~10B tokens ideal
 
-This corpus is far smaller than the Chinchilla-optimal amount of data for a 500M model. The model will train for multiple epochs over the data. Targeting 40–100 epochs gives 1B–2.5B total training tokens. Overfitting is expected and monitored via the validation split.
+This corpus is far smaller than the Chinchilla-optimal amount of data for a 500M model. The actual corpus yielded 143M tokens (128.5M train + 14.4M validation), considerably larger than the initial 25M estimate. Training ran for 3 epochs (11,760 steps) in 4 hours 27 minutes. Overfitting was monitored via the validation split, with the final train/validation loss gap remaining under 0.5%.
 
-**Time estimate (500M, ZeRO Stage 2 with CPU offload):**
+**Actual results (500M, ZeRO Stage 2 with CPU offload):**
 
-- Throughput (estimated): ~2,000–5,000 tokens/second on RTX 3060 with offloading
-- At 2B total tokens: ~4–12 days of continuous training
+- Throughput: ~9,400 tokens/second on RTX 3060 with offloading
+- Total training time: 4 hours 27 minutes (3 epochs)
 - Checkpoint saved every 1,000 steps for fault tolerance
 
 ### 5.5 Training monitoring
 
-Training monitoring includes logging metrics and early stopping criteria.
+Training monitoring logs metrics at regular intervals for analysis and debugging.
 
-Log the following at each logging interval (every 100 steps):
+Log the following at each logging interval (every 10 steps by default, configurable via `--log-interval`):
 
 - Training loss (cross-entropy)
 - Validation loss (computed every 500 steps)
@@ -463,11 +479,10 @@ Log the following at each logging interval (every 100 steps):
 - Tokens processed
 - Throughput (tokens/second)
 - GPU memory utilization
-- GPU temperature (to monitor thermal throttling)
 
-All metrics logged to CSV and optionally to Weights & Biases (W&B) if desired. Training curves are plotted at evaluation time for inclusion in the final writeup.
+All metrics are logged to JSONL (`logs/training_log.jsonl`) and to TensorBoard (`logs/tensorboard/`). Training curves are plotted using `scripts/analyze_training.py` for inclusion in the research paper.
 
-**Early stopping criteria:** Training is halted if validation loss has not decreased for 5 consecutive evaluations (2,500 steps), indicating overfitting with no generalization benefit.
+Training runs for a fixed number of steps or epochs as specified by the model configuration. Early stopping is not implemented; convergence and overfitting are assessed post-hoc from the training curves.
 
 ### 5.6 Checkpointing strategy
 
@@ -557,75 +572,60 @@ A CLI demo is provided for interactive querying of the model.
 The CLI demo includes features for querying, configuration, and benchmarking.
 
 ```
-$ python cli/main.py
+$ python demo/cli.py
 
-╔══════════════════════════════════════════════════════════════╗
-║  ALS-LM – Domain-Specific Language Model for ALS Knowledge   ║
-║                                                              ║
-║  ⚠ DISCLAIMER: This is a research project, not a medical    ║
-║  resource. Outputs may contain factual errors. For reliable  ║
-║  ALS information, consult qualified healthcare providers.    ║
-╠══════════════════════════════════════════════════════════════╣
-║  Commands:                                                   ║
-║    /help        Show available commands                      ║
-║    /config      View/modify generation parameters            ║
-║    /benchmark   Run hallucination evaluation (if available)  ║
-║    /quit        Exit                                         ║
-╚══════════════════════════════════════════════════════════════╝
+  ╔══════════════════════════════════════════════════════════════╗
+  ║  ALS-LM – Domain-Specific Language Model for ALS Research   ║
+  ║                                                              ║
+  ║  ⚠ DISCLAIMER: This is a research project, not a medical    ║
+  ║  resource. Outputs may contain factual errors. For reliable  ║
+  ║  ALS information, consult qualified healthcare providers.    ║
+  ╚══════════════════════════════════════════════════════════════╝
 
-als-lm> What is ALS?
+  Do you understand this is a research tool, not medical advice? (yes/no): yes
 
-[model output here]
+  Available models:
+  1. als-lm-500m:q8_0
+  2. als-lm-500m:q4_k_m
 
-als-lm>
+  Select model (1-2): 1
+
+[als-lm-500m:q8_0] > What is ALS?
+
+[streaming model output with token stats]
+
+[als-lm-500m:q8_0] >
 ```
 
 ### 7.2 Architecture
 
-The CLI architecture supports multiple backends and logging.
+The CLI is implemented as a single module (`demo/cli.py`) using the Ollama REST API.
 
-```python
-class ALSLMCli:
-    def __init__(self, backend="ollama"):
-        self.backend = backend  # "ollama" or "direct"
-        self.config = GenerationConfig(
-            temperature=0.7,
-            top_k=40,
-            top_p=0.9,
-            max_tokens=512
-        )
-        self.history = []  # Query log for evaluation
+Key features of the implemented CLI:
 
-    def run(self):
-        self.display_disclaimer()
-        while True:
-            query = input("als-lm> ")
-            if query.startswith("/"):
-                self.handle_command(query)
-            else:
-                response = self.generate(query)
-                self.log(query, response)
-                print(response)
-```
+- **Interactive model selection** — Detects available ALS-LM models in Ollama and prompts the user to choose.
+- **Medical disclaimer with acknowledgment** — Requires the user to confirm they understand the research-only nature before proceeding.
+- **ALS topic filter** — Keyword-based filter (~100 ALS-related terms) that rejects off-topic questions to keep interactions focused.
+- **Streaming output** — Token-by-token streaming via the Ollama API for responsive interaction.
+- **Token statistics** — Displays token count and throughput (tokens/sec) after each response.
+- **Configurable parameters** — `/temperature` and `/max_tokens` commands for adjusting generation settings.
+- **Session history** — In-memory query/response history accessible via `/history`.
 
-**Backend options:**
+**Backend:** The CLI uses the Ollama REST API (`localhost:11434`) exclusively. The originally planned direct PyTorch inference backend was not implemented, as Ollama proved sufficient for all interactive and evaluation use cases.
 
-- **Ollama** (default): Queries the model via `ollama run` or the Ollama REST API (`localhost:11434`). Simpler setup, recommended for general use.
-- **Direct**: Loads the PyTorch checkpoint directly for inference. More control, useful for evaluation and debugging.
+### 7.3 Commands
 
-### 7.3 Logging
+The following commands are available during an interactive session:
 
-All queries and responses are logged to `cli/logs/{timestamp}.jsonl` for post-hoc evaluation:
-
-```json
-{
-  "timestamp": "2026-04-15T14:30:00Z",
-  "query": "What genes are associated with ALS?",
-  "response": "...",
-  "config": {"temperature": 0.7, "top_k": 40},
-  "backend": "ollama"
-}
-```
+| Command         | Description                      |
+|-----------------|----------------------------------|
+| `/help`         | Show available commands          |
+| `/info`         | Display model and session info   |
+| `/temperature`  | Set generation temperature       |
+| `/max_tokens`   | Set maximum response length      |
+| `/history`      | Show session query history       |
+| `/clear`        | Clear session history            |
+| `/quit`         | Exit the CLI                     |
 
 ## 8. Evaluation framework
 
@@ -715,16 +715,16 @@ The RAG architecture combines retrieval and generation for improved accuracy.
 ```mermaid
 flowchart TD
   query["Query"] --> embed["Embedding model"] --> vector["Vector store (ChromaDB)"]
-  vector -->|"Top-K chunks"| lm["Pretrained LM<br/>(Mistral 7B / Llama 3.1 8B<br/>via Ollama)"]
+  vector -->|"Top-K chunks"| lm["Pretrained LM<br/>(Llama 3.1 8B<br/>via Ollama)"]
   lm --> response["Response"]
 ```
 
 ### 9.2 Components
 
-- **Document store:** The same cleaned ALS corpus, chunked into 512-token passages with 64-token overlap.
-- **Embedding model:** `nomic-embed-text` via Ollama, or `all-MiniLM-L6-v2` via `sentence-transformers`. Both run locally.
+- **Document store:** The same cleaned ALS corpus, chunked into passages of 200 or 500 tokens with 50-token overlap (`rag/chunker.py`).
+- **Embedding models:** `all-MiniLM-L6-v2` (general-purpose) and `NeuML/pubmedbert-base-embeddings` (biomedical) via `sentence-transformers`. Both run locally. PubMedBERT achieved 2.1x higher accuracy than MiniLM in evaluation.
 - **Vector store:** ChromaDB (local, file-based). Chosen for simplicity and zero infrastructure requirements.
-- **Base model:** Mistral 7B or Llama 3.1 8B, quantized to Q4_K_M, served via Ollama. Both fit in 12GB VRAM.
+- **Base model:** Llama 3.1 8B, quantized to Q4_K_M, served via Ollama. Fits comfortably in 12GB VRAM.
 - **Retrieval strategy:** Top-5 chunks by cosine similarity, concatenated into the prompt with source attribution.
 
 ### 9.3 Prompt template
@@ -761,67 +761,106 @@ als-lm/
 ├── README.md
 ├── LICENSE
 ├── requirements.txt
-├── scripts/
-│   └── setup_env.sh              # Environment setup
-├── docs/
-│   ├── white-paper.md
-│   ├── product-requirements-doc.md
-│   └── design-doc.md
+├── setup.sh                       # Environment setup
+├── .github/
+│   ├── ISSUE_TEMPLATE/
+│   │   └── standard-issue-template.md
+│   ├── workflows/
+│   │   └── auto-backport-pr.yaml
+│   └── pull_request_template.md
+├── benchmark/
+│   ├── readiness_gate.py          # Pre-training readiness validation
+│   └── results.json               # Readiness gate results
+├── config/
+│   └── ds_zero2.json              # DeepSpeed ZeRO Stage 2 configuration
+├── configs/
+│   └── 500m.json                  # 500M model training configuration
 ├── data/
-│   ├── scrapers/
-│   │   ├── pubmed_scraper.py
-│   │   ├── clinicaltrials_scraper.py
-│   │   ├── web_scraper.py         # Educational/institutional content
-│   │   └── config.yaml            # Source URLs and parameters
+│   ├── scrapers/                  # Per-source scrapers (gitignored)
 │   ├── processing/
-│   │   ├── clean.py               # HTML stripping, normalization
+│   │   ├── clean.py               # 11-step cleaning pipeline
 │   │   ├── dedup.py               # Deduplication
-│   │   ├── filter.py              # Volatile content filtering
+│   │   ├── run_pipeline.py        # Pipeline orchestrator
 │   │   ├── split.py               # Train/val split
 │   │   └── stats.py               # Corpus statistics
 │   ├── raw/                       # Raw scraped data (gitignored)
-│   ├── clean/                     # Processed corpus (gitignored)
-│   ├── sources.md                 # Full source inventory
+│   ├── processed/                 # Processed corpus (gitignored)
+│   ├── tokenized/                 # Tokenized data for from-scratch training
+│   ├── tokenized_gpt2/            # Tokenized data for fine-tuning
+│   ├── chromadb/                  # ChromaDB vector store for RAG
+│   ├── sources.md                 # Full source inventory (gitignored)
 │   └── stats.md                   # Corpus statistics
-├── tokenizer/
-│   ├── train_tokenizer.py
-│   ├── validate_tokenizer.py
-│   ├── medical_terms.txt          # Validation term list
-│   └── als_tokenizer.json         # Trained tokenizer (gitignored)
-├── model/
-│   ├── config.py                  # Model configurations (500M, 1B)
-│   ├── model.py                   # Transformer implementation
-│   ├── train.py                   # Training loop
-│   ├── ds_config.json             # DeepSpeed configuration
-│   └── checkpoints/               # Training checkpoints (gitignored)
+├── demo/
+│   └── cli.py                     # Interactive CLI with Ollama backend
+├── docs/
+│   ├── figures/                   # Generated figures for research paper
+│   ├── white-paper.md
+│   ├── product-requirements-doc.md
+│   ├── design-doc.md
+│   ├── research-paper.md
+│   └── model-card.md
+├── eval/
+│   ├── questions.json             # 160-question ALS benchmark
+│   ├── score_responses.py         # Automated scoring
+│   ├── detect_fabrications.py     # Entity-based fabrication detection
+│   ├── build_entity_registry.py   # ~48K entity registry builder
+│   ├── classify_taxonomy.py       # 5-mode failure taxonomy
+│   ├── generate_responses.py      # Model response generation
+│   ├── generate_report.py         # Evaluation report generation
+│   ├── compare_quantizations.py   # Cross-quantization analysis
+│   ├── run_evaluation.py          # Full evaluation pipeline
+│   ├── run_multi_model_eval.py    # Multi-model evaluation runner
+│   ├── curate_samples.py          # Output sample curation
+│   ├── validate_benchmark.py      # Benchmark quality validation
+│   ├── entity_registry.json       # Compiled entity registry
+│   └── results/                   # Evaluation outputs
 ├── export/
 │   ├── convert_to_hf.py           # PyTorch → Hugging Face format
-│   ├── convert_to_gguf.py         # HF → GGUF conversion
-│   ├── quantize.sh                # Quantization script
-│   └── Modelfile                  # Ollama Modelfile
-├── cli/
-│   ├── main.py                    # CLI entry point
-│   ├── backends.py                # Ollama and direct inference backends
-│   ├── config.py                  # Generation parameters
-│   └── logs/                      # Query/response logs (gitignored)
-├── eval/
-│   ├── benchmark/
-│   │   ├── questions.json         # Benchmark Q&A pairs
-│   │   └── create_benchmark.py    # Benchmark creation helpers
-│   ├── failure-taxonomy/
-│   │   ├── taxonomy.py            # Failure categorization
-│   │   └── manual_review.py       # Manual review interface
-│   ├── scoring.py                 # Automated scoring
-│   ├── fabrication_detector.py    # Hallucination flagging
-│   └── results/                   # Evaluation outputs
-├── comparison/
-│   ├── rag_pipeline.py            # RAG implementation
-│   ├── chunk_and_embed.py         # Corpus chunking + embedding
-│   ├── evaluate_rag.py            # Run benchmark against RAG
-│   └── report.py                  # Generate comparison report
-├── samples/                       # Curated output examples
-├── notebooks/                     # Exploratory analysis
-└── blog/                          # Project writeup
+│   ├── export_pipeline.py         # End-to-end export orchestrator
+│   ├── Modelfile.template         # Ollama Modelfile template
+│   └── output/                    # Exported GGUF files
+├── lib/
+│   └── llama.cpp/                 # llama.cpp for GGUF conversion
+├── model/
+│   ├── model.py                   # Transformer implementation + configs
+│   └── train.py                   # Training loop with DeepSpeed
+├── rag/
+│   ├── chunker.py                 # Corpus chunking
+│   ├── index_corpus.py            # Embedding + ChromaDB indexing
+│   ├── generate_rag.py            # RAG response generation
+│   ├── generate_baseline.py       # No-retrieval baseline generation
+│   ├── compare_approaches.py      # RAG comparison orchestrator
+│   ├── ollama_utils.py            # Ollama API utilities
+│   └── results/                   # RAG evaluation outputs
+├── reports/                       # Generated analysis reports
+├── scripts/
+│   ├── train_tokenizer.py         # Tokenizer training
+│   ├── validate_tokenizer.py      # Medical term validation
+│   ├── retrain_tokenizer.py       # Tokenizer retraining utilities
+│   ├── compare_tokenizers.py      # Tokenizer comparison analysis
+│   ├── analyze_training.py        # Training log analysis
+│   ├── compare_models.py          # Cross-model comparison
+│   ├── generate_figures.py        # Research paper figure generation
+│   ├── load_gpt2_weights.py       # GPT-2 weight loading for fine-tuning
+│   ├── prepare_data.py            # Data preparation pipeline
+│   ├── prepare_gpt2_data.py       # GPT-2 tokenized data preparation
+│   ├── validate_gpt2_data.py      # GPT-2 data validation
+│   ├── extract_medical_terms.py   # Medical term extraction
+│   ├── preflight_check.py         # Pre-training system validation
+│   ├── generate_sample_corpus.py  # Synthetic test data generation
+│   └── stress_test.py             # GPU stress testing
+├── tests/
+│   ├── fixtures/                  # Test fixtures
+│   ├── test_chunker.py
+│   ├── test_compare_approaches.py
+│   └── test_generate_rag.py
+├── tokenizer/
+│   ├── als_tokenizer.json         # Active tokenizer (50,257 vocab)
+│   ├── gpt2_tokenizer/            # GPT-2 tokenizer for fine-tuning
+│   ├── hf_tokenizer/              # Hugging Face format tokenizer
+│   └── VALIDATION.md              # Tokenizer validation report
+├── checkpoints/                   # Training checkpoints (gitignored)
+└── logs/                          # Training logs (JSONL + TensorBoard)
 ```
 
 ## 11. Risks and technical mitigations
