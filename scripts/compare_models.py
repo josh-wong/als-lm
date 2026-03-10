@@ -361,7 +361,7 @@ def generate_markdown_report(
         f"parameters and general English knowledge from WebText, fine-tuning "
         f"on 143M ALS tokens produces a model that is still "
         f"{100 - f_acc:.0f}% away from useful accuracy, reinforcing the "
-        f"data deficit thesis."
+        f"data deficit hypothesis."
     )
     add()
 
@@ -673,7 +673,7 @@ def generate_markdown_report(
     add()
     add(
         "The comparison between the from-scratch 500M model and the "
-        "fine-tuned GPT-2 large model reinforces the data deficit thesis "
+        "fine-tuned GPT-2 large model reinforces the data deficit hypothesis "
         "that is the central finding of this project. Even with 774M "
         "pretrained parameters and general English knowledge from WebText "
         "pretraining, fine-tuning on 143M ALS tokens only improves mean "

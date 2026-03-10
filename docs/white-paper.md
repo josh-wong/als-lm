@@ -1,16 +1,17 @@
-# ALS-LM: Exploring Domain-Specific Language Models for Sensitive Medical Knowledge
+# ALS-LM: Exploring domain-specific language models for sensitive medical knowledge
 
 **Author:** [josh-wong](https://github.com/josh-wong)
 **Date:** February 21, 2026
-**Status:** Approved
+**Last revised:** March 9, 2026
+**Status:** Complete
 
 ---
 
 ## Abstract
 
-Large language models have demonstrated impressive general-purpose capabilities, but their behavior in specialized medical domains raises significant questions about accuracy, safety, and trustworthiness. This paper presents ALS-LM, a project that trains a domain-specific language model (500M–1B parameters) from scratch on a curated corpus of amyotrophic lateral sclerosis (ALS) research and educational content. The project's primary contribution is not the model itself but a structured investigation into how domain-specific, from-scratch models internalize medical knowledge, where they fail, and how their failure modes compare to retrieval-augmented generation (RAG) approaches that use the same corpus. By treating hallucination measurement as a first-class research objective, the project aims to contribute practical insights into the question of which architectures are most appropriate for sensitive domain knowledge.
+Large language models have demonstrated impressive general-purpose capabilities, but their behavior in specialized medical domains raises significant questions about accuracy, safety, and trustworthiness. This paper presents ALS-LM, a project that trains a domain-specific language model (500M–1B parameters) from scratch on a curated corpus of amyotrophic lateral sclerosis (ALS) research and educational content. The project's primary contribution is not the model itself but a structured investigation into how domain-specific, from-scratch models internalize medical knowledge, where they fail, and how their failure modes compare to retrieval-augmented generation (RAG) approaches that use the same corpus. A controlled comparison experiment fine-tuning a pretrained GPT-2 large model (774M parameters) on the same corpus validated the data deficit hypothesis, yielding a 15x accuracy improvement (0.21% to 3.12% at Q8_0) but revealing instruction-following as an orthogonal limitation, with 97.5% of responses degrading into repetitive or incoherent output. By treating hallucination measurement as a first-class research objective, the project aims to contribute practical insights into the question of which architectures are most appropriate for sensitive domain knowledge.
 
-## 1. Introduction
+## 1. Motivation
 
 The proliferation of large language models (LLMs) has created a tension in medical informatics. On one hand, these models can synthesize and surface medical knowledge in accessible ways. On the other hand, their tendency to hallucinate—generating plausible but factually incorrect statements—poses a particular risk in medical contexts where inaccurate information can cause real harm.
 
@@ -64,7 +65,7 @@ A key curation principle is **temporal stability**. Content that changes frequen
 
 ### 3.2 Tokenizer
 
-A custom byte-pair encoding (BPE) tokenizer is trained on the corpus by using the Hugging Face `tokenizers` library. The primary motivation is efficient handling of medical vocabulary. Terms like "neurodegeneration," "fasciculation," "riluzole," and "superoxide dismutase" should be represented as single or few tokens rather than fragmented into subword pieces by a general-purpose tokenizer. Vocabulary size will be determined experimentally in the 8K–32K range, balancing coverage against model capacity.
+A custom byte-pair encoding (BPE) tokenizer is trained on the corpus by using the Hugging Face `tokenizers` library. The primary motivation is efficient handling of medical vocabulary. Terms like "neurodegeneration," "fasciculation," "riluzole," and "superoxide dismutase" should be represented as single or few tokens rather than fragmented into subword pieces by a general-purpose tokenizer. The final vocabulary size of 50,257 tokens was determined experimentally after initial validation showed that smaller vocabularies (16K, 32K) underperformed on medical terminology coverage.
 
 ### 3.3 Model architecture
 
@@ -74,7 +75,7 @@ Training is conducted on a consumer-grade setup: NVIDIA RTX 3060 (12GB VRAM), 64
 
 ### 3.4 Evaluation framework
 
-Evaluation is structured around a curated benchmark of 100–200 factual questions with verified correct answers spanning drug knowledge, gene associations, diagnostic criteria, clinical trial literacy, and temporal accuracy.
+Evaluation is structured around a curated benchmark of 160 factual questions with verified correct answers spanning drug knowledge, gene associations, diagnostic criteria, clinical trial literacy, and temporal accuracy.
 
 Model outputs are categorized by using a failure taxonomy (see Section 4) that distinguishes between types of errors by both kind and severity. The same benchmark is applied to a RAG pipeline that uses the same corpus with a pretrained base model, enabling direct comparison of failure modes.
 
@@ -100,7 +101,7 @@ This project does not produce a medical tool. All project documentation, demo in
 
 ### 5.2 Patient data and privacy
 
-The project uses no private medical data of any kind. Patient narratives included in the training corpus are limited to content that individuals have intentionally published for public audiences. The project does not scrape private forums, support groups, or any content protected by medical privacy regulations (HIPAA or equivalent). The [data sources document](data/sources.md) provides a full inventory of all sources with licensing and ethical justification.
+The project uses no private medical data of any kind. Patient narratives included in the training corpus are limited to content that individuals have intentionally published for public audiences. The project does not scrape private forums, support groups, or any content protected by medical privacy regulations (HIPAA or equivalent). The [data sources document](../data/sources.md) provides a full inventory of all sources with licensing and ethical justification.
 
 ### 5.3 Responsible publication
 
@@ -118,7 +119,11 @@ This project aims to contribute to the understanding of domain-specific language
 - **A structured framework for evaluating medical hallucinations.** The failure taxonomy and benchmark methodology are designed to be reusable. Other researchers working on domain-specific medical models can adopt the evaluation framework for their own domains.
 - **An empirical comparison of architectural approaches for sensitive knowledge.** The from-scratch versus RAG comparison, with its emphasis on failure severity rather than simple accuracy, offers practical guidance for practitioners deciding how to deploy medical knowledge systems.
 
-## 7. Limitations
+## 7. Extended investigation
+
+Having established the data deficit hypothesis with the from-scratch model, the project tested whether pretrained general knowledge could bridge the gap by fine-tuning OpenAI's GPT-2 large (774M parameters) on the same ALS corpus (146M tokens re-tokenized with the GPT-2 tokenizer, trained for 2 epochs). At the Q8_0 quantization level, the fine-tuned model achieved 3.12% mean accuracy compared to the from-scratch model's 0.21%, a 15x improvement that confirms pretrained knowledge partially compensates for the data deficit. However, 97.5% of the fine-tuned model's responses were degenerate (repetitive or incoherent), compared to 67.5% coherent responses from the from-scratch model. This result reveals that data deficit (which governs factual accuracy) and instruction-following (which governs response coherence) are two orthogonal dimensions of model failure. GPT-2 is a completion-based architecture trained on next-token prediction without instruction-following alignment, which explains why it produces degenerate output when evaluated on a Q&A benchmark despite having access to more relevant knowledge. See the [research paper](research-paper.md), Section 7, for the full methodology and analysis.
+
+## 8. Limitations
 
 This project has several known limitations that should be acknowledged:
 
@@ -128,8 +133,10 @@ This project has several known limitations that should be acknowledged:
 - **Hardware constraints.** Consumer-grade GPU training with CPU offloading may introduce training dynamics (slower convergence, different batch size constraints) that would not be present at larger scales.
 - **Evaluation subjectivity.** Some failure taxonomy categories (particularly "accurate but misleading") require subjective judgment. The project will document inter-rater agreement where applicable.
 
-## 8. Conclusion
+Subsequent experimental results confirmed these limitations. See the [research paper](research-paper.md) for the full analysis of how data deficit, model scale, and corpus scope affected outcomes.
 
-ALS-LM is an intentionally focused project that asks a big question: what is the right way to build AI systems that handle sensitive medical knowledge? By training a model from scratch, evaluating its failures rigorously, and comparing it against retrieval-augmented alternatives, the project aims to produce insights that are useful beyond its specific domain and scale.
+## 9. Conclusion
+
+ALS-LM is an intentionally focused project that asks a big question: what is the right way to build AI systems that handle sensitive medical knowledge? By training a model from scratch, evaluating its failures rigorously, and comparing it against retrieval-augmented alternatives, the project has produced findings that are useful beyond its specific domain and scale. See the [research paper](research-paper.md) for the complete results and analysis.
 
 The project prioritizes transparency, reproducibility, and ethical responsibility. Every decision—from data sourcing to model publication—is documented and justified. The goal is not to build a better medical chatbot but to understand the tradeoffs involved in doing so, and to share that understanding openly.

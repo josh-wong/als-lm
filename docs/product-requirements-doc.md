@@ -36,7 +36,7 @@ Scope defines what is included and excluded from the project.
 - Data cleaning, deduplication, and processing pipeline
 - Custom BPE tokenizer trained on the ALS corpus
 - Decoder-only transformer model (500M–1B parameters) trained from scratch
-- Hallucination evaluation benchmark (100–200 factual Q&A pairs)
+- Hallucination evaluation benchmark (160 factual Q&A pairs)
 - Failure taxonomy and categorization of model outputs
 - RAG comparison pipeline that uses the same corpus with a pretrained model
 - Model export to GGUF format for Ollama compatibility
@@ -46,7 +46,7 @@ Scope defines what is included and excluded from the project.
 ### 4.2 Out of scope
 
 - Any production-facing medical information system
-- Fine-tuning of existing pretrained models (this is a from-scratch project; fine-tuning is used only in the RAG comparison baseline)
+- Fine-tuning of existing pretrained models beyond the controlled comparison added in v0.8.0 (GPT-2 large 774M fine-tuned on the ALS corpus to measure the effect of pretrained knowledge)
 - Web-based or graphical user interfaces
 - Mobile applications
 - Multi-language support (the model trains on English-language content; Japanese-language ALS content is excluded to keep scope manageable)
@@ -60,6 +60,8 @@ Functional requirements specify the features and behaviors expected from ALS-LM.
 
 ### FR-1: Data collection pipeline
 
+The data collection pipeline gathers ALS-specific content from multiple public sources into a standardized format.
+
 | ID     | Requirement                                                                                    | Priority    |
 |--------|------------------------------------------------------------------------------------------------|-------------|
 | FR-1.1 | Scrape open-access ALS papers from PubMed Central via the PMC API                              | Must have   |
@@ -70,6 +72,8 @@ Functional requirements specify the features and behaviors expected from ALS-LM.
 | FR-1.6 | Log all sources with URL, access date, license, and ethical justification in `data/sources.md` | Must have   |
 
 ### FR-2: Data processing pipeline
+
+The processing pipeline cleans, deduplicates, and normalizes raw data into a training-ready corpus.
 
 | ID     | Requirement                                                                       | Priority  |
 |--------|-----------------------------------------------------------------------------------|-----------|
@@ -82,14 +86,18 @@ Functional requirements specify the features and behaviors expected from ALS-LM.
 
 ### FR-3: Tokenizer
 
+The tokenizer must efficiently encode medical terminology specific to the ALS domain.
+
 | ID     | Requirement                                                                                                            | Priority    |
 |--------|------------------------------------------------------------------------------------------------------------------------|-------------|
 | FR-3.1 | Train a custom BPE tokenizer on the processed corpus                                                                   | Must have   |
-| FR-3.2 | Vocabulary size configurable in the 8K–32K range                                                                       | Must have   |
+| FR-3.2 | Vocabulary size configurable (final: 50,257 tokens after experimental validation)                                       | Must have   |
 | FR-3.3 | Validate that key medical terms (drug names, gene names, diagnostic terms) are represented as single or minimal tokens | Must have   |
 | FR-3.4 | Document tokenizer analysis and vocabulary coverage                                                                    | Should have |
 
 ### FR-4: Model training
+
+Model training must support transformer architectures at 500M–1B scale within consumer hardware constraints.
 
 | ID     | Requirement                                                                       | Priority    |
 |--------|-----------------------------------------------------------------------------------|-------------|
@@ -103,15 +111,19 @@ Functional requirements specify the features and behaviors expected from ALS-LM.
 
 ### FR-5: Model export and Ollama integration
 
+The export pipeline converts trained models to GGUF format for local inference via Ollama.
+
 | ID     | Requirement                                                              | Priority  |
 |--------|--------------------------------------------------------------------------|-----------|
 | FR-5.1 | Export trained model to GGUF format                                      | Must have |
-| FR-5.2 | Support quantization during export (Q4_K_M, Q5_K_M, Q8_0 at minimum)     | Must have |
+| FR-5.2 | Support quantization during export (Q4_K_M, Q8_0, F16 produced)           | Must have |
 | FR-5.3 | Create an Ollama Modelfile with appropriate parameters and system prompt | Must have |
 | FR-5.4 | Model loads and runs in Ollama via `ollama run als-lm`                   | Must have |
 | FR-5.5 | Document Ollama setup and usage instructions                             | Must have |
 
 ### FR-6: CLI demo
+
+The CLI demo provides an interactive interface for querying the model with appropriate safety disclaimers.
 
 | ID     | Requirement                                                                        | Priority     |
 |--------|------------------------------------------------------------------------------------|--------------|
@@ -124,16 +136,20 @@ Functional requirements specify the features and behaviors expected from ALS-LM.
 
 ### FR-7: Hallucination evaluation
 
+The evaluation framework measures factual accuracy and categorizes failure modes against a curated benchmark.
+
 | ID     | Requirement                                                                                                                                               | Priority    |
 |--------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|
-| FR-7.1 | Create a benchmark of 100–200 factual ALS questions with verified answers                                                                                 | Must have   |
+| FR-7.1 | Create a benchmark of 160 factual ALS questions with verified answers                                                                                     | Must have   |
 | FR-7.2 | Implement automated scoring against the benchmark                                                                                                         | Must have   |
-| FR-7.3 | Categorize failures by using the failure taxonomy (confident fabrication, plausible blending, outdated info, boundary confusion, accurate but misleading) | Must have   |
+| FR-7.3 | Categorize failures by using the failure taxonomy (confident fabrication, plausible blending, outdated information, boundary confusion, accurate but misleading) | Must have   |
 | FR-7.4 | Run the same benchmark against a RAG baseline                                                                                                             | Must have   |
 | FR-7.5 | Generate a comparison report with accuracy rates and failure severity analysis                                                                            | Must have   |
 | FR-7.6 | Include qualitative sample outputs (both good and bad) in the evaluation report                                                                           | Should have |
 
 ### FR-8: RAG comparison baseline
+
+The RAG baseline enables direct comparison between internalized knowledge and retrieval-augmented approaches.
 
 | ID     | Requirement                                                                       | Priority  |
 |--------|-----------------------------------------------------------------------------------|-----------|
@@ -148,6 +164,8 @@ Non-functional requirements address hardware, reproducibility, and documentation
 
 ### NFR-1: Hardware compatibility
 
+All training and inference must run on consumer-grade hardware without requiring cloud resources.
+
 | ID      | Requirement                                                                   | Priority    |
 |---------|-------------------------------------------------------------------------------|-------------|
 | NFR-1.1 | All training runs on a single RTX 3060 (12GB VRAM) with 64GB system RAM       | Must have   |
@@ -155,6 +173,8 @@ Non-functional requirements address hardware, reproducibility, and documentation
 | NFR-1.3 | Inference runs locally on the same hardware via Ollama without noticeable lag | Must have   |
 
 ### NFR-2: Reproducibility
+
+The project must be reproducible by third parties with equivalent hardware and API access.
 
 | ID      | Requirement                                                                        | Priority    |
 |---------|------------------------------------------------------------------------------------|-------------|
@@ -164,6 +184,8 @@ Non-functional requirements address hardware, reproducibility, and documentation
 | NFR-2.4 | Training can be reproduced on any machine with at least 12GB VRAM and 32GB RAM     | Should have |
 
 ### NFR-3: Documentation
+
+Documentation must be sufficient for a third party to understand, set up, and run the project.
 
 | ID      | Requirement                                                                        | Priority  |
 |---------|------------------------------------------------------------------------------------|-----------|
@@ -192,11 +214,13 @@ The project is considered successful if the following are achieved:
 
 **Stretch goals:**
 
-10. A fine-tuned 7B model is included as an upper baseline in the comparison.
+10. A fine-tuned model is included as a controlled comparison (achieved: GPT-2 large 774M fine-tuned on ALS corpus).
 11. The hallucination benchmark is reusable for other ALS-related models.
 12. The CLI demo includes the `/benchmark` command for on-demand evaluation.
 
 ## 8. Milestones
+
+The project is divided into six phases, from planning through final documentation.
 
 | Phase             | Milestone                                                                    | Estimated duration |
 |-------------------|------------------------------------------------------------------------------|--------------------|
@@ -213,6 +237,8 @@ The project is considered successful if the following are achieved:
 
 ## 9. Risks and mitigations
 
+The following risks were identified during planning with corresponding mitigation strategies.
+
 | Risk                                             | Likelihood | Impact | Mitigation                                                                                                                                                       |
 |--------------------------------------------------|------------|--------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Training exceeds VRAM even with offloading       | Medium     | High   | Start with 500M params, scale up only if stable. Have a fallback config ready.                                                                                   |
@@ -220,9 +246,11 @@ The project is considered successful if the following are achieved:
 | Model produces harmful medical misinformation    | High       | Medium | Hallucination evaluation framework, clear disclaimers, responsible publication guidelines. Impact is medium because the model is not deployed as a medical tool. |
 | Training takes longer than expected              | Medium     | Medium | Checkpoint frequently. Treat partial results as valid for analysis. A model that didn't fully converge is still interesting to evaluate.                         |
 | PubMed or ClinicalTrials.gov API changes         | Low        | Medium | Cache all downloaded data locally. Document API versions.                                                                                                        |
-| Scope creep into fine-tuning or larger models    | Medium     | Low    | PRD clearly defines scope. Fine-tuning is only used in the comparison baseline.                                                                                  |
+| Scope creep into fine-tuning or larger models    | Medium     | Low    | PRD clearly defines scope. Fine-tuning was added as a controlled comparison (GPT-2 large 774M) rather than a production objective.                               |
 
 ## 10. Dependencies
+
+The project relies on the following external tools and services, each with an identified fallback.
 
 | Dependency             | Purpose                         | Fallback                                            |
 |------------------------|---------------------------------|-----------------------------------------------------|

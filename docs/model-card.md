@@ -1,16 +1,16 @@
 # ALS-LM model card
 
-> [!NOTE]
+> [!CAUTION]
 >
-> ALS-LM is a machine-learning research artifact, not a medical tool. It achieves a 0.0% binary pass rate on our 160-question factual accuracy benchmark and fabricates medical entities at a 66% rate. It should never be used for clinical decision-making, patient education, or any application where factual accuracy matters.
+> This project produced two model variants, neither suitable for medical use. The from-scratch 500M model achieves a 0.0% binary pass rate and fabricates medical entities at a 66.4% rate. The fine-tuned GPT-2 large 774M model achieves only 3.12% mean accuracy, with 97.5% of its responses degrading into repetitive or incoherent output. Neither model should ever be used for clinical decision-making, patient education, or any application where factual accuracy matters.
 >
 > For reliable ALS information, please consult the [ALS Association](https://www.als.org/), [Mayo Clinic](https://www.mayoclinic.org/diseases-conditions/amyotrophic-lateral-sclerosis/symptoms-causes/syc-20354022), or [NIH NINDS](https://www.ninds.nih.gov/health-information/disorders/amyotrophic-lateral-sclerosis-als).
 
 ## Model details
 
-ALS-LM is a 516M-parameter decoder-only transformer trained from scratch on 143M tokens of curated amyotrophic lateral sclerosis (ALS) research. We built the model to investigate what a purpose-built language model can learn from a narrow medical corpus, how it fails, and how those failure modes compare to retrieval-augmented generation (RAG) approaches. The near-zero factual accuracy we observed is a central research finding, not a shortcoming — it demonstrates the data deficit threshold below which domain-specific models cannot internalize factual knowledge.
+ALS-LM is a 516M-parameter decoder-only transformer trained from scratch on 143M tokens of curated amyotrophic lateral sclerosis (ALS) research. We built the model to investigate what a purpose-built language model can learn from a narrow medical corpus, how it fails, and how those failure modes compare to retrieval-augmented generation (RAG) approaches. The near-zero factual accuracy we observed is a central research finding, not a shortcoming—it demonstrates the data deficit threshold below which domain-specific models cannot internalize factual knowledge.
 
-We use a GPT-2-style architecture with Pre-LN (layer normalization before attention) for training stability.
+We use a GPT-2-style architecture with Pre-LN (layer normalization before attention) for training stability. As a controlled comparison experiment, we also fine-tuned GPT-2 large (774M parameters) on the same ALS corpus; see the [Model variants](#model-variants) section below for details.
 
 | Parameter           | Value               |
 |---------------------|---------------------|
@@ -29,6 +29,42 @@ We trained the model with PyTorch and DeepSpeed ZeRO Stage 2 with CPU offloading
 - **Repository:** [als-lm on GitHub](https://github.com/josh-wong/als-lm)
 - **Research paper:** [Full methodology and analysis](research-paper.md)
 - **Interactive demo:** [CLI chat interface](../demo/cli.py)
+
+## Model variants
+
+As a controlled comparison experiment, we fine-tuned OpenAI's GPT-2 large (774M parameters) on the same ALS corpus to test whether pretrained general knowledge could overcome the data deficit hypothesis observed with the from-scratch model. See [Section 7 of the research paper](research-paper.md#7-general-pretraining-comparison) for the full methodology and analysis.
+
+### Fine-tuned GPT-2 large (774M)
+
+The fine-tuned variant uses OpenAI's pretrained GPT-2 large weights as a starting point.
+
+| Parameter           | Value                                        |
+|---------------------|----------------------------------------------|
+| Base model          | GPT-2 large (OpenAI, pretrained on WebText)  |
+| Parameters          | 774M                                         |
+| Layers              | 36                                           |
+| Attention heads     | 20                                           |
+| Embedding dimension | 1,280                                        |
+| Context length      | 1,024 tokens                                 |
+| Normalization       | Post-LN (LayerNorm)                          |
+| Fine-tuning data    | 146M tokens (ALS corpus, GPT-2 tokenizer)    |
+| Training time       | ~16 hours, 2 epochs                          |
+| Optimizer           | AdamW (lr=2e-5, cosine decay)                |
+| Memory strategy     | DeepSpeed ZeRO Stage 2, CPU offloading       |
+
+#### Evaluation results (Q8_0)
+
+The following table compares both model variants at the Q8_0 quantization level.
+
+| Metric              | ALS-LM 500M (from-scratch)   | GPT-2 large 774M (fine-tuned) |
+|---------------------|-------------------------------|-------------------------------|
+| Mean accuracy       | 0.21%                         | 3.12% (15x improvement)       |
+| Binary pass rate    | 0.0%                          | 1.87%                         |
+| Coherent responses  | 108/160 (67.5%)               | 4/160 (2.5%)                  |
+| Fabrication rate    | 66.4%                         | 77.0%                         |
+| Dominant failure    | Confident fabrication (33.1%) | Degenerate output (97.5%)     |
+
+The 15x accuracy improvement (0.21% to 3.12%) confirms that pretrained knowledge partially bridges the data deficit gap. However, 97.5% degenerate output reveals that GPT-2's completion-based architecture lacks the instruction-following capability needed for the Q&A evaluation format. Data deficit and instruction-following are two orthogonal dimensions of model failure.
 
 ## Intended use
 
@@ -49,7 +85,7 @@ We explicitly prohibit the following uses of ALS-LM:
 - Any application requiring factual accuracy about ALS or any other medical topic
 - Generating text presented as medical information to any audience
 
-The model's 0.0% binary pass rate across 480 evaluations makes it unsuitable for any information-retrieval purpose.
+Neither model variant—the from-scratch model at 0.0% and the fine-tuned model at 1.87% binary pass rate—achieves accuracy sufficient for any information-retrieval purpose.
 
 ## Training data
 
@@ -77,11 +113,11 @@ We trained for 3 epochs (11,760 steps) over 4 hours and 27 minutes.
 | Precision            | FP16 mixed precision                         |
 | Memory strategy      | DeepSpeed ZeRO Stage 2, CPU offloading       |
 
-Training converged to a final validation loss of 5.4956 with a loss relative gap of +0.42%, which we classify as Well-fit. Despite this healthy training dynamic, the model achieves near-zero factual accuracy — a central finding of the research that we analyze in detail in the [research paper](research-paper.md).
+Training converged to a final validation loss of 5.4956 with a loss relative gap of +0.42%, which we classify as Well-fit. Despite this healthy training dynamic, the model achieves near-zero factual accuracy—a central finding of the research that we analyze in detail in the [research paper](research-paper.md).
 
 ## Evaluation results
 
-We evaluated all three GGUF quantization levels against a 160-question ALS factual benchmark using key-fact fuzzy matching, entity-based fabrication detection (~48K medical entities), and a 5-mode failure taxonomy.
+We evaluated all three GGUF quantization levels against a 160-question ALS factual benchmark by using key-fact fuzzy matching, entity-based fabrication detection (~48K entities), and a 5-mode failure taxonomy.
 
 | Model           | Mean accuracy | Binary pass | Fabrication rate | Coherent responses  |
 |-----------------|---------------|-------------|------------------|---------------------|
@@ -89,19 +125,21 @@ We evaluated all three GGUF quantization levels against a 160-question ALS factu
 | ALS-LM (Q8_0)   |        0.0021 |       0.0%  |           66.4%  |   108/160 (67.5%)   |
 | ALS-LM (Q4_K_M) |        0.0052 |       0.0%  |           66.2%  |   116/160 (72.5%)   |
 
-All three quantization levels achieve 0.0% binary pass rate. The dominant failure modes are confident fabrication (33.8%), degenerate output (27.5%), and plausible blending (26.9%). Quantization level has no meaningful effect on evaluation quality, suggesting the accuracy ceiling is determined by training data volume rather than inference precision.
+All three quantization levels achieve 0.0% binary pass rate. The dominant failure modes are confident fabrication (33.1%), degenerate output (32.5%), and plausible blending (23.8%). Quantization level has no meaningful effect on evaluation quality, suggesting the accuracy ceiling is determined by training data volume rather than inference precision.
 
-We also conducted a RAG comparison experiment using four configurations (two embedding models at two chunk sizes) with ChromaDB, benchmarked against a no-retrieval Llama 3.1 8B baseline. The best RAG configuration (500-token chunks with PubMedBERT embeddings) achieved 13.8% mean accuracy but did not exceed the no-retrieval baseline at 14.3%, revealing retrieval quality as the primary bottleneck rather than generation capability. For the full RAG methodology and failure decomposition analysis, see [Section 6 of the research paper](research-paper.md#6-rag-comparison).
+We also conducted a RAG comparison experiment by using four configurations (two embedding models at two chunk sizes) with ChromaDB, benchmarked against a no-retrieval Llama 3.1 8B baseline. The best RAG configuration (500-token chunks with PubMedBERT embeddings) achieved 13.8% mean accuracy but did not exceed the no-retrieval baseline at 14.3%, revealing retrieval quality as the primary bottleneck rather than generation capability. For the full RAG methodology and failure decomposition analysis, see [Section 6 of the research paper](research-paper.md#6-rag-comparison).
 
 ## Bias, risks, and limitations
 
 ### Medical safety
 
-ALS-LM has demonstrated a near-complete inability to produce factually accurate medical content. Across 480 evaluations (160 questions x 3 quantization levels), the model achieves 0.0% binary pass rate, fabricates medical entities at a 66% rate, and produces degenerate output (repetitive or incoherent text) 27.5% of the time. Anyone who encounters this model should understand it as a research artifact demonstrating failure modes, not a functional information source.
+ALS-LM has demonstrated a near-complete inability to produce factually accurate medical content. Across 480 evaluations (160 questions x 3 quantization levels), the model achieves 0.0% binary pass rate, fabricates medical entities at a 66.4% rate, and produces degenerate output (repetitive or incoherent text) 32.5% of the time. Anyone who encounters this model should understand it as a research artifact demonstrating failure modes, not a functional information source.
+
+The fine-tuned GPT-2 large model exhibits a distinct failure profile. While the from-scratch model fails primarily through fabrication—inventing plausible but false medical content with high confidence—the fine-tuned model fails through degeneration, with 97.5% of responses producing repetitive or incoherent output. Both failure profiles make the models unsuitable for any medical use, but for different reasons: the from-scratch model is dangerously confident in wrong answers, while the fine-tuned model mostly fails to produce coherent responses at all.
 
 ### Technical limitations
 
-We trained on only 143M tokens, which is 80x below the Chinchilla-optimal ratio of ~20 tokens per parameter for a 516M model. This severe data deficit is the primary explanation for the near-zero factual accuracy despite healthy training loss convergence. Additional limitations include single-domain training (ALS literature only, with no general English pre-training), a single model size (516M parameters, with no scaling experiments), and a 1,024-token context window that constrains the complexity of questions the model can address.
+We trained on only 143M tokens, which is 80x below the Chinchilla-optimal ratio of ~20 tokens per parameter for a 516M model. This severe data deficit is the primary explanation for the near-zero factual accuracy despite healthy training loss convergence. The fine-tuning experiment confirmed the data deficit as the primary accuracy bottleneck, with pretrained knowledge yielding a 15x improvement, while revealing instruction-following as a separate limitation not addressed by domain-specific training alone. Additional limitations include single-domain training (ALS literature only, with no general English pretraining), a single model size (516M parameters, with no scaling experiments), and a 1,024-token context window that constrains the complexity of questions the model can address.
 
 ### Recommendations
 
