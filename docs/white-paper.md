@@ -65,7 +65,7 @@ A key curation principle is **temporal stability**. Content that changes frequen
 
 ### 3.2 Tokenizer
 
-A custom byte-pair encoding (BPE) tokenizer is trained on the corpus by using the Hugging Face `tokenizers` library. The primary motivation is efficient handling of medical vocabulary. Terms like "neurodegeneration," "fasciculation," "riluzole," and "superoxide dismutase" should be represented as single or few tokens rather than fragmented into subword pieces by a general-purpose tokenizer. Vocabulary size will be determined experimentally in the 8K–32K range, balancing coverage against model capacity.
+A custom byte-pair encoding (BPE) tokenizer is trained on the corpus by using the Hugging Face `tokenizers` library. The primary motivation is efficient handling of medical vocabulary. Terms like "neurodegeneration," "fasciculation," "riluzole," and "superoxide dismutase" should be represented as single or few tokens rather than fragmented into subword pieces by a general-purpose tokenizer. The final vocabulary size of 50,257 tokens was determined experimentally after initial validation showed that smaller vocabularies (16K, 32K) underperformed on medical terminology coverage.
 
 ### 3.3 Model architecture
 
@@ -75,7 +75,7 @@ Training is conducted on a consumer-grade setup: NVIDIA RTX 3060 (12GB VRAM), 64
 
 ### 3.4 Evaluation framework
 
-Evaluation is structured around a curated benchmark of 100–200 factual questions with verified correct answers spanning drug knowledge, gene associations, diagnostic criteria, clinical trial literacy, and temporal accuracy.
+Evaluation is structured around a curated benchmark of 160 factual questions with verified correct answers spanning drug knowledge, gene associations, diagnostic criteria, clinical trial literacy, and temporal accuracy.
 
 Model outputs are categorized by using a failure taxonomy (see Section 4) that distinguishes between types of errors by both kind and severity. The same benchmark is applied to a RAG pipeline that uses the same corpus with a pretrained base model, enabling direct comparison of failure modes.
 

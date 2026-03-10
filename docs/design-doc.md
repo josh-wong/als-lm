@@ -515,21 +515,20 @@ flowchart TD
 
 Quantization options are provided to balance quality and memory usage.
 
-| Format | Size (500M) | Size (1B) | Quality | Use case                         |
-|--------|-------------|-----------|---------|----------------------------------|
-| Q4_K_M | ~300MB      | ~600MB    | Good    | Default for interactive use      |
-| Q5_K_M | ~375MB      | ~750MB    | Better  | Recommended balance              |
-| Q8_0   | ~500MB      | ~1GB      | Best    | Evaluation and benchmarking      |
-| f16    | ~1GB        | ~2GB      | Full    | Reference (no quantization loss) |
+| Format | Size (500M) | Quality | Use case                              |
+|--------|-------------|---------|---------------------------------------|
+| Q4_K_M | ~300MB      | Good    | Default for interactive use            |
+| Q8_0   | ~500MB      | Best    | Evaluation and benchmarking (primary)  |
+| F16    | ~1GB        | Full    | Reference (no quantization loss)       |
 
-Q5_K_M is the recommended default—good quality with comfortable memory headroom on 12GB VRAM.
+These three quantization levels were produced and evaluated. Q5_K_M was originally planned but not exported; Q8_0 serves as the primary evaluation level across all comparison tables.
 
 ### 6.3 Ollama Modelfile
 
 The Ollama Modelfile specifies parameters and system prompts for deployment.
 
 ```dockerfile
-FROM ./als-lm-q5_k_m.gguf
+FROM ./als-lm-q8_0.gguf
 
 PARAMETER temperature 0.7
 PARAMETER top_p 0.9
@@ -633,7 +632,7 @@ The evaluation framework measures model accuracy and failure modes.
 
 ### 8.1 Benchmark design
 
-The hallucination benchmark consists of 100–200 question-answer pairs organized by category:
+The hallucination benchmark consists of 160 question-answer pairs organized by category:
 
 | Category                   | Count | Example                                               |
 |----------------------------|-------|-------------------------------------------------------|
@@ -698,11 +697,11 @@ Results are aggregated into a comparison matrix:
 | Response classification | From scratch | RAG baseline |
 |-------------------------|--------------|--------------|
 | Correct                 |     XX%      |     XX%      |
-| Confident fabrication   |     XX%      |     XX%      |
-| Plausible blending      |     XX%      |     XX%      |
-| Outdated information    |     XX%      |     XX%      |
-| Boundary confusion      |     XX%      |     XX%      |
-| Accurate/misleading     |     XX%      |     XX%      |
+| confident fabrication   |     XX%      |     XX%      |
+| plausible blending      |     XX%      |     XX%      |
+| outdated information    |     XX%      |     XX%      |
+| boundary confusion      |     XX%      |     XX%      |
+| Accurate but misleading |     XX%      |     XX%      |
 
 ## 9. RAG comparison baseline
 
@@ -909,7 +908,7 @@ Development phases are outlined to guide project progress.
 
 ### Phase 5: Evaluation (Weeks 9–10)
 
-1. Create hallucination benchmark (100–200 questions)
+1. Create hallucination benchmark (160 questions)
 2. Run automated scoring against from-scratch model
 3. Manual review of sample outputs with failure taxonomy
 4. Build RAG baseline, run same benchmark

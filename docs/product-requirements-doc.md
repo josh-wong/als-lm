@@ -36,7 +36,7 @@ Scope defines what is included and excluded from the project.
 - Data cleaning, deduplication, and processing pipeline
 - Custom BPE tokenizer trained on the ALS corpus
 - Decoder-only transformer model (500M–1B parameters) trained from scratch
-- Hallucination evaluation benchmark (100–200 factual Q&A pairs)
+- Hallucination evaluation benchmark (160 factual Q&A pairs)
 - Failure taxonomy and categorization of model outputs
 - RAG comparison pipeline that uses the same corpus with a pretrained model
 - Model export to GGUF format for Ollama compatibility
@@ -85,7 +85,7 @@ Functional requirements specify the features and behaviors expected from ALS-LM.
 | ID     | Requirement                                                                                                            | Priority    |
 |--------|------------------------------------------------------------------------------------------------------------------------|-------------|
 | FR-3.1 | Train a custom BPE tokenizer on the processed corpus                                                                   | Must have   |
-| FR-3.2 | Vocabulary size configurable in the 8K–32K range                                                                       | Must have   |
+| FR-3.2 | Vocabulary size configurable (final: 50,257 tokens after experimental validation)                                       | Must have   |
 | FR-3.3 | Validate that key medical terms (drug names, gene names, diagnostic terms) are represented as single or minimal tokens | Must have   |
 | FR-3.4 | Document tokenizer analysis and vocabulary coverage                                                                    | Should have |
 
@@ -106,7 +106,7 @@ Functional requirements specify the features and behaviors expected from ALS-LM.
 | ID     | Requirement                                                              | Priority  |
 |--------|--------------------------------------------------------------------------|-----------|
 | FR-5.1 | Export trained model to GGUF format                                      | Must have |
-| FR-5.2 | Support quantization during export (Q4_K_M, Q5_K_M, Q8_0 at minimum)     | Must have |
+| FR-5.2 | Support quantization during export (Q4_K_M, Q8_0, F16 produced)           | Must have |
 | FR-5.3 | Create an Ollama Modelfile with appropriate parameters and system prompt | Must have |
 | FR-5.4 | Model loads and runs in Ollama via `ollama run als-lm`                   | Must have |
 | FR-5.5 | Document Ollama setup and usage instructions                             | Must have |
@@ -126,7 +126,7 @@ Functional requirements specify the features and behaviors expected from ALS-LM.
 
 | ID     | Requirement                                                                                                                                               | Priority    |
 |--------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|
-| FR-7.1 | Create a benchmark of 100–200 factual ALS questions with verified answers                                                                                 | Must have   |
+| FR-7.1 | Create a benchmark of 160 factual ALS questions with verified answers                                                                                     | Must have   |
 | FR-7.2 | Implement automated scoring against the benchmark                                                                                                         | Must have   |
 | FR-7.3 | Categorize failures by using the failure taxonomy (confident fabrication, plausible blending, outdated info, boundary confusion, accurate but misleading) | Must have   |
 | FR-7.4 | Run the same benchmark against a RAG baseline                                                                                                             | Must have   |
