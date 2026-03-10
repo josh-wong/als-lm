@@ -1,6 +1,6 @@
 # ALS-LM: A domain-specific language model for ALS knowledge
 
-ALS-LM is a 516M-parameter decoder-only transformer trained from scratch on 143M tokens of curated amyotrophic lateral sclerosis (ALS) research. The project investigates what a purpose-built model can learn from a narrow medical corpus, how it fails, and how its failure modes compare to retrieval-augmented generation (RAG). A controlled comparison experiment fine-tuning GPT-2 large (774M parameters) on the same corpus validates the data deficit finding and reveals instruction-following as a separate failure dimension.
+ALS-LM is a 516M-parameter decoder-only transformer trained from scratch on 143M tokens of curated amyotrophic lateral sclerosis (ALS) research. The project investigates what a purpose-built model can learn from a narrow medical corpus, how it fails, and how its failure modes compare to retrieval-augmented generation (RAG). A controlled comparison experiment fine-tuning GPT-2 large (774M parameters) on the same corpus validates the data deficit hypothesis and reveals instruction-following as a separate failure dimension.
 
 > [!CAUTION]
 >
@@ -70,7 +70,7 @@ All three quantization levels achieve 0.0% binary pass rate across the 160-quest
 | ALS-LM (Q8_0)   |        0.0021 |       0.0%  |           66.4%  |   108/160 (67.5%)  |
 | ALS-LM (Q4_K_M) |        0.0052 |       0.0%  |           66.2%  |   116/160 (72.5%)  |
 
-The failure taxonomy reveals three dominant modes: confident fabrication (33.8%), degenerate output (27.5%), and plausible blending (26.9%).
+The failure taxonomy reveals three dominant modes: confident fabrication (33.1%), degenerate output (32.5%), and plausible blending (23.8%).
 
 ![Failure taxonomy distribution showing the proportions of confident fabrication, plausible blending, outdated information, and degenerate output](docs/figures/failure_taxonomy.png)
 
