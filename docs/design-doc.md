@@ -690,7 +690,7 @@ Failure taxonomy is applied to categorize and analyze model errors.
 Each manually reviewed response is assigned:
 
 1. **Correctness label:** Correct, Partially Correct, Incorrect, Refusal
-2. **Failure mode** (if not Correct): Confident Fabrication, Plausible Blending, Outdated Information, Boundary Confusion, Accurate but Misleading
+2. **Failure mode** (if not Correct): confident fabrication, plausible blending, outdated information, boundary confusion, accurate but misleading
 3. **Severity:** Low (minor inaccuracy), Medium (meaningfully wrong), High (potentially harmful if taken as medical advice)
 4. **Notes:** Free-text explanation of the failure
 
@@ -698,12 +698,12 @@ Results are aggregated into a comparison matrix:
 
 | Response classification | From scratch | RAG baseline |
 |-------------------------|--------------|--------------|
-| Correct                 |     XX%      |     XX%      |
+| correct                 |     XX%      |     XX%      |
 | confident fabrication   |     XX%      |     XX%      |
 | plausible blending      |     XX%      |     XX%      |
 | outdated information    |     XX%      |     XX%      |
 | boundary confusion      |     XX%      |     XX%      |
-| Accurate but misleading |     XX%      |     XX%      |
+| accurate but misleading |     XX%      |     XX%      |
 
 ## 9. RAG comparison baseline
 
@@ -884,7 +884,7 @@ Development phases are outlined to guide project progress.
 
 ### Phase 1: Environment and data (weeks 1–3)
 
-1. Set up WSL2 + Miniconda + CUDA + PyTorch environment
+1. Set up WSL2 + Python 3.12 (venv) + CUDA + PyTorch environment
 2. Implement and run all scrapers
 3. Run processing pipeline, generate corpus statistics
 4. Review and document all sources in `data/sources.md`
@@ -906,7 +906,7 @@ Development phases are outlined to guide project progress.
 ### Phase 4: Export and CLI (week8)
 
 1. Convert best checkpoint to GGUF
-2. Quantize to Q4_K_M, Q5_K_M, Q8_0
+2. Quantize to Q4_K_M, Q8_0
 3. Create Ollama Modelfile, verify `ollama run als-lm` works
 4. Implement CLI demo
 
