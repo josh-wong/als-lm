@@ -6,7 +6,7 @@
 
 ---
 
-## 1. Overview
+## 1. System context and constraints
 
 This document describes the technical architecture and implementation plan for ALS-LM, a domain-specific language model trained from scratch on ALS (amyotrophic lateral sclerosis) research and educational content. It covers the full pipeline from data collection through model export and evaluation, and is intended to be read alongside the [white paper](white-paper.md) and [product requirements document](product-requirements-doc.md).
 
@@ -878,42 +878,42 @@ als-lm/
 
 Development phases are outlined to guide project progress.
 
-### Phase 1: Environment and data (Weeks 1–3)
+### Phase 1: Environment and data (weeks 1–3)
 
 1. Set up WSL2 + Miniconda + CUDA + PyTorch environment
 2. Implement and run all scrapers
 3. Run processing pipeline, generate corpus statistics
 4. Review and document all sources in `data/sources.md`
 
-### Phase 2: Tokenizer and model setup (Week 4)
+### Phase 2: Tokenizer and model setup (week4)
 
 1. Train custom tokenizer, validate against medical term list
 2. Implement model architecture
 3. Test training loop with a tiny model (1M params) to verify pipeline end-to-end
 4. Test GGUF conversion with the tiny model to catch export issues early
 
-### Phase 3: Training (Weeks 5–7)
+### Phase 3: Training (weeks 5–7)
 
 1. Train 500M configuration
 2. Monitor training curves, adjust hyperparameters if needed
 3. If 500M is stable and time permits, attempt 1B configuration
 4. Select best checkpoint based on validation loss
 
-### Phase 4: Export and CLI (Week 8)
+### Phase 4: Export and CLI (week8)
 
 1. Convert best checkpoint to GGUF
 2. Quantize to Q4_K_M, Q5_K_M, Q8_0
 3. Create Ollama Modelfile, verify `ollama run als-lm` works
 4. Implement CLI demo
 
-### Phase 5: Evaluation (Weeks 9–10)
+### Phase 5: Evaluation (weeks 9–10)
 
 1. Create hallucination benchmark (160 questions)
 2. Run automated scoring against from-scratch model
 3. Manual review of sample outputs with failure taxonomy
 4. Build RAG baseline, run same benchmark
 
-### Phase 6: Comparison and writeup (Weeks 11–12)
+### Phase 6: Comparison and writeup (weeks 11–12)
 
 1. Generate comparison report
 2. Write blog post summarizing findings

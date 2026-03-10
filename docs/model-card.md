@@ -115,7 +115,7 @@ Training converged to a final validation loss of 5.4956 with a loss relative gap
 
 ## Evaluation results
 
-We evaluated all three GGUF quantization levels against a 160-question ALS factual benchmark using key-fact fuzzy matching, entity-based fabrication detection (~48K medical entities), and a 5-mode failure taxonomy.
+We evaluated all three GGUF quantization levels against a 160-question ALS factual benchmark using key-fact fuzzy matching, entity-based fabrication detection (~48K entities), and a 5-mode failure taxonomy.
 
 | Model           | Mean accuracy | Binary pass | Fabrication rate | Coherent responses  |
 |-----------------|---------------|-------------|------------------|---------------------|

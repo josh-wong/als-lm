@@ -1,4 +1,4 @@
-# ALS-LM: Exploring Domain-Specific Language Models for Sensitive Medical Knowledge
+# ALS-LM: Exploring domain-specific language models for sensitive medical knowledge
 
 **Author:** [josh-wong](https://github.com/josh-wong)
 **Date:** February 21, 2026
@@ -11,7 +11,7 @@
 
 Large language models have demonstrated impressive general-purpose capabilities, but their behavior in specialized medical domains raises significant questions about accuracy, safety, and trustworthiness. This paper presents ALS-LM, a project that trains a domain-specific language model (500M–1B parameters) from scratch on a curated corpus of amyotrophic lateral sclerosis (ALS) research and educational content. The project's primary contribution is not the model itself but a structured investigation into how domain-specific, from-scratch models internalize medical knowledge, where they fail, and how their failure modes compare to retrieval-augmented generation (RAG) approaches that use the same corpus. A controlled comparison experiment fine-tuning a pretrained GPT-2 large model (774M parameters) on the same corpus validated the data deficit hypothesis, yielding a 15x accuracy improvement (0.21% to 3.12% at Q8_0) but revealing instruction-following as an orthogonal limitation, with 97.5% of responses degrading into repetitive or incoherent output. By treating hallucination measurement as a first-class research objective, the project aims to contribute practical insights into the question of which architectures are most appropriate for sensitive domain knowledge.
 
-## 1. Introduction
+## 1. Motivation
 
 The proliferation of large language models (LLMs) has created a tension in medical informatics. On one hand, these models can synthesize and surface medical knowledge in accessible ways. On the other hand, their tendency to hallucinate—generating plausible but factually incorrect statements—poses a particular risk in medical contexts where inaccurate information can cause real harm.
 

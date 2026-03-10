@@ -128,7 +128,7 @@ Functional requirements specify the features and behaviors expected from ALS-LM.
 |--------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|
 | FR-7.1 | Create a benchmark of 160 factual ALS questions with verified answers                                                                                     | Must have   |
 | FR-7.2 | Implement automated scoring against the benchmark                                                                                                         | Must have   |
-| FR-7.3 | Categorize failures by using the failure taxonomy (confident fabrication, plausible blending, outdated info, boundary confusion, accurate but misleading) | Must have   |
+| FR-7.3 | Categorize failures by using the failure taxonomy (confident fabrication, plausible blending, outdated information, boundary confusion, accurate but misleading) | Must have   |
 | FR-7.4 | Run the same benchmark against a RAG baseline                                                                                                             | Must have   |
 | FR-7.5 | Generate a comparison report with accuracy rates and failure severity analysis                                                                            | Must have   |
 | FR-7.6 | Include qualitative sample outputs (both good and bad) in the evaluation report                                                                           | Should have |

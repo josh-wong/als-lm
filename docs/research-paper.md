@@ -1,4 +1,4 @@
-# ALS-LM: Investigating Domain-Specific Language Model Training on a Narrow Medical Corpus
+# ALS-LM: Investigating domain-specific language model training on a narrow medical corpus
 
 **Author:** [josh-wong](https://github.com/josh-wong)
 **Date:** March 6, 2026
@@ -14,7 +14,7 @@ We construct a reproducible pipeline spanning data collection from three public 
 
 We further evaluate retrieval-augmented generation (RAG) by using ChromaDB with dual embedding models. Domain-specific embeddings (PubMedBERT) outperform general-purpose embeddings (MiniLM) by 2.1x on mean accuracy (12.7% vs. 5.9%), but even the best RAG configuration (13.8%) does not exceed the no-retrieval baseline (14.3%), revealing retrieval quality as the primary bottleneck. We extend the investigation with a controlled comparison: fine-tuning GPT-2 large (774M parameters) on the same ALS corpus. The fine-tuned model achieves 3.12% mean accuracy, a 15x improvement over from-scratch training, but produces degenerate (repetitive, non-responsive) output for 97.5% of questions, revealing that pretrained language competence does not translate to instruction-following capability without explicit alignment training. We contribute an end-to-end open-source pipeline, a hallucination evaluation framework with a 5-mode failure taxonomy and entity-based fabrication detection (~48K entities), and honest documentation of negative results that illuminate data requirements for domain-specific model training.
 
-## 1. Introduction
+## 1. Motivation and contributions
 
 The past five years have seen an accelerating trend toward domain-specific language models in biomedicine. BioBERT ([Lee et al., 2020](https://academic.oup.com/bioinformatics/article/36/4/1234/5566506)) demonstrated that continued pretraining of BERT on PubMed abstracts and full-text articles improves biomedical named entity recognition by 0.62 F1 points over the general-domain baseline. BioGPT ([Luo et al., 2022](https://arxiv.org/abs/2210.10341)) achieved state-of-the-art results on PubMedQA and biomedical relation extraction by using a GPT-2-style decoder trained on 15 million PubMed abstracts. GatorTron ([Yang et al., 2022](https://arxiv.org/abs/2203.03540)), at 8.9 billion parameters trained on over 90 billion words of clinical and biomedical text, pushed the boundaries of clinical natural language inference. These models share a common thread: massive training corpora spanning broad biomedical domains, ranging from billions to tens of billions of tokens.
 
