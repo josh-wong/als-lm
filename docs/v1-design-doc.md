@@ -8,7 +8,7 @@
 
 ## 1. Overview
 
-This document describes the technical architecture and implementation plan for ALS-LM, a domain-specific language model trained from scratch on ALS (amyotrophic lateral sclerosis) research and educational content. It covers the full pipeline from data collection through model export and evaluation, and is intended to be read alongside the [white paper](white-paper.md) and [product requirements document](product-requirements-doc.md).
+This document describes the technical architecture and implementation plan for ALS-LM, a domain-specific language model trained from scratch on ALS (amyotrophic lateral sclerosis) research and educational content. It covers the full pipeline from data collection through model export and evaluation, and is intended to be read alongside the [white paper](v1-white-paper.md) and [product requirements document](v1-product-requirements-doc.md).
 
 ### 1.1 System context
 
@@ -219,7 +219,7 @@ Processing runs as a sequential pipeline implemented in `data/processing/clean.p
 10. **Medical abbreviation normalization** — Canonicalize domain-specific terms (ALS, SOD1, TDP-43, C9orf72, and others).
 11. **Title embedding** — Embed the document title as a header.
 
-Documents shorter than 100 words after cleaning are rejected. For full details on deduplication (MinHash LSH with document-level and paragraph-level passes), source caps, and train/validation split methodology, see the [research paper](research-paper.md#31-data-pipeline).
+Documents shorter than 100 words after cleaning are rejected. For full details on deduplication (MinHash LSH with document-level and paragraph-level passes), source caps, and train/validation split methodology, see the [research paper](v1-research-paper.md#31-data-pipeline).
 
 After the train/validation split (90/10 at the document level, stratified by source category), statistics are generated to `data/stats.md` covering total corpus size, source distribution, vocabulary analysis, and medical term frequency.
 
@@ -299,7 +299,7 @@ Decoder-only transformer following the GPT-2 architecture, implemented starting 
 
 ### 4.2 Model configurations
 
-The following table shows the originally planned configurations. The 500M configuration was implemented and trained; the 1B configuration was not implemented due to time constraints. A GPT-2 large (774M) fine-tuning experiment was added instead as a controlled comparison (see Section 7.1 of the [research paper](research-paper.md#71-methodology)).
+The following table shows the originally planned configurations. The 500M configuration was implemented and trained; the 1B configuration was not implemented due to time constraints. A GPT-2 large (774M) fine-tuning experiment was added instead as a controlled comparison (see Section 7.1 of the [research paper](v1-research-paper.md#71-methodology)).
 
 | Parameter              | 500M (implemented)  | 1B (not implemented) | GPT-2 large (fine-tuned) |
 |------------------------|---------------------|----------------------|--------------------------|
@@ -795,11 +795,11 @@ als-lm/
 │   └── cli.py                     # Interactive CLI with Ollama backend
 ├── docs/
 │   ├── figures/                   # Generated figures for research paper
-│   ├── white-paper.md
-│   ├── product-requirements-doc.md
-│   ├── design-doc.md
-│   ├── research-paper.md
-│   └── model-card.md
+│   ├── v1-white-paper.md
+│   ├── v1-product-requirements-doc.md
+│   ├── v1-design-doc.md
+│   ├── v1-research-paper.md
+│   └── v1-model-card.md
 ├── eval/
 │   ├── questions.json             # 160-question ALS benchmark
 │   ├── score_responses.py         # Automated scoring

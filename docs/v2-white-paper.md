@@ -25,7 +25,7 @@ These findings raise a focused question: if the from-scratch model's failures st
 
 ## 2. Background
 
-This section reviews the research landscape relevant to ALS-LM 2, drawing on prior work surveyed in the [v1.0.0 research paper](research-paper.md) and extending it to the instruction tuning paradigm.
+This section reviews the research landscape relevant to ALS-LM 2, drawing on prior work surveyed in the [v1.0.0 research paper](v1-research-paper.md) and extending it to the instruction tuning paradigm.
 
 ### 2.1 Domain-specific language models in medicine
 
@@ -43,13 +43,13 @@ This taxonomy proved essential for understanding the qualitative differences bet
 
 ### 2.3 Why ALS?
 
-The selection of ALS as the target domain, established in the [v1.0.0 white paper](white-paper.md), was motivated by several factors. ALS research is well-represented in open-access literature across PubMed Central, ClinicalTrials.gov, and major health organizations, providing sufficient material for corpus construction. The disease represents a well-defined body of research with clear domain boundaries, making it possible to construct a corpus that is both comprehensive and bounded. ALS knowledge includes structured factual relationships (gene-mutation-phenotype associations, drug-mechanism-trial outcome chains) that lend themselves to benchmark evaluation. Active research frontiers in ALS treatment create opportunities to evaluate temporal accuracy. The author's personal connection to the disease, having a father who suffered from ALS, provided firsthand insight into the impact of the disease and motivated the choice of domain.
+The selection of ALS as the target domain, established in the [v1.0.0 white paper](v1-white-paper.md), was motivated by several factors. ALS research is well-represented in open-access literature across PubMed Central, ClinicalTrials.gov, and major health organizations, providing sufficient material for corpus construction. The disease represents a well-defined body of research with clear domain boundaries, making it possible to construct a corpus that is both comprehensive and bounded. ALS knowledge includes structured factual relationships (gene-mutation-phenotype associations, drug-mechanism-trial outcome chains) that lend themselves to benchmark evaluation. Active research frontiers in ALS treatment create opportunities to evaluate temporal accuracy. The author's personal connection to the disease, having a father who suffered from ALS, provided firsthand insight into the impact of the disease and motivated the choice of domain.
 
 These reasons remain applicable to v2.0.0. The same corpus sources are available for expansion, the domain boundaries remain well-defined, and the 160-question evaluation benchmark provides a validated instrument for measuring improvement.
 
 ## 3. v1.0.0 findings
 
-This section consolidates the key quantitative results and failure patterns from [ALS-LM 1.0.0](research-paper.md) that motivate the v2.0.0 research agenda. All numbers are reported at the Q8_0 quantization level, established as the representative level in the v1.0.0 research paper.
+This section consolidates the key quantitative results and failure patterns from [ALS-LM 1.0.0](v1-research-paper.md) that motivate the v2.0.0 research agenda. All numbers are reported at the Q8_0 quantization level, established as the representative level in the v1.0.0 research paper.
 
 The following table summarizes the aggregate performance of the three approaches evaluated in v1.0.0.
 
@@ -171,7 +171,7 @@ ALS-LM 2 aims to apply this taxonomy consistently to the instruction-tuned model
 
 ## 7. Ethical considerations
 
-The ethical framework established in the [v1.0.0 white paper](white-paper.md) carries forward in full to ALS-LM 2.
+The ethical framework established in the [v1.0.0 white paper](v1-white-paper.md) carries forward in full to ALS-LM 2.
 
 ### 7.1 Medical information risk
 
