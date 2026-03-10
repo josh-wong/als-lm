@@ -207,12 +207,12 @@ Supplementary scientific context provides background material relevant to ALS.
 
 Processing runs as a sequential pipeline implemented in `data/processing/clean.py`, with source-aware handling that processes PubMed papers, clinical trial records, and patient narratives differently. The implemented pipeline has 11 steps:
 
-1. **HTML/XML stripping** — Remove all markup using BeautifulSoup.
+1. **HTML/XML stripping** — Remove all markup by using BeautifulSoup.
 2. **Non-content section removal** — Strip references, acknowledgments, funding, tables, figure captions, and author affiliations from scientific papers.
 3. **Citation stripping** — Remove in-text citations (both numbered and author-year formats).
 4. **Volatile content filtering** — Remove URLs, emails, phone numbers, temporal qualifiers, copyright notices, calls-to-action, and license text.
 5. **Clinical trial status stripping** — Remove status lines specific to trial documents.
-6. **PII re-scrubbing** — Second-pass PII detection using Presidio on patient narratives.
+6. **PII re-scrubbing** — Second-pass PII detection by using Presidio on patient narratives.
 7. **Encoding normalization** — Fix encoding errors with ftfy and normalize Unicode to NFC form (NFC chosen over NFKC to preserve Greek letters, superscripts, and math symbols common in medical text).
 8. **Whitespace normalization** — Normalize whitespace while preserving paragraph structure.
 9. **English language safety net** — Heuristic filter for non-English content.
@@ -224,6 +224,8 @@ Documents shorter than 100 words after cleaning are rejected. For full details o
 After the train/validation split (90/10 at the document level, stratified by source category), statistics are generated to `data/stats.md` covering total corpus size, source distribution, vocabulary analysis, and medical term frequency.
 
 ### 2.4 Corpus size targets
+
+The following targets guided data collection, with actual yields documented in the research paper.
 
 | Source category       | Target size | % of corpus |
 |-----------------------|-------------|-------------|
@@ -480,7 +482,7 @@ Log the following at each logging interval (every 10 steps by default, configura
 - Throughput (tokens/second)
 - GPU memory utilization
 
-All metrics are logged to JSONL (`logs/training_log.jsonl`) and to TensorBoard (`logs/tensorboard/`). Training curves are plotted using `scripts/analyze_training.py` for inclusion in the research paper.
+All metrics are logged to JSONL (`logs/training_log.jsonl`) and to TensorBoard (`logs/tensorboard/`). Training curves are plotted by using `scripts/analyze_training.py` for inclusion in the research paper.
 
 Training runs for a fixed number of steps or epochs as specified by the model configuration. Early stopping is not implemented; convergence and overfitting are assessed post-hoc from the training curves.
 
@@ -598,7 +600,7 @@ $ python demo/cli.py
 
 ### 7.2 Architecture
 
-The CLI is implemented as a single module (`demo/cli.py`) using the Ollama REST API.
+The CLI is implemented as a single module (`demo/cli.py`) by using the Ollama REST API.
 
 Key features of the implemented CLI:
 
@@ -863,6 +865,8 @@ als-lm/
 ```
 
 ## 11. Risks and technical mitigations
+
+The following technical risks were identified during design with corresponding mitigation strategies.
 
 | Risk                                          | Mitigation                                                                                                                         |
 |-----------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------|

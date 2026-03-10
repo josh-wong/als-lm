@@ -10,7 +10,7 @@ ALS-LM is a 516M-parameter decoder-only transformer trained from scratch on 143M
 
 ## Key findings
 
-The central result is a disconnect between language-modeling competence and factual knowledge. The model achieves a Well-fit training classification (validation loss relative gap of +0.42%), yet scores 0.0% on a 160-question factual benchmark. Naive RAG over the same corpus does not help: the best RAG configuration (13.8% accuracy) fails to exceed a no-retrieval baseline (14.3%), revealing retrieval quality as the primary bottleneck. Fine-tuning GPT-2 large on the same corpus achieves 15x higher accuracy (3.12%) but produces degenerate output in 97.5% of responses, revealing data deficit and instruction-following as two orthogonal failure dimensions.
+The central result is a disconnect between language-modeling competence and factual knowledge. The model achieves a Well-fit training classification (validation loss relative gap of +0.42%), yet achieves a 0.0% binary pass rate on a 160-question factual benchmark. Naive RAG over the same corpus does not help: the best RAG configuration (13.8% accuracy) fails to exceed a no-retrieval baseline (14.3%), revealing retrieval quality as the primary bottleneck. Fine-tuning GPT-2 large on the same corpus achieves 15x higher accuracy (3.12%) but produces degenerate output in 97.5% of responses, revealing data deficit and instruction-following as two orthogonal failure dimensions.
 
 ![Accuracy comparison across all six approaches: ALS-LM, baseline, and four RAG configurations](docs/figures/accuracy_comparison.png)
 
@@ -108,13 +108,15 @@ The project requires Python 3.12, CUDA 12.x, and an NVIDIA GPU with at least 12G
 
 ### Environment setup
 
+This script validates system prerequisites, creates a virtual environment, installs PyTorch with CUDA support, builds DeepSpeed with the CPUAdam C++ extension, and installs remaining dependencies.
+
 ```bash
 bash setup.sh
 ```
 
-This script validates system prerequisites, creates a virtual environment, installs PyTorch with CUDA support, builds DeepSpeed with the CPUAdam C++ extension, and installs remaining dependencies.
-
 ### Training
+
+Train the 500M from-scratch model for 3 epochs with DeepSpeed ZeRO Stage 2.
 
 ```bash
 deepspeed model/train.py --deepspeed --deepspeed_config config/ds_zero2.json --config 500M --max-epochs 3
@@ -122,43 +124,43 @@ deepspeed model/train.py --deepspeed --deepspeed_config config/ds_zero2.json --c
 
 ### Fine-tuning (GPT-2 large)
 
+Fine-tune GPT-2 large on the ALS corpus by using pretrained weights. Run `python scripts/load_gpt2_weights.py` first to download the pretrained checkpoint.
+
 ```bash
 deepspeed model/train.py --deepspeed --deepspeed_config config/ds_zero2.json --config gpt2-large --pretrained-weights checkpoints/gpt2large_init/init.pt --max-epochs 2
 ```
 
-This fine-tunes GPT-2 large on the ALS corpus by using pretrained weights. Run `python scripts/load_gpt2_weights.py` first to download the pretrained checkpoint.
-
 ### Export
+
+Convert a PyTorch checkpoint to Hugging Face format, then to GGUF with multiple quantization levels, and optionally create an Ollama model.
 
 ```bash
 python export/export_pipeline.py
 ```
 
-This converts a PyTorch checkpoint to Hugging Face format, then to GGUF with multiple quantization levels, and optionally creates an Ollama model.
-
 ### Interactive CLI
+
+Launch the interactive CLI for querying the model. Requires an exported model registered with Ollama.
 
 ```bash
 python demo/cli.py
 ```
 
-Requires an exported model registered with Ollama.
-
 ### Evaluation
+
+Run the 160-question hallucination benchmark against the model and generate Markdown and JSON reports.
 
 ```bash
 python eval/run_evaluation.py
 ```
 
-Runs the 160-question hallucination benchmark against the model and generates Markdown and JSON reports.
-
 ### Running the RAG comparison
+
+Benchmark four RAG configurations against the from-scratch model and no-retrieval baseline.
 
 ```bash
 python rag/compare_approaches.py
 ```
-
-Benchmarks four RAG configurations against the from-scratch model and no-retrieval baseline.
 
 ## Disclaimers
 

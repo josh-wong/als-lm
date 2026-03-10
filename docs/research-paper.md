@@ -152,6 +152,8 @@ Figure 3 shows the learning rate schedule over the full training run.
 
 ## 4. Evaluation framework
 
+This section describes the benchmark design, scoring methodology, fabrication detection system, and failure taxonomy used to evaluate the model.
+
 ### 4.1 Benchmark design
 
 We designed a 6-stage evaluation pipeline to assess the model's factual accuracy, detect fabricated entities, classify failure modes, and enable structured comparison across model variants and retrieval configurations. Figure 4 shows the complete evaluation flow.
@@ -426,6 +428,8 @@ What we would change, given the results, is the overall approach to model traini
 We acknowledge several limitations of this work. Our investigation covers a single medical domain (ALS), a single model size (516M parameters), a single RAG architecture (naive chunk-based retrieval with ChromaDB), and consumer hardware constraints that limited both corpus size and training duration. The 160-question benchmark, while carefully curated, is small relative to benchmarks like TruthfulQA (817 questions) or MedHallu (10,000 pairs). Our fabrication detection relies on a finite entity registry and will miss fabricated entities that happen to match real but unregistered names. The failure taxonomy, while more granular than binary accuracy, is still rule-based and may misclassify edge cases. We present these results as informative data points in the scaling law and domain-specific model literature, not as definitive thresholds.
 
 ## 9. Conclusion
+
+This section summarizes the key findings and identifies directions for future work.
 
 ### 9.1 Summary
 

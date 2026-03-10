@@ -60,6 +60,8 @@ Functional requirements specify the features and behaviors expected from ALS-LM.
 
 ### FR-1: Data collection pipeline
 
+The data collection pipeline gathers ALS-specific content from multiple public sources into a standardized format.
+
 | ID     | Requirement                                                                                    | Priority    |
 |--------|------------------------------------------------------------------------------------------------|-------------|
 | FR-1.1 | Scrape open-access ALS papers from PubMed Central via the PMC API                              | Must have   |
@@ -70,6 +72,8 @@ Functional requirements specify the features and behaviors expected from ALS-LM.
 | FR-1.6 | Log all sources with URL, access date, license, and ethical justification in `data/sources.md` | Must have   |
 
 ### FR-2: Data processing pipeline
+
+The processing pipeline cleans, deduplicates, and normalizes raw data into a training-ready corpus.
 
 | ID     | Requirement                                                                       | Priority  |
 |--------|-----------------------------------------------------------------------------------|-----------|
@@ -82,6 +86,8 @@ Functional requirements specify the features and behaviors expected from ALS-LM.
 
 ### FR-3: Tokenizer
 
+The tokenizer must efficiently encode medical terminology specific to the ALS domain.
+
 | ID     | Requirement                                                                                                            | Priority    |
 |--------|------------------------------------------------------------------------------------------------------------------------|-------------|
 | FR-3.1 | Train a custom BPE tokenizer on the processed corpus                                                                   | Must have   |
@@ -90,6 +96,8 @@ Functional requirements specify the features and behaviors expected from ALS-LM.
 | FR-3.4 | Document tokenizer analysis and vocabulary coverage                                                                    | Should have |
 
 ### FR-4: Model training
+
+Model training must support transformer architectures at 500M–1B scale within consumer hardware constraints.
 
 | ID     | Requirement                                                                       | Priority    |
 |--------|-----------------------------------------------------------------------------------|-------------|
@@ -103,6 +111,8 @@ Functional requirements specify the features and behaviors expected from ALS-LM.
 
 ### FR-5: Model export and Ollama integration
 
+The export pipeline converts trained models to GGUF format for local inference via Ollama.
+
 | ID     | Requirement                                                              | Priority  |
 |--------|--------------------------------------------------------------------------|-----------|
 | FR-5.1 | Export trained model to GGUF format                                      | Must have |
@@ -112,6 +122,8 @@ Functional requirements specify the features and behaviors expected from ALS-LM.
 | FR-5.5 | Document Ollama setup and usage instructions                             | Must have |
 
 ### FR-6: CLI demo
+
+The CLI demo provides an interactive interface for querying the model with appropriate safety disclaimers.
 
 | ID     | Requirement                                                                        | Priority     |
 |--------|------------------------------------------------------------------------------------|--------------|
@@ -124,6 +136,8 @@ Functional requirements specify the features and behaviors expected from ALS-LM.
 
 ### FR-7: Hallucination evaluation
 
+The evaluation framework measures factual accuracy and categorizes failure modes against a curated benchmark.
+
 | ID     | Requirement                                                                                                                                               | Priority    |
 |--------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|
 | FR-7.1 | Create a benchmark of 160 factual ALS questions with verified answers                                                                                     | Must have   |
@@ -134,6 +148,8 @@ Functional requirements specify the features and behaviors expected from ALS-LM.
 | FR-7.6 | Include qualitative sample outputs (both good and bad) in the evaluation report                                                                           | Should have |
 
 ### FR-8: RAG comparison baseline
+
+The RAG baseline enables direct comparison between internalized knowledge and retrieval-augmented approaches.
 
 | ID     | Requirement                                                                       | Priority  |
 |--------|-----------------------------------------------------------------------------------|-----------|
@@ -148,6 +164,8 @@ Non-functional requirements address hardware, reproducibility, and documentation
 
 ### NFR-1: Hardware compatibility
 
+All training and inference must run on consumer-grade hardware without requiring cloud resources.
+
 | ID      | Requirement                                                                   | Priority    |
 |---------|-------------------------------------------------------------------------------|-------------|
 | NFR-1.1 | All training runs on a single RTX 3060 (12GB VRAM) with 64GB system RAM       | Must have   |
@@ -155,6 +173,8 @@ Non-functional requirements address hardware, reproducibility, and documentation
 | NFR-1.3 | Inference runs locally on the same hardware via Ollama without noticeable lag | Must have   |
 
 ### NFR-2: Reproducibility
+
+The project must be reproducible by third parties with equivalent hardware and API access.
 
 | ID      | Requirement                                                                        | Priority    |
 |---------|------------------------------------------------------------------------------------|-------------|
@@ -164,6 +184,8 @@ Non-functional requirements address hardware, reproducibility, and documentation
 | NFR-2.4 | Training can be reproduced on any machine with at least 12GB VRAM and 32GB RAM     | Should have |
 
 ### NFR-3: Documentation
+
+Documentation must be sufficient for a third party to understand, set up, and run the project.
 
 | ID      | Requirement                                                                        | Priority  |
 |---------|------------------------------------------------------------------------------------|-----------|
@@ -198,6 +220,8 @@ The project is considered successful if the following are achieved:
 
 ## 8. Milestones
 
+The project is divided into six phases, from planning through final documentation.
+
 | Phase             | Milestone                                                                    | Estimated duration |
 |-------------------|------------------------------------------------------------------------------|--------------------|
 | 1 – Planning      | README, white paper, product requirements document, design document complete | 1–2 weeks          |
@@ -213,6 +237,8 @@ The project is considered successful if the following are achieved:
 
 ## 9. Risks and mitigations
 
+The following risks were identified during planning with corresponding mitigation strategies.
+
 | Risk                                             | Likelihood | Impact | Mitigation                                                                                                                                                       |
 |--------------------------------------------------|------------|--------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Training exceeds VRAM even with offloading       | Medium     | High   | Start with 500M params, scale up only if stable. Have a fallback config ready.                                                                                   |
@@ -223,6 +249,8 @@ The project is considered successful if the following are achieved:
 | Scope creep into fine-tuning or larger models    | Medium     | Low    | PRD clearly defines scope. Fine-tuning was added as a controlled comparison (GPT-2 large 774M) rather than a production objective.                               |
 
 ## 10. Dependencies
+
+The project relies on the following external tools and services, each with an identified fallback.
 
 | Dependency             | Purpose                         | Fallback                                            |
 |------------------------|---------------------------------|-----------------------------------------------------|
