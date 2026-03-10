@@ -54,13 +54,13 @@ As a controlled comparison experiment, we fine-tuned OpenAI's GPT-2 large (774M 
 
 The following table compares both model variants at the Q8_0 quantization level.
 
-| Metric              | From-scratch 500M     | Fine-tuned GPT-2 large  |
-|---------------------|-----------------------|-------------------------|
-| Mean accuracy       | 0.21%                 | 3.12% (15x improvement) |
-| Binary pass rate    | 0.0%                  | 1.87%                   |
-| Coherent responses  | 108/160 (67.5%)       | 4/160 (2.5%)            |
-| Fabrication rate    | 66.4%                 | 77.0%                   |
-| Dominant failure    | Confident fabrication (33.1%) | Degenerate output (97.5%) |
+| Metric              | ALS-LM 500M (from-scratch)   | GPT-2 large 774M (fine-tuned) |
+|---------------------|-------------------------------|-------------------------------|
+| Mean accuracy       | 0.21%                         | 3.12% (15x improvement)       |
+| Binary pass rate    | 0.0%                          | 1.87%                         |
+| Coherent responses  | 108/160 (67.5%)               | 4/160 (2.5%)                  |
+| Fabrication rate    | 66.4%                         | 77.0%                         |
+| Dominant failure    | Confident fabrication (33.1%) | Degenerate output (97.5%)     |
 
 The 15x accuracy improvement (0.21% to 3.12%) confirms that pretrained knowledge partially bridges the data deficit gap. However, 97.5% degenerate output reveals that GPT-2's completion-based architecture lacks the instruction-following capability needed for the Q&A evaluation format. Data deficit and instruction-following are two orthogonal dimensions of model failure.
 

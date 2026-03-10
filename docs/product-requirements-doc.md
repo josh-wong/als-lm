@@ -46,7 +46,7 @@ Scope defines what is included and excluded from the project.
 ### 4.2 Out of scope
 
 - Any production-facing medical information system
-- Fine-tuning of existing pretrained models (this is a from-scratch project; fine-tuning is used only in the RAG comparison baseline)
+- Fine-tuning of existing pretrained models beyond the controlled comparison added in v0.8.0 (GPT-2 large 774M fine-tuned on the ALS corpus to measure the effect of pretrained knowledge)
 - Web-based or graphical user interfaces
 - Mobile applications
 - Multi-language support (the model trains on English-language content; Japanese-language ALS content is excluded to keep scope manageable)
@@ -192,7 +192,7 @@ The project is considered successful if the following are achieved:
 
 **Stretch goals:**
 
-10. A fine-tuned 7B model is included as an upper baseline in the comparison.
+10. A fine-tuned model is included as a controlled comparison (achieved: GPT-2 large 774M fine-tuned on ALS corpus).
 11. The hallucination benchmark is reusable for other ALS-related models.
 12. The CLI demo includes the `/benchmark` command for on-demand evaluation.
 
@@ -220,7 +220,7 @@ The project is considered successful if the following are achieved:
 | Model produces harmful medical misinformation    | High       | Medium | Hallucination evaluation framework, clear disclaimers, responsible publication guidelines. Impact is medium because the model is not deployed as a medical tool. |
 | Training takes longer than expected              | Medium     | Medium | Checkpoint frequently. Treat partial results as valid for analysis. A model that didn't fully converge is still interesting to evaluate.                         |
 | PubMed or ClinicalTrials.gov API changes         | Low        | Medium | Cache all downloaded data locally. Document API versions.                                                                                                        |
-| Scope creep into fine-tuning or larger models    | Medium     | Low    | PRD clearly defines scope. Fine-tuning is only used in the comparison baseline.                                                                                  |
+| Scope creep into fine-tuning or larger models    | Medium     | Low    | PRD clearly defines scope. Fine-tuning was added as a controlled comparison (GPT-2 large 774M) rather than a production objective.                               |
 
 ## 10. Dependencies
 

@@ -342,14 +342,14 @@ Table 6 presents the detailed cross-model comparison at the Q8_0 quantization le
 
 **Table 6.** Cross-model comparison on the 160-question ALS benchmark (Q8_0 quantization level). The fine-tuned model achieves higher accuracy but produces overwhelmingly degenerate output.
 
-| Metric                   | ALS-LM 500M (from-scratch) | GPT-2 large (fine-tuned) |
-|--------------------------|----------------------------:|-------------------------:|
-| Mean accuracy            |                       0.21% |                    3.12% |
-| Binary pass rate         |                       0.00% |                    1.87% |
-| Non-degenerate responses |              108/160 (67.5%) |              4/160 (2.5%) |
-| Hedging instances        |                            1 |                       22 |
-| Entities extracted       |                          128 |                      951 |
-| Fabrication rate (all)   |                       66.4% |                    77.0% |
+| Metric                   | ALS-LM 500M (from-scratch) | GPT-2 large 774M (fine-tuned) |
+|--------------------------|----------------------------:|-------------------------------:|
+| Mean accuracy            |                       0.21% |                          3.12% |
+| Binary pass rate         |                       0.00% |                          1.87% |
+| Non-degenerate responses |              108/160 (67.5%) |                   4/160 (2.5%) |
+| Hedging instances        |                            1 |                             22 |
+| Entities extracted       |                          128 |                            951 |
+| Fabrication rate (all)   |                       66.4% |                          77.0% |
 
 The 15x accuracy improvement from 0.21% to 3.12% is the largest single effect observed in this work, yet it still leaves the fine-tuned model 97% below useful accuracy thresholds. This result reinforces the data deficit hypothesis: even with 774M pretrained parameters encoding general world knowledge, fine-tuning on 143M ALS tokens produces only a marginal absolute improvement. The pretrained knowledge provides a measurable advantage, but the magnitude confirms that the training data volume, not the absence of general knowledge, is the dominant bottleneck.
 

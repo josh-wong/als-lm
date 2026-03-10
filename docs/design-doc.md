@@ -50,7 +50,7 @@ The development environment is set up to ensure reproducibility and compatibilit
 ```
 Windows 11
 └── WSL2 (Ubuntu 22.04+)
-    ├── Miniconda (Python 3.11)
+    ├── Miniconda (Python 3.12)
     ├── CUDA Toolkit 12.x
     ├── PyTorch 2.x (with CUDA support)
     ├── DeepSpeed
@@ -253,10 +253,9 @@ Design decisions for the tokenizer are made to optimize medical vocabulary cover
 
 - **Algorithm:** Byte-pair encoding (BPE), trained by using the Hugging Face `tokenizers` library.
 - **Why custom over pretrained?:** General-purpose tokenizers (GPT-2, LLaMA) fragment medical terminology inefficiently. For example, GPT-2's tokenizer splits "neurodegeneration" into 4 tokens and "fasciculation" into 3. A custom tokenizer trained on the ALS corpus will learn to represent these as single tokens, improving both training efficiency and model capacity utilization.
-- **Vocabulary size:** 16,384 tokens (initial target). This balances:
+- **Vocabulary size:** 50,257 tokens. The tokenizer was ultimately trained at this size after experimental validation showed that the initial 16K target underperformed on medical terminology coverage. This balances:
   - Coverage: Large enough to represent medical vocabulary without excessive fragmentation
   - Capacity: Small enough that the embedding layer doesn't dominate the parameter budget at sub-1B scale
-  - Will be validated experimentally; if medical term coverage is poor at 16K, scale to 32K
 - **Special tokens:**
   - `<|bos|>` – Beginning of sequence
   - `<|eos|>` – End of sequence
@@ -287,7 +286,7 @@ tokenizer = Tokenizer(models.BPE(unk_token="<|unk|>"))
 tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=False)
 
 trainer = trainers.BpeTrainer(
-    vocab_size=16384,
+    vocab_size=50257,
     special_tokens=["<|bos|>", "<|eos|>", "<|pad|>", "<|unk|>"],
     min_frequency=2,
     show_progress=True
@@ -311,9 +310,9 @@ Decoder-only transformer following the GPT-2 architecture, implemented starting 
 |------------------------|-------------|------------|
 | Layers (n_layer)       | 24          | 32         |
 | Attention heads        | 16          | 16         |
-| Embedding dimension    | 1024        | 2048       |
+| Embedding dimension    | 1280        | 2048       |
 | Context length         | 1024        | 1024       |
-| Vocabulary size        | 16384       | 16384      |
+| Vocabulary size        | 50257       | 50257      |
 | Dropout                | 0.1         | 0.1        |
 | Approximate parameters | ~500M       | ~1B        |
 
@@ -386,8 +385,13 @@ DeepSpeed ZeRO Stage 2 is the primary strategy, with Stage 3 as a fallback for t
 
 ```json
 {
-  "bf16": {
-    "enabled": true
+  "fp16": {
+    "enabled": true,
+    "loss_scale": 0,
+    "initial_scale_power": 16,
+    "loss_scale_window": 1000,
+    "hysteresis": 2,
+    "min_loss_scale": 1
   },
   "zero_optimization": {
     "stage": 2,
@@ -420,16 +424,16 @@ Training hyperparameters are selected based on best practices for transformer mo
 
 | Parameter              | Value                           | Rationale                                         |
 |------------------------|---------------------------------|---------------------------------------------------|
-| Learning rate          | 6e-4 (peak)                     | Standard for this model scale (Chinchilla range)  |
+| Learning rate          | 3e-4 (peak)                     | Standard for this model scale (Chinchilla range)  |
 | LR schedule            | Cosine decay with linear warmup | Warmup prevents early instability                 |
-| Warmup steps           | 2,000                           | ~1% of expected total steps                       |
-| Minimum LR             | 6e-5 (10% of peak)              | Prevents complete stagnation late in training     |
+| Warmup steps           | 500                             | ~1% of expected total steps                       |
+| Minimum LR             | 0 (cosine decay to zero)        | Full decay as configured in DeepSpeed scheduler   |
 | Batch size (effective) | 32                              | Accumulated: 4 micro × 8 accumulation steps       |
 | Sequence length        | 1024 tokens                     | Balances context with memory constraints          |
 | Weight decay           | 0.1                             | Applied to non-bias, non-LayerNorm parameters     |
 | Adam β1, β2            | 0.9, 0.95                       | Standard for transformer pretraining              |
 | Max grad norm          | 1.0                             | Gradient clipping for stability                   |
-| Precision              | bf16 (mixed)                    | Faster training, lower memory, adequate precision |
+| Precision              | fp16 (mixed)                    | Faster training, lower memory, adequate precision |
 
 ### 5.4 Training duration estimate
 
