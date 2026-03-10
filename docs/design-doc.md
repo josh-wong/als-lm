@@ -6,7 +6,7 @@
 
 ---
 
-## 1. System context and constraints
+## 1. Overview
 
 This document describes the technical architecture and implementation plan for ALS-LM, a domain-specific language model trained from scratch on ALS (amyotrophic lateral sclerosis) research and educational content. It covers the full pipeline from data collection through model export and evaluation, and is intended to be read alongside the [white paper](white-paper.md) and [product requirements document](product-requirements-doc.md).
 
