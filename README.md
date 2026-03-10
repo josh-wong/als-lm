@@ -168,7 +168,7 @@ Please read the following disclaimers carefully before using or referencing ALS-
 
 ### This is not a medical resource
 
-ALS-LM is a machine-learning research project. It is **not** a diagnostic tool, treatment guide, or substitute for professional medical advice. The models generate text that sounds authoritative but is factually incorrect—the from-scratch model scores 0.0% on our benchmark while the fine-tuned variant achieves only 3.12% accuracy with 97.5% of responses being degenerate.
+ALS-LM is a machine-learning research project. It is **not** a diagnostic tool, treatment guide, or substitute for professional medical advice. The models generate text that sounds authoritative but is factually incorrect—the from-scratch model achieves 0.0% binary pass rate on our benchmark while the fine-tuned variant achieves only 1.87% with 97.5% of responses being degenerate.
 
 **If you or someone you know is affected by ALS, please consult qualified healthcare providers and trusted resources such as:**
 
