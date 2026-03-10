@@ -355,7 +355,7 @@ def generate_markdown_report(
         f"However, the GPT-2 large model produces {f_nondeg:.1f}% "
         f"non-degenerate responses compared to {s_nondeg:.1f}% for the "
         f"from-scratch model, meaning {100 - f_nondeg:.1f}% of its output "
-        f"is repetitive, non-responsive. This reflects the fundamental "
+        f"is repetitive or incoherent. This reflects the fundamental "
         f"instruction-following limitation of a completion model that has not "
         f"undergone RLHF or chat fine-tuning. Even with 774M pretrained "
         f"parameters and general English knowledge from WebText, fine-tuning "
