@@ -6,38 +6,38 @@
 
 ---
 
-This document specifies the technical architecture and implementation approach for ALS-LM 2, covering corpus expansion, 1B model training, instruction dataset creation, supervised fine-tuning, and updated evaluation. It is a delta specification that builds on the [v1 design doc](v1-design-doc.md), describing only what changes for v2 and referencing v1 for unchanged systems. This document should be read alongside the [ALS-LM-2 white paper](v2-white-paper.md) (research vision and hypotheses) and the [ALS-LM-2 product requirements document](v2-product-requirements-doc.md) (scope and success criteria).
+This document specifies the technical architecture and implementation approach for ALS-LM-2, covering corpus expansion, 1B model training, instruction dataset creation, supervised fine-tuning, and updated evaluation. It is a delta specification that builds on the [ALS-LM-1 design doc](v1-design-doc.md), describing only what changes for ALS-LM-2 and referencing ALS-LM-1 for unchanged systems. This document should be read alongside the [ALS-LM-2 white paper](v2-white-paper.md) (research vision and hypotheses) and the [ALS-LM-2 product requirements document](v2-product-requirements-doc.md) (scope and success criteria).
 
 ## 1. Overview
 
-This section provides the updated system context, hardware constraints, and a summary of v1.0.0 technical findings that inform v2 design choices.
+This section provides the updated system context, hardware constraints, and a summary of ALS-LM-1 technical findings that inform ALS-LM-2 design choices.
 
 ### 1.1 System context
 
-The following diagram shows the complete ALS-LM pipeline spanning both v1 and v2. Nodes added or modified for v2 are annotated.
+The following diagram shows the complete ALS-LM pipeline spanning both ALS-LM-1 and ALS-LM-2. Nodes added or modified for ALS-LM-2 are annotated.
 
 ```mermaid
 flowchart LR
-  subgraph "ALS-LM pipeline (v1 + v2)"
-    DataPipeline["Data pipeline<br/>(v2: expanded sources)"] --> Tokenizer["Tokenizer training<br/>(v2: re-trained)"]
-    DataPipeline --> RAG["RAG baseline<br/>(v2: best config only)"]
-    Tokenizer --> BaseTraining["Base model training<br/>(v2: 1B params)"]
-    BaseTraining --> InstructionDataset["Instruction dataset<br/>(v2: NEW)"]
-    InstructionDataset --> SFT["Supervised fine-tuning<br/>(v2: NEW)"]
-    SFT --> Evaluation["Evaluation benchmark<br/>(v2: instruction prompts)"]
-    SFT --> Export["Export (GGUF)<br/>(v2: instruction Modelfile)"]
+  subgraph "ALS-LM pipeline (ALS-LM-1 + ALS-LM-2)"
+    DataPipeline["Data pipeline<br/>(ALS-LM-2: expanded sources)"] --> Tokenizer["Tokenizer training<br/>(ALS-LM-2: re-trained)"]
+    DataPipeline --> RAG["RAG baseline<br/>(ALS-LM-2: best config only)"]
+    Tokenizer --> BaseTraining["Base model training<br/>(ALS-LM-2: 1B params)"]
+    BaseTraining --> InstructionDataset["Instruction dataset<br/>(ALS-LM-2: NEW)"]
+    InstructionDataset --> SFT["Supervised fine-tuning<br/>(ALS-LM-2: NEW)"]
+    SFT --> Evaluation["Evaluation benchmark<br/>(ALS-LM-2: instruction prompts)"]
+    SFT --> Export["Export (GGUF)<br/>(ALS-LM-2: instruction Modelfile)"]
     Export --> Ollama["Ollama serving"]
-    Evaluation --> Comparison["Comparison report<br/>(v2: cross-version)"]
+    Evaluation --> Comparison["Comparison report<br/>(ALS-LM-2: cross-version)"]
     Ollama --> CLIDemo["CLI demo"]
     RAG --> Comparison
   end
 ```
 
-The key structural change from v1 is the two-phase training flow: base model training produces the pretrained 1B model, which is then refined through supervised fine-tuning on the instruction dataset before export and evaluation. The instruction dataset and SFT stages are entirely new components.
+The key structural change from ALS-LM-1 is the two-phase training flow: base model training produces the pretrained 1B model, which is then refined through supervised fine-tuning on the instruction dataset before export and evaluation. The instruction dataset and SFT stages are entirely new components.
 
 ### 1.2 Hardware constraints
 
-All development and training continues to run on the same consumer-grade machine used for ALS-LM-1. No new hardware dependencies are introduced for v2.
+All development and training continues to run on the same consumer-grade machine used for ALS-LM-1. No new hardware dependencies are introduced for ALS-LM-2.
 
 | Component | Spec                                 | Implication                                                                                                    |
 |-----------|--------------------------------------|----------------------------------------------------------------------------------------------------------------|
@@ -49,19 +49,19 @@ All development and training continues to run on the same consumer-grade machine
 
 Gradient checkpointing is now mandatory for the 1B configuration. The 500M model ran without gradient checkpointing (6.37 GB peak VRAM, 53% utilization), but the 1B model's larger activation footprint requires trading compute for memory by recomputing activations during the backward pass.
 
-### 1.3 v1.0.0 technical findings
+### 1.3 ALS-LM-1 technical findings
 
-This section consolidates the key lessons from ALS-LM-1 development that directly affect v2 design choices. Each lesson is referenced inline throughout this document where it constrains a specific v2 decision.
+This section consolidates the key lessons from ALS-LM-1 development that directly affect ALS-LM-2 design choices. Each lesson is referenced inline throughout this document where it constrains a specific ALS-LM-2 decision.
 
 **Data pipeline findings:**
 
-- Text normalization produced punctuation artifacts and whitespace inconsistencies from PDF extraction that reduced the effective information density of training tokens. The v2 cleaning pipeline addresses these specific issues (Section 2.2).
+- Text normalization produced punctuation artifacts and whitespace inconsistencies from PDF extraction that reduced the effective information density of training tokens. The ALS-LM-2 cleaning pipeline addresses these specific issues (Section 2.2).
 - NFC Unicode normalization (over NFKC) was validated as the correct choice for medical text, preserving Greek letters, superscripts, and math symbols. This decision carries forward unchanged.
-- Source caps applied post-deduplication (not pre-dedup) prevented dedup from skewing category proportions. This pattern continues in v2.
+- Source caps applied post-deduplication (not pre-dedup) prevented dedup from skewing category proportions. This pattern continues in ALS-LM-2.
 
 **Tokenizer findings:**
 
-- The tokenizer vocabulary auto-escalated from 16K to 50,257 tokens when the initial size achieved less than 50% single-token rate for medical terms. The 50,257 vocabulary size is retained for v2 because it provides adequate medical term coverage while maintaining toolchain compatibility with the GPT-2 token count.
+- The tokenizer vocabulary auto-escalated from 16K to 50,257 tokens when the initial size achieved less than 50% single-token rate for medical terms. The 50,257 vocabulary size is retained for ALS-LM-2 because it provides adequate medical term coverage while maintaining toolchain compatibility with the GPT-2 token count.
 - Custom BPE outperformed pretrained tokenizers on medical terminology: 50 of the top 100 medical terms encoded as single tokens versus 3-4 token fragmentation with GPT-2's tokenizer.
 
 **Training findings:**
@@ -86,33 +86,33 @@ The data pipeline is updated to expand the corpus and improve cleaning quality. 
 
 ### 2.1 Corpus expansion sources
 
-The v1 corpus drew from three source categories: PubMed Central, ClinicalTrials.gov, and educational/institutional content. The v2 corpus retains these existing sources and adds new categories to increase coverage and knowledge density.
+The ALS-LM-1 corpus drew from three source categories: PubMed Central, ClinicalTrials.gov, and educational/institutional content. The ALS-LM-2 corpus retains these existing sources and adds new categories to increase coverage and knowledge density.
 
-New source categories for v2 include the following.
+New source categories for ALS-LM-2 include the following.
 
-- **Broader PubMed coverage:** Expanded search queries to capture ALS-related papers not matched by v1's MeSH-focused queries. This includes papers on motor neuron biology, neuroinflammation in ALS, biomarker development, and comorbidity studies that reference ALS as a secondary topic. The existing PubMed scraper design ([v1, Section 2.2.1](v1-design-doc.md#221-pubmed-central-primary-source)) is reused with updated query parameters.
+- **Broader PubMed coverage:** Expanded search queries to capture ALS-related papers not matched by ALS-LM-1's MeSH-focused queries. This includes papers on motor neuron biology, neuroinflammation in ALS, biomarker development, and comorbidity studies that reference ALS as a secondary topic. The existing PubMed scraper design ([ALS-LM-1, Section 2.2.1](v1-design-doc.md#221-pubmed-central-primary-source)) is reused with updated query parameters.
 - **WHO and international guidelines:** Clinical practice guidelines and systematic reviews from the World Health Organization, European Network for the Cure of ALS (ENCALS), and national ALS associations outside the US. These sources provide structured factual content with high knowledge density, particularly for treatment protocols and diagnostic criteria.
 - **Clinical practice guidelines:** Published treatment guidelines from medical professional bodies (American Academy of Neurology, European Academy of Neurology) covering ALS diagnosis, management, and emerging therapies. These are publicly available documents with well-structured factual claims.
 
-> **v1 lesson:** Source caps applied post-deduplication prevented dedup from skewing category proportions ([Section 1.3](#13-v100-technical-findings)). The same approach applies to new v2 source categories.
+> **ALS-LM-1 lesson:** Source caps applied post-deduplication prevented dedup from skewing category proportions ([Section 1.3](#13-als-lm-1-technical-findings)). The same approach applies to new ALS-LM-2 source categories.
 
 ### 2.2 Cleaning improvements
 
-The v1 processing pipeline's 11-step cleaning process ([v1, Section 2.3](v1-design-doc.md#23-processing-pipeline)) is retained with targeted fixes for artifacts identified during v1 development.
+The ALS-LM-1 processing pipeline's 11-step cleaning process ([ALS-LM-1, Section 2.3](als-lm-1-design-doc.md#23-processing-pipeline)) is retained with targeted fixes for artifacts identified during ALS-LM-1 development.
 
 The following changes are made to the cleaning pipeline.
 
-- **Punctuation artifact repair:** Fix systematic issues from PDF extraction where hyphens, en-dashes, and em-dashes are conflated, quotation marks are inconsistently encoded, and ligatures (fi, fl) are not decomposed. A dedicated normalization step runs before the existing encoding normalization (step 7 in the v1 pipeline).
+- **Punctuation artifact repair:** Fix systematic issues from PDF extraction where hyphens, en-dashes, and em-dashes are conflated, quotation marks are inconsistently encoded, and ligatures (fi, fl) are not decomposed. A dedicated normalization step runs before the existing encoding normalization (step 7 in the ALS-LM-1 pipeline).
 - **Whitespace consistency:** Address cases where PDF column extraction produces mid-word line breaks and irregular spacing between sentences. The fix extends the existing whitespace normalization step (step 8) with pattern-based repair for common PDF extraction artifacts.
 - **Improved paragraph boundary detection:** Better heuristics for distinguishing paragraph breaks from column breaks in multi-column PDF layouts, reducing cases where unrelated text is concatenated.
 
-> **v1 lesson:** NFC Unicode normalization preserves Greek letters, superscripts, and math symbols important in medical literature ([Section 1.3](#13-v100-technical-findings)). The new punctuation repair step operates before NFC normalization to avoid interfering with this validated choice.
+> **ALS-LM-1 lesson:** NFC Unicode normalization preserves Greek letters, superscripts, and math symbols important in medical literature ([Section 1.3](#13-v100-technical-findings)). The new punctuation repair step operates before NFC normalization to avoid interfering with this validated choice.
 
 ### 2.3 Updated corpus size targets
 
-The v1 corpus yielded 143M tokens from approximately 32MB of clean text. The v2 corpus targets 300-500M tokens to improve the tokens-per-parameter ratio for the 1B model.
+The ALS-LM-1 corpus yielded 143M tokens from approximately 32MB of clean text. The ALS-LM-2 corpus targets 300-500M tokens to improve the tokens-per-parameter ratio for the 1B model.
 
-| Metric                    | v1 (actual) | v2 (target)     | Rationale                                                |
+| Metric                    | ALS-LM-1 (actual) | ALS-LM-2 (target)     | Rationale                                                |
 |---------------------------|-------------|-----------------|----------------------------------------------------------|
 | Clean corpus size         | ~32MB       | ~80-150MB       | 2-5x expansion from new sources and broader queries      |
 | Token count               | 143M        | 300-500M        | Moves tokens-per-parameter ratio from 0.25 to 0.3-0.5   |
@@ -123,11 +123,11 @@ Even at 500M tokens for a 1B model (0.5 tokens per parameter), the ratio remains
 
 ## 3. Tokenizer
 
-The tokenizer is re-trained on the expanded and cleaned corpus using the same Hugging Face `tokenizers` library and BPE algorithm described in the [v1 design doc, Section 3](v1-design-doc.md#3-tokenizer). The vocabulary size remains 50,257 tokens.
+The tokenizer is re-trained on the expanded and cleaned corpus using the same Hugging Face `tokenizers` library and BPE algorithm described in the [ALS-LM-1 design doc, Section 3](v1-design-doc.md#3-tokenizer). The vocabulary size remains 50,257 tokens.
 
-> **v1 lesson:** The tokenizer vocabulary escalated from 16K to 50,257 during v1 development when the initial size achieved less than 50% single-token rate for medical terms. The 50,257 size was validated by medical term coverage testing ([Section 1.3](#13-v100-technical-findings)).
+> **ALS-LM-1 lesson:** The tokenizer vocabulary escalated from 16K to 50,257 during ALS-LM-1 development when the initial size achieved less than 50% single-token rate for medical terms. The 50,257 size was validated by medical term coverage testing ([Section 1.3](#13-v100-technical-findings)).
 
-**What changes for v2:**
+**What changes for ALS-LM-2:**
 
 - The training corpus is larger, reflecting the expanded sources from Section 2. This may shift the token distribution, particularly for terminology from newly added source categories (clinical guidelines, WHO resources).
 - The cleaning improvements from Section 2.2 may affect tokenization by reducing noise tokens from PDF artifacts.
@@ -135,18 +135,18 @@ The tokenizer is re-trained on the expanded and cleaned corpus using the same Hu
 
 ## 4. Model architecture
 
-This section specifies the 1B model configuration and memory budget, extending [v1 Section 4](v1-design-doc.md#4-model-architecture). The base architecture (decoder-only transformer, GPT-2 style, pre-norm, weight tying, GELU activation, learned positional embeddings) is unchanged.
+This section specifies the 1B model configuration and memory budget, extending [ALS-LM-1 Section 4](v1-design-doc.md#4-model-architecture). The base architecture (decoder-only transformer, GPT-2 style, pre-norm, weight tying, GELU activation, learned positional embeddings) is unchanged.
 
 ### 4.1 1B configuration
 
-The v1 design doc listed n_layer=32, n_head=16, n_embd=2048 as the "1B" configuration, but this actually produces approximately 1.72B parameters due to the quadratic scaling of the dominant terms (attention and MLP projections scale with n_embd squared). The corrected 1B configuration below was derived by systematic search for GPT-2 style architectures landing near 1B parameters with clean dimensions.
+The ALS-LM-1 design doc listed n_layer=32, n_head=16, n_embd=2048 as the "1B" configuration, but this actually produces approximately 1.72B parameters due to the quadratic scaling of the dominant terms (attention and MLP projections scale with n_embd squared). The corrected 1B configuration below was derived by systematic search for GPT-2 style architectures landing near 1B parameters with clean dimensions.
 
 Changes from the [500M configuration](../configs/500m.json):
 
-| Parameter                    | 500M (v1)  | 1B (v2)    | Rationale                                                    |
+| Parameter                    | 500M (ALS-LM-1)  | 1B (ALS-LM-2)    | Rationale                                                    |
 |------------------------------|------------|------------|--------------------------------------------------------------|
 | n_layer                      | 24         | 30         | 1.25x depth increase for balanced scaling                    |
-| n_head                       | 16         | 20         | Maintains head_dim=80, matching v1 for Flash Attention       |
+| n_head                       | 16         | 20         | Maintains head_dim=80, matching ALS-LM-1 for Flash Attention       |
 | n_embd                       | 1280       | 1600       | 1.25x width increase for balanced scaling                    |
 | block_size                   | 1024       | 1024       | Unchanged: adequate for training document lengths            |
 | vocab_size                   | 50257      | 50257      | Unchanged: same tokenizer vocabulary                         |
@@ -168,10 +168,10 @@ def calc_params(vocab_size, block_size, n_layer, n_head, n_embd):
     final_ln = 2 * n_embd
     return token_emb + pos_emb + n_layer * block + final_ln
 
-# v1 500M config (actual: 538M)
+# ALS-LM-1 500M config (actual: 538M)
 calc_params(50257, 1024, 24, 16, 1280)  # = 537,900,800
 
-# v2 1B config (actual: ~1.004B)
+# ALS-LM-2 1B config (actual: ~1.004B)
 calc_params(50257, 1024, 30, 20, 1600)  # = 1,004,279,200
 ```
 
@@ -184,34 +184,34 @@ Alternative configurations considered during research:
 | Recommended  | 30      | 20     | 1600   | 80       | 1,004.3M   |
 | Alternative A | 32     | 16     | 1536   | 96       | 985.4M     |
 | Alternative B | 24     | 16     | 1792   | 112      | 1,017.3M   |
-| 500M (v1)    | 24      | 16     | 1280   | 80       | 537.9M     |
+| 500M (ALS-LM-1)    | 24      | 16     | 1280   | 80       | 537.9M     |
 
 ### 4.2 Memory budget
 
-Resource estimates are derived from DeepSpeed memory formulas and calibrated against v1 actual measurements. The v1 500M model provides ground-truth calibration data for projecting 1B requirements.
+Resource estimates are derived from DeepSpeed memory formulas and calibrated against ALS-LM-1 actual measurements. The ALS-LM-1 500M model provides ground-truth calibration data for projecting 1B requirements.
 
-| Component                        | 500M (v1 actual) | 1B (projected)   | Notes                                              |
+| Component                        | 500M (ALS-LM-1 actual) | 1B (projected)   | Notes                                              |
 |----------------------------------|------------------|-------------------|----------------------------------------------------|
 | Model weights (fp16)             | ~1.0 GB          | ~1.9 GB           | Scales linearly with parameter count               |
 | Activations (with grad ckpt)     | ~3-4 GB          | ~3-4 GB           | Roughly independent of depth with grad checkpointing |
-| GPU peak total                   | 6.37 GB          | ~5-8 GB           | v1 actual vs v2 projected range                    |
+| GPU peak total                   | 6.37 GB          | ~5-8 GB           | ALS-LM-1 actual vs ALS-LM-2 projected range                    |
 | CPU optimizer states (Adam fp32) | included in CPU   | ~7.5 GB           | 4 bytes x 2 states x 1B params                    |
 | CPU gradients (fp16)             | included in CPU   | ~1.9 GB           | 2 bytes x 1B params                               |
 | CPU total                        | 30.3 GB          | ~15-20 GB         | Well within 64GB system RAM                        |
 
 The 500M model ran without gradient checkpointing and achieved 6.37 GB peak VRAM (53% utilization of 12GB). The 1B model requires gradient checkpointing, which reduces activation memory at the cost of approximately 30% throughput. With gradient checkpointing enabled, activation memory is roughly independent of model depth because only one layer's activations are stored at a time.
 
-> **v1 lesson:** CPU offload ON with gradient checkpointing OFF yielded 53% VRAM utilization for 500M ([Section 1.3](#13-v100-technical-findings)). For 1B, gradient checkpointing must be ON, and the readiness gate benchmark will confirm actual VRAM usage before committing to the full training run.
+> **ALS-LM-1 lesson:** CPU offload ON with gradient checkpointing OFF yielded 53% VRAM utilization for 500M ([Section 1.3](#13-v100-technical-findings)). For 1B, gradient checkpointing must be ON, and the readiness gate benchmark will confirm actual VRAM usage before committing to the full training run.
 
 ## 5. Training
 
-This section specifies the changes to the training configuration for the 1B model, extending [v1 Section 5](v1-design-doc.md#5-training). The training loop, monitoring, and checkpointing strategies are unchanged from v1.
+This section specifies the changes to the training configuration for the 1B model, extending [ALS-LM-1 Section 5](v1-design-doc.md#5-training). The training loop, monitoring, and checkpointing strategies are unchanged from ALS-LM-1.
 
 ### 5.1 DeepSpeed configuration changes
 
 The base DeepSpeed configuration ([config/ds_zero2.json](../config/ds_zero2.json)) remains unchanged. The following fields change in the per-model configuration file (the new `configs/1b.json`):
 
-| Field                              | 500M (v1)                        | 1B (v2)                         | Rationale                                          |
+| Field                              | 500M (ALS-LM-1)                        | 1B (ALS-LM-2)                         | Rationale                                          |
 |------------------------------------|----------------------------------|---------------------------------|----------------------------------------------------|
 | `model.use_gradient_checkpointing` | false                            | true                            | Required to fit 1B in 12GB VRAM                    |
 | `model.n_layer`                    | 24                               | 30                              | 1B architecture (Section 4.1)                      |
@@ -226,14 +226,14 @@ ZeRO Stage 2 with CPU offloading remains the primary memory strategy. ZeRO Stage
 
 ### 5.2 Hyperparameter adjustments
 
-The following table shows key hyperparameters with v1 values and v2 planned values for 1B base training.
+The following table shows key hyperparameters with ALS-LM-1 values and ALS-LM-2 planned values for 1B base training.
 
-| Parameter              | 500M (v1)                         | 1B (v2)                         | Rationale                                          |
+| Parameter              | 500M (ALS-LM-1)                         | 1B (ALS-LM-2)                         | Rationale                                          |
 |------------------------|-----------------------------------|---------------------------------|----------------------------------------------------|
 | Learning rate (peak)   | 3e-4                              | 3e-4                            | Standard for this model scale (Chinchilla range)   |
 | LR schedule            | Cosine decay with linear warmup   | Cosine decay with linear warmup | Unchanged                                          |
 | Warmup steps           | 500                               | 500-1000                        | Scale with expected total steps                    |
-| Minimum LR             | 0.0 (cosine decay to zero)        | 0.0 (cosine decay to zero)      | Full decay validated in v1                         |
+| Minimum LR             | 0.0 (cosine decay to zero)        | 0.0 (cosine decay to zero)      | Full decay validated in ALS-LM-1                         |
 | Batch size (effective) | 32 (4 micro x 8 accum)            | 32 (2-4 micro x 8-16 accum)     | Same effective batch; micro-batch may decrease     |
 | Sequence length        | 1024 tokens                       | 1024 tokens                     | Unchanged                                          |
 | Weight decay           | 0.1                               | 0.1                             | Unchanged                                          |
@@ -243,41 +243,41 @@ The following table shows key hyperparameters with v1 values and v2 planned valu
 | Dropout                | 0.0                               | 0.1                             | Enabled for larger model on small corpus           |
 | Epochs                 | 3                                 | 3                               | Same epoch count; more tokens per epoch            |
 
-> **v1 lesson:** Cosine LR decay to zero (cos_min_ratio=0.0) produced smooth convergence without learning plateau artifacts ([Section 1.3](#13-v100-technical-findings)). This schedule is retained for 1B training.
+> **ALS-LM-1 lesson:** Cosine LR decay to zero (cos_min_ratio=0.0) produced smooth convergence without learning plateau artifacts ([Section 1.3](#13-v100-technical-findings)). This schedule is retained for 1B training.
 
 ### 5.3 Resource estimates and training duration
 
-Training time estimates are derived from v1 actual throughput scaled to the 1B configuration. The primary uncertainty is throughput: gradient checkpointing adds approximately 30% overhead, and CPU-GPU transfer rates may not scale linearly.
+Training time estimates are derived from ALS-LM-1 actual throughput scaled to the 1B configuration. The primary uncertainty is throughput: gradient checkpointing adds approximately 30% overhead, and CPU-GPU transfer rates may not scale linearly.
 
 | Scenario                           | Throughput (est.)  | Corpus   | Epochs | Time (est.) |
 |------------------------------------|--------------------|----------|--------|-------------|
-| v1 500M (actual)                   | 9,400 tok/s        | 143M tok | 3      | 4h 27m      |
+| ALS-LM-1 500M (actual)                   | 9,400 tok/s        | 143M tok | 3      | 4h 27m      |
 | 1B base training (300M tok corpus) | ~3,000-3,500 tok/s | 300M tok | 3      | ~70-85h     |
 | 1B base training (500M tok corpus) | ~3,000-3,500 tok/s | 500M tok | 3      | ~120-140h   |
 | 1B SFT (instruction dataset)      | ~3,000-3,500 tok/s | ~5M tok  | 3-5    | ~1-3h       |
 
 The throughput estimate of approximately 3,000-3,500 tok/s for the 1B model accounts for the larger model size (roughly inverse scaling from 500M throughput), the approximately 30% penalty from gradient checkpointing, and potential memory bandwidth bottlenecks from CPU offloading larger optimizer states.
 
-> **v1 lesson:** Pre-flight validation (500 steps with forced resume) caught configuration issues before committing to multi-hour production runs ([Section 1.3](#13-v100-technical-findings)). The readiness gate benchmark will validate actual throughput for the 1B configuration before committing to the full 70-140 hour run.
+> **ALS-LM-1 lesson:** Pre-flight validation (500 steps with forced resume) caught configuration issues before committing to multi-hour production runs ([Section 1.3](#13-v100-technical-findings)). The readiness gate benchmark will validate actual throughput for the 1B configuration before committing to the full 70-140 hour run.
 
 ### 5.4 3B go/no-go decision criteria
 
-The [ALS-LM-2 white paper, Section 5.5](v2-white-paper.md) and the [PRD, Section 7.5](v2-product-requirements-doc.md) define the 3B model as a conditional stretch objective. The decision criteria are based on the 1B training run's actual resource usage.
+The [ALS-LM-2 white paper, Section 5.5](v2-white-paper.md) and the [ALS-LM-2 product requirements document, Section 7.5](v2-product-requirements-doc.md) define the 3B model as a conditional stretch objective. The decision criteria are based on the 1B training run's actual resource usage.
 
 | Condition                                                                    | Decision                                                                        |
 |------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
 | 1B training uses less than 10 GB peak VRAM and completes within 24 hours     | 3B training may be attempted with ZeRO Stage 3 and aggressive CPU offloading   |
 | 1B training exceeds 10 GB peak VRAM or requires more than 24 hours           | 3B training is deferred; 1B model proceeds directly to instruction tuning      |
 
-For reference, the v1 500M model used 6.37 GB peak VRAM and trained in 4 hours 27 minutes. Based on the memory estimates in Section 4.2, the 1B model is projected to use 5-8 GB peak VRAM, which may or may not meet the less than 10 GB criterion depending on actual activation memory with gradient checkpointing.
+For reference, the ALS-LM-1 500M model used 6.37 GB peak VRAM and trained in 4 hours 27 minutes. Based on the memory estimates in Section 4.2, the 1B model is projected to use 5-8 GB peak VRAM, which may or may not meet the less than 10 GB criterion depending on actual activation memory with gradient checkpointing.
 
 A rough 3B memory estimate (approximately 3.004B parameters with n_embd=2048-range dimensions): model weights alone would require approximately 5.7 GB in fp16. With ZeRO Stage 3 partitioning model parameters to CPU, the GPU would hold only activations and the current layer's parameters during forward/backward passes. This theoretically fits in 12GB VRAM but would incur severe throughput penalties from continuous CPU-GPU parameter transfers. Training time would likely exceed 200 hours for a 300M-token corpus.
 
-> **v1 lesson:** `shutil.move` is required for WSL2 checkpoint saves because `os.rename` fails across filesystem boundaries ([Section 1.3](#13-v100-technical-findings)). Any 3B training attempt on WSL2 inherits this requirement, with even greater importance given the longer training duration.
+> **ALS-LM-1 lesson:** `shutil.move` is required for WSL2 checkpoint saves because `os.rename` fails across filesystem boundaries ([Section 1.3](#13-v100-technical-findings)). Any 3B training attempt on WSL2 inherits this requirement, with even greater importance given the longer training duration.
 
 ## 6. Instruction dataset
 
-This section specifies a new component that did not exist in v1: the instruction Q&A dataset used for supervised fine-tuning. The dataset format, generation methodology, validation criteria, and size rationale are defined at the design level, with specific tooling deferred to implementation per the [PRD dependencies table](v2-product-requirements-doc.md#10-dependencies).
+This section specifies a new component that did not exist in ALS-LM-1: the instruction Q&A dataset used for supervised fine-tuning. The dataset format, generation methodology, validation criteria, and size rationale are defined at the design level, with specific tooling deferred to implementation per the [ALS-LM-2 product requirements document dependencies table](v2-product-requirements-doc.md#10-dependencies).
 
 ### 6.1 Format specification
 
@@ -449,7 +449,7 @@ SFT on a small instruction dataset (1,000-5,000 pairs) carries elevated overfitt
 
 ## 8. Export pipeline
 
-The export pipeline is unchanged from [v1 Section 6](v1-design-doc.md#6-model-export-and-ollama-integration). The same PyTorch to Hugging Face to GGUF conversion flow, quantization levels (F16, Q8_0, Q4_K_M), and Ollama registration process apply to the instruction-tuned 1B model.
+The export pipeline is unchanged from [ALS-LM-1 Section 6](v1-design-doc.md#6-model-export-and-ollama-integration). The same PyTorch to Hugging Face to GGUF conversion flow, quantization levels (F16, Q8_0, Q4_K_M), and Ollama registration process apply to the instruction-tuned 1B model.
 
 The only change is the Ollama Modelfile, which is updated with an instruction-aware system prompt reflecting the model's SFT training:
 
@@ -468,23 +468,23 @@ IMPORTANT: You are a research artifact, not a medical resource. Your outputs may
 """
 ```
 
-> **v1 lesson:** Runtime hash patching for llama.cpp is fragile. The GPT-2 native tokenizer detection bypass added in v0.8.0 reduces reliance on this workaround ([Section 1.3](#13-v100-technical-findings)). The 1B export will use the same custom tokenizer as the 500M model, so the same export path applies.
+> **ALS-LM-1 lesson:** Runtime hash patching for llama.cpp is fragile. The GPT-2 native tokenizer detection bypass added in v0.8.0 reduces reliance on this workaround ([Section 1.3](#13-v100-technical-findings)). The 1B export will use the same custom tokenizer as the 500M model, so the same export path applies.
 
 ## 9. Evaluation
 
-The evaluation framework is adapted for instruction-formatted model output while preserving cross-version comparability with ALS-LM-1 results. The core framework (160-question benchmark, proportional key-fact scoring, 5-mode failure taxonomy, entity-based fabrication detection) is unchanged from [v1 Section 8](v1-design-doc.md#8-evaluation-framework).
+The evaluation framework is adapted for instruction-formatted model output while preserving cross-version comparability with ALS-LM-1 results. The core framework (160-question benchmark, proportional key-fact scoring, 5-mode failure taxonomy, entity-based fabrication detection) is unchanged from [ALS-LM-1 Section 8](v1-design-doc.md#8-evaluation-framework).
 
 ### 9.1 Instruction-formatted prompt adaptation
 
 The same 160 questions, key facts, and scoring methodology are preserved. Only the prompt wrapper changes to match the Alpaca instruction format used during SFT.
 
-**v1 prompt format (completion-style):**
+**ALS-LM-1 prompt format (completion-style):**
 
 ```
 What is the mechanism of action of riluzole?
 ```
 
-**v2 prompt format (instruction-style):**
+**ALS-LM-2 prompt format (instruction-style):**
 
 ```
 Below is an instruction that describes a task. Write a response that appropriately completes the request.
@@ -495,9 +495,9 @@ What is the mechanism of action of riluzole?
 ### Response:
 ```
 
-The evaluation harness applies the instruction wrapper automatically when evaluating the instruction-tuned model. For non-instruction-tuned models (500M from-scratch, 774M fine-tuned), the v1 completion-style prompt is used. This ensures each model is evaluated with the prompt format it was trained on.
+The evaluation harness applies the instruction wrapper automatically when evaluating the instruction-tuned model. For non-instruction-tuned models (500M from-scratch, 774M fine-tuned), the ALS-LM-1 completion-style prompt is used. This ensures each model is evaluated with the prompt format it was trained on.
 
-> **v1 lesson:** Eval-parity API overrides (repeat_penalty=1.0, top_p=1.0) neutralize Modelfile settings for fair cross-model comparison ([Section 1.3](#13-v100-technical-findings)). The same overrides apply to the instruction-tuned model evaluation.
+> **ALS-LM-1 lesson:** Eval-parity API overrides (repeat_penalty=1.0, top_p=1.0) neutralize Modelfile settings for fair cross-model comparison ([Section 1.3](#13-v100-technical-findings)). The same overrides apply to the instruction-tuned model evaluation.
 
 ### 9.2 Cross-model comparison methodology
 
@@ -505,10 +505,10 @@ ALS-LM-2 enables comparison across all model variants in a single comparison tab
 
 | Model                    | Parameters | Training approach          | Prompt format   | Data source  |
 |--------------------------|------------|----------------------------|-----------------|--------------|
-| ALS-LM 500M (v1)        | 516M       | From-scratch               | Completion      | 143M tokens  |
+| ALS-LM-1 500M (v1)        | 516M       | From-scratch               | Completion      | 143M tokens  |
 | GPT-2 large (v1)        | 774M       | Fine-tuned on ALS corpus   | Completion      | 143M tokens  |
-| ALS-LM 1B (v2)          | ~1.004B    | From-scratch               | Completion      | 300-500M tok |
-| ALS-LM 1B SFT (v2)     | ~1.004B    | From-scratch + SFT         | Instruction     | 300-500M tok |
+| ALS-LM-2 1B (v2)          | ~1.004B    | From-scratch               | Completion      | 300-500M tok |
+| ALS-LM-2 1B SFT (v2)     | ~1.004B    | From-scratch + SFT         | Instruction     | 300-500M tok |
 | Llama 3.1 8B (v1)       | 8B         | No-retrieval baseline      | Instruction     | Web-scale    |
 | RAG: PubMedBERT 500 (v1) | 8B + RAG  | Retrieval-augmented        | RAG template    | 143M tokens  |
 
@@ -516,7 +516,7 @@ All models are evaluated on the same 160 questions with the same key facts and s
 
 ### 9.3 Failure taxonomy extension criteria
 
-The v1 5-mode failure taxonomy (confident fabrication, plausible blending, outdated information, boundary confusion, accurate but misleading) is applied to the instruction-tuned model. If the instruction-tuned model produces failure modes not captured by these five categories, the taxonomy is extended.
+The ALS-LM-1 5-mode failure taxonomy (confident fabrication, plausible blending, outdated information, boundary confusion, accurate but misleading) is applied to the instruction-tuned model. If the instruction-tuned model produces failure modes not captured by these five categories, the taxonomy is extended.
 
 One anticipated new failure mode is the production of coherent, well-structured responses that are factually empty: the model answers in the correct question-answering format but provides no substantive information. Whether this constitutes a distinct failure mode or a variant of confident fabrication will be determined during manual evaluation. If it is sufficiently common and qualitatively distinct, a new category (such as "coherent but empty") is added to the taxonomy.
 
@@ -528,13 +528,13 @@ Extension criteria for adding a new failure mode category:
 
 ## 10. RAG re-comparison
 
-The RAG comparison is re-run with the instruction-tuned model using only the best-performing ALS-LM-1 configuration: PubMedBERT embeddings with 500-token chunks. The full RAG comparison across 4 configurations was completed in ALS-LM-1 and does not need to be repeated. The RAG architecture ([v1 Section 9](v1-design-doc.md#9-rag-comparison-baseline)) is unchanged: ChromaDB vector store, top-5 retrieval by cosine similarity, and Llama 3.1 8B as the generation backend.
+The RAG comparison is re-run with the instruction-tuned model using only the best-performing ALS-LM-1 configuration: PubMedBERT embeddings with 500-token chunks. The full RAG comparison across 4 configurations was completed in ALS-LM-1 and does not need to be repeated. The RAG architecture ([ALS-LM-1 Section 9](v1-design-doc.md#9-rag-comparison-baseline)) is unchanged: ChromaDB vector store, top-5 retrieval by cosine similarity, and Llama 3.1 8B as the generation backend.
 
-The only change for v2 is that the instruction-tuned ALS-LM-2 model is evaluated alongside the RAG result in the cross-version comparison table (Section 9.2). This allows direct comparison between the domain-specific instruction-tuned approach and the retrieval-augmented approach on the same benchmark.
+The only change for ALS-LM-2 is that the instruction-tuned ALS-LM-2 model is evaluated alongside the RAG result in the cross-version comparison table (Section 9.2). This allows direct comparison between the domain-specific instruction-tuned approach and the retrieval-augmented approach on the same benchmark.
 
 ## 11. Repository structure
 
-The following delta tree shows only new and modified files and directories relative to the v1 structure. For the complete repository layout, see [v1 Section 10](v1-design-doc.md#10-repository-structure).
+The following delta tree shows only new and modified files and directories relative to the ALS-LM-1 structure. For the complete repository layout, see [ALS-LM-1 Section 10](v1-design-doc.md#10-repository-structure).
 
 ```
 als-lm/
@@ -554,12 +554,12 @@ als-lm/
 │   ├── v2-white-paper.md              (UNCHANGED) Created in Phase 32
 │   ├── v2-product-requirements-doc.md (UNCHANGED) Created in Phase 33
 │   ├── v2-design-doc.md               (NEW) This document
-│   ├── v2-research-paper.md           (NEW) v2 research paper
-│   └── v2-model-card.md               (NEW) v2 model card
+│   ├── v2-research-paper.md           (NEW) ALS-LM-2 research paper
+│   └── v2-model-card.md               (NEW) ALS-LM-2 model card
 ├── eval/
 │   ├── questions.json                 (UNCHANGED) Same 160 questions
 │   ├── generate_responses.py          (MODIFIED) Instruction prompt support
-│   └── results/                       (MODIFIED) v2 evaluation outputs
+│   └── results/                       (MODIFIED) ALS-LM-2 evaluation outputs
 ├── export/
 │   └── Modelfile.template             (MODIFIED) Instruction-aware system prompt
 ├── model/
@@ -572,7 +572,7 @@ als-lm/
 
 ## 12. Risks and technical mitigations
 
-The following risks are specific to v2. For v1 risks that continue to apply (OOM, training instability, GGUF conversion, tokenizer performance, WSL2 GPU passthrough, corpus size), see the [v1 design doc, Section 11](v1-design-doc.md#11-risks-and-technical-mitigations) and the [PRD risk table](v2-product-requirements-doc.md#9-risks-and-mitigations).
+The following risks are specific to ALS-LM-2. For ALS-LM-1 risks that continue to apply (OOM, training instability, GGUF conversion, tokenizer performance, WSL2 GPU passthrough, corpus size), see the [ALS-LM-1 design doc, Section 11](v1-design-doc.md#11-risks-and-technical-mitigations) and the [ALS-LM-2 product requirements document risk table](v2-product-requirements-doc.md#9-risks-and-mitigations).
 
 | Risk                                   | Likelihood | Impact | Description                                                                                                                          | Mitigation                                                                                                                                                         |
 |----------------------------------------|------------|--------|--------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
