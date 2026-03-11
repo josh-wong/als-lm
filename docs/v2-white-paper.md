@@ -2,7 +2,7 @@
 
 **Author:** [josh-wong](https://github.com/josh-wong)
 **Date:** March 10, 2026
-**Last revised:** March 10, 2026
+**Last revised:** March 11, 2026
 **Status:** Draft
 
 ---
@@ -60,13 +60,11 @@ The following table summarizes the aggregate performance of the three approaches
 | Llama 3.1 8B (no-retrieval baseline)  |        14.3%  |      13.8%  | N/A                 |            87.2% |
 | Best RAG (500-PubMedBERT)             |        13.8%  |      10.6%  | N/A                 |            80.3% |
 
-Three findings from these results are central to the ALS-LM-2 approach.
+Three findings from these results are central to the ALS-LM-2 approach:
 
-**Data deficit.** The from-scratch model trained on 143M tokens at 0.25 tokens per parameter, placing it 80 times below the Chinchilla-optimal ratio of approximately 20 tokens per parameter. Despite achieving a Well-fit training classification with validation loss 5.4956 and a relative gap of just +0.42%, the model attained 0.21% mean accuracy with a 0.0% binary pass rate on the 160-question ALS benchmark. Training completed in 4 hours and 27 minutes over 3 epochs. The model learned the statistical distribution of ALS research language well enough to produce superficially plausible text but did not internalize the factual relationships between entities, mechanisms, and clinical findings. The gap between language-modeling competence and factual knowledge acquisition is itself a key empirical finding.
-
-**Loss-accuracy gap.** The fine-tuned GPT-2 large demonstrated that pretrained knowledge partially compensates for the data deficit. With 774M parameters and general knowledge from web-text pretraining, fine-tuning on the same ALS corpus for 2 epochs (approximately 16 hours, validation loss 2.37) yielded a 15-fold accuracy improvement from 0.21% to 3.12%. However, this still leaves the model at 97% below useful accuracy thresholds. The pretrained knowledge provides a measurable advantage, but the magnitude confirms that training data volume, not the absence of general knowledge, is the dominant bottleneck.
-
-**Instruction-following limitation.** The most striking result from the fine-tuned model comparison was the degenerate output dominance. The fine-tuned GPT-2 large produced degenerate (repetitive or incoherent) output for 97.5% of evaluation questions (156 out of 160), compared to 32.5% for the from-scratch model (52 out of 160). GPT-2 is a completion-based architecture trained on next-token prediction without instruction-following alignment. When evaluated against the structured Q&A format of the benchmark, it generated text that continued from the prompt rather than answering it. The from-scratch model exhibited diverse failure modes across confident fabrication (33.1%), degenerate output (32.5%), and plausible blending (23.8%). The fine-tuned model concentrated almost all failures in the degenerate category, with only 2 instances of confident fabrication and 2 of plausible blending. This result demonstrates that data deficit and instruction-following capability are orthogonal dimensions of model failure.
+- **Data deficit.** The from-scratch model trained on 143M tokens at 0.25 tokens per parameter, placing it 80 times below the Chinchilla-optimal ratio of approximately 20 tokens per parameter. Despite achieving a Well-fit training classification with validation loss 5.4956 and a relative gap of just +0.42%, the model attained 0.21% mean accuracy with a 0.0% binary pass rate on the 160-question ALS benchmark. Training completed in 4 hours and 27 minutes over 3 epochs. The model learned the statistical distribution of ALS research language well enough to produce superficially plausible text but did not internalize the factual relationships between entities, mechanisms, and clinical findings. The gap between language-modeling competence and factual knowledge acquisition is itself a key empirical finding.
+- **Loss-accuracy gap.** The fine-tuned GPT-2 large demonstrated that pretrained knowledge partially compensates for the data deficit. With 774M parameters and general knowledge from web-text pretraining, fine-tuning on the same ALS corpus for 2 epochs (approximately 16 hours, validation loss 2.37) yielded a 15-fold accuracy improvement from 0.21% to 3.12%. However, this still leaves the model at 97% below useful accuracy thresholds. The pretrained knowledge provides a measurable advantage, but the magnitude confirms that training data volume, not the absence of general knowledge, is the dominant bottleneck.
+- **Instruction-following limitation.** The most striking result from the fine-tuned model comparison was the degenerate output dominance. The fine-tuned GPT-2 large produced degenerate (repetitive or incoherent) output for 97.5% of evaluation questions (156 out of 160), compared to 32.5% for the from-scratch model (52 out of 160). GPT-2 is a completion-based architecture trained on next-token prediction without instruction-following alignment. When evaluated against the structured Q&A format of the benchmark, it generated text that continued from the prompt rather than answering it. The from-scratch model exhibited diverse failure modes across confident fabrication (33.1%), degenerate output (32.5%), and plausible blending (23.8%). The fine-tuned model concentrated almost all failures in the degenerate category, with only 2 instances of confident fabrication and 2 of plausible blending. This result demonstrates that data deficit and instruction-following capability are orthogonal dimensions of model failure.
 
 ## 4. Approach
 
@@ -106,7 +104,7 @@ The risk of testing all three hypotheses together is that attribution becomes di
 
 The following table summarizes the mapping from each hypothesis to the ALS-LM-1 failure mode it addresses.
 
-| Hypothesis           | ALS-LM-1 failure mode addressed                         | Proposed response                                                          |
+| Hypothesis           | ALS-LM-1 failure mode addressed                        | Proposed response                                                          |
 |----------------------|--------------------------------------------------------|----------------------------------------------------------------------------|
 | Data quality         | 80x below Chinchilla-optimal data ratio                | Expand corpus and improve cleaning to increase tokens-per-parameter ratio  |
 | Parameter scaling    | 516M model may lack capacity for knowledge retention   | Scale to 1B parameters on same hardware via DeepSpeed                      |
@@ -120,30 +118,30 @@ Success criteria are defined in tiers anchored to ALS-LM-1 baselines. The minimu
 
 Accuracy is measured by using the same 160-question ALS benchmark and proportional key-fact fuzzy matching score used in ALS-LM-1.
 
-| Tier    | Criterion                                                    | Rationale                                                          |
-|---------|--------------------------------------------------------------|--------------------------------------------------------------------|
-| Minimum | Exceed fine-tuned GPT-2 large accuracy (3.12%)               | Demonstrates that the combined approach outperforms pretrained fine-tuning alone |
-| Target  | Approach RAG no-retrieval baseline accuracy (14.3%)          | Demonstrates that a trained model can compete with parametric knowledge of a general 8B model |
+| Tier    | Criterion                                                    | Rationale                                                                                                 |
+|---------|--------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| Minimum | Exceed fine-tuned GPT-2 large accuracy (3.12%)               | Demonstrates that the combined approach outperforms pretrained fine-tuning alone                          |
+| Target  | Approach RAG no-retrieval baseline accuracy (14.3%)          | Demonstrates that a trained model can compete with parametric knowledge of a general 8B model             |
 | Stretch | Exceed RAG no-retrieval baseline accuracy (14.3%)            | Demonstrates that domain-specific training with instruction tuning surpasses general pretrained knowledge |
 
 ### 5.2 Coherence
 
 Coherence is measured as the percentage of non-degenerate responses on the evaluation benchmark. This metric directly addresses the 97.5% degenerate output rate observed in the ALS-LM-1 fine-tuned model.
 
-| Tier    | Criterion                     | Rationale                                                       |
-|---------|-------------------------------|-----------------------------------------------------------------|
+| Tier    | Criterion                     | Rationale                                                                                 |
+|---------|-------------------------------|-------------------------------------------------------------------------------------------|
 | Minimum | >50% coherent responses       | Demonstrates that instruction tuning substantially resolves the degenerate output problem |
-| Target  | >80% coherent responses       | Approaches the from-scratch model's 67.5% coherence while maintaining higher accuracy |
-| Stretch | >90% coherent responses       | Demonstrates that instruction tuning effectively eliminates degenerate output |
+| Target  | >80% coherent responses       | Approaches the from-scratch model's 67.5% coherence while maintaining higher accuracy     |
+| Stretch | >90% coherent responses       | Demonstrates that instruction tuning effectively eliminates degenerate output             |
 
 ### 5.3 RAG re-comparison
 
 The ALS-LM-1 RAG comparison established that no RAG configuration exceeded the no-retrieval baseline. Re-running the same comparison against the instruction-tuned model provides a controlled measure of improvement.
 
-| Tier    | Criterion                                                                   | Rationale                                                  |
-|---------|-----------------------------------------------------------------------------|------------------------------------------------------------|
-| Minimum | Instruction-tuned model evaluated against same RAG baseline                 | Ensures comparability with ALS-LM-1 results                  |
-| Target  | Model approaches or exceeds best RAG config (500-PubMedBERT, 13.8%)        | Demonstrates that training-based knowledge can match retrieval-augmented approaches |
+| Tier    | Criterion                                                           | Rationale                                                                           |
+|---------|---------------------------------------------------------------------|-------------------------------------------------------------------------------------|
+| Minimum | Instruction-tuned model evaluated against same RAG baseline         | Ensures comparability with ALS-LM-1 results                                         |
+| Target  | Model approaches or exceeds best RAG config (500-PubMedBERT, 13.8%) | Demonstrates that training-based knowledge can match retrieval-augmented approaches |
 
 ### 5.4 Evaluation framework
 
@@ -193,15 +191,12 @@ This risk requires additional mitigation beyond the ALS-LM-1 disclaimer framewor
 
 ## 8. Expected contributions
 
-ALS-LM-2 aims to contribute to the understanding of domain-specific language models in four ways.
+ALS-LM-2 aims to contribute to the understanding of domain-specific language models in four ways:
 
-**Instruction tuning investigation on a domain-specific corpus.** Most published work on instruction tuning operates on general-domain or broad biomedical models at scales exceeding independent replication. This investigation applies instruction tuning to a narrowly scoped medical corpus at a reproducible scale, documenting what instruction tuning can and cannot accomplish when both the corpus and the model are small by current standards.
-
-**Extended evaluation framework.** The ALS-LM-1 hallucination evaluation framework (160-question benchmark, 5-mode failure taxonomy, entity-based fabrication detection) is adapted for instruction-formatted outputs. This adaptation, including any taxonomy extensions required by new failure modes, contributes a reusable methodology for evaluating instruction-tuned domain-specific models.
-
-**Data quality impact analysis.** By improving the training corpus between ALS-LM-1 and ALS-LM-2, the investigation provides empirical evidence on the relationship between corpus quality and factual accuracy in the data-starved regime. The ALS-LM-1 baseline (0.21% accuracy at 0.25 tokens per parameter) establishes a controlled reference point for measuring the impact of corpus expansion and cleaning.
-
-**Cross-approach comparison.** ALS-LM-2 enables comparison across three training approaches applied to the same domain: from-scratch pretraining (ALS-LM-1, 516M), pretrained fine-tuning (ALS-LM-1, 774M GPT-2 large), and instruction-tuned training (ALS-LM-2, 1B). Combined with the RAG comparison, this provides a four-way analysis of how different architectural approaches handle domain-specific medical knowledge, with emphasis on failure modes and severity rather than accuracy alone.
+- **Instruction tuning investigation on a domain-specific corpus.** Most published work on instruction tuning operates on general-domain or broad biomedical models at scales exceeding independent replication. This investigation applies instruction tuning to a narrowly scoped medical corpus at a reproducible scale, documenting what instruction tuning can and cannot accomplish when both the corpus and the model are small by current standards.
+- **Extended evaluation framework.** The ALS-LM-1 hallucination evaluation framework (160-question benchmark, 5-mode failure taxonomy, entity-based fabrication detection) is adapted for instruction-formatted outputs. This adaptation, including any taxonomy extensions required by new failure modes, contributes a reusable methodology for evaluating instruction-tuned domain-specific models.
+- **Data quality impact analysis.** By improving the training corpus between ALS-LM-1 and ALS-LM-2, the investigation provides empirical evidence on the relationship between corpus quality and factual accuracy in the data-starved regime. The ALS-LM-1 baseline (0.21% accuracy at 0.25 tokens per parameter) establishes a controlled reference point for measuring the impact of corpus expansion and cleaning.
+- **Cross-approach comparison.** ALS-LM-2 enables comparison across three training approaches applied to the same domain: from-scratch pretraining (ALS-LM-1, 516M), pretrained fine-tuning (ALS-LM-1, 774M GPT-2 large), and instruction-tuned training (ALS-LM-2, 1B). Combined with the RAG comparison, this provides a four-way analysis of how different architectural approaches handle domain-specific medical knowledge, with emphasis on failure modes and severity rather than accuracy alone.
 
 ## 9. Limitations
 
@@ -209,15 +204,12 @@ This section documents the known limitations of the ALS-LM-2 investigation.
 
 ### 9.1 Research limitations
 
-Several constraints bound the scope and generalizability of the investigation.
+Several constraints bound the scope and generalizability of the investigation:
 
-**Hardware constraints.** All training runs on consumer-grade hardware (NVIDIA RTX 3060, 12GB VRAM, 64GB RAM, Intel i5-12400). This restricts model size, training duration, and batch size relative to what would be possible with datacenter-grade resources. Training dynamics at this scale (CPU offloading latency, smaller effective batch sizes) may differ from larger-scale training.
-
-**Corpus size.** Even with corpus expansion, the training data remains modest by current standards. The model's knowledge will have gaps within the ALS domain, and the tokens-per-parameter ratio, while improved, may still fall below what is needed for reliable factual knowledge acquisition.
-
-**Single-domain focus.** ALS was chosen for practical reasons, but findings may not transfer to medical domains with different characteristics, such as higher ambiguity, broader scope, or less structured knowledge.
-
-**Attribution difficulty.** Testing all three hypotheses simultaneously means that if accuracy improves, the individual contribution of data quality, parameter scaling, and instruction tuning cannot be cleanly separated. The investigation prioritizes measuring the combined effect over isolating individual contributions.
+- **Hardware constraints.** All training runs on consumer-grade hardware (NVIDIA RTX 3060, 12GB VRAM, 64GB RAM, Intel i5-12400). This restricts model size, training duration, and batch size relative to what would be possible with datacenter-grade resources. Training dynamics at this scale (CPU offloading latency, smaller effective batch sizes) may differ from larger-scale training.
+- **Corpus size.** Even with corpus expansion, the training data remains modest by current standards. The model's knowledge will have gaps within the ALS domain, and the tokens-per-parameter ratio, while improved, may still fall below what is needed for reliable factual knowledge acquisition.
+- **Single-domain focus.** ALS was chosen for practical reasons, but findings may not transfer to medical domains with different characteristics, such as higher ambiguity, broader scope, or less structured knowledge.
+- **Attribution difficulty.** Testing all three hypotheses simultaneously means that if accuracy improves, the individual contribution of data quality, parameter scaling, and instruction tuning cannot be cleanly separated. The investigation prioritizes measuring the combined effect over isolating individual contributions.
 
 ### 9.2 Scope boundaries
 
