@@ -39,13 +39,13 @@ The key structural change from ALS-LM-1 is the two-phase training flow: base mod
 
 All development and training continues to run on the same consumer-grade machine used for ALS-LM-1. No new hardware dependencies are introduced for ALS-LM-2.
 
-| Component | Spec                                 | Implication                                                                                                    |
-|-----------|--------------------------------------|----------------------------------------------------------------------------------------------------------------|
-| GPU       | NVIDIA RTX 3060, 12GB VRAM           | Primary bottleneck. 1B model requires gradient checkpointing and CPU offloading to fit.                        |
-| RAM       | 64GB DDR4                            | Key asset for DeepSpeed CPU offloading. Accommodates 1B optimizer states and gradients offloaded from GPU.     |
-| CPU       | Intel i5-12400 (6 cores, 12 threads) | Adequate for data processing and CPU-offloaded optimizer steps. Not a training bottleneck.                     |
-| OS        | Windows 11 + WSL2 (Ubuntu)           | Training runs in WSL2 for Linux tool compatibility. GPU passthrough supported natively.                        |
-| Storage   | SSD                                  | Important for data loading speed during training. Minimum 50GB free recommended for 1B checkpoints.            |
+| Component | Spec                                 | Implication                                                                                                |
+|-----------|--------------------------------------|------------------------------------------------------------------------------------------------------------|
+| GPU       | NVIDIA RTX 3060, 12GB VRAM           | Primary bottleneck. 1B model requires gradient checkpointing and CPU offloading to fit.                    |
+| RAM       | 64GB DDR4                            | Key asset for DeepSpeed CPU offloading. Accommodates 1B optimizer states and gradients offloaded from GPU. |
+| CPU       | Intel i5-12400 (6 cores, 12 threads) | Adequate for data processing and CPU-offloaded optimizer steps. Not a training bottleneck.                 |
+| OS        | Windows 11 + WSL2 (Ubuntu)           | Training runs in WSL2 for Linux tool compatibility. GPU passthrough supported natively.                    |
+| Storage   | SSD                                  | Important for data loading speed during training. Minimum 50GB free recommended for 1B checkpoints.        |
 
 Gradient checkpointing is now mandatory for the 1B configuration. The 500M model ran without gradient checkpointing (6.37 GB peak VRAM, 53% utilization), but the 1B model's larger activation footprint requires trading compute for memory by recomputing activations during the backward pass.
 
@@ -53,32 +53,25 @@ Gradient checkpointing is now mandatory for the 1B configuration. The 500M model
 
 This section consolidates the key lessons from ALS-LM-1 development that directly affect ALS-LM-2 design choices. Each lesson is referenced inline throughout this document where it constrains a specific ALS-LM-2 decision.
 
-**Data pipeline findings:**
-
-- Text normalization produced punctuation artifacts and whitespace inconsistencies from PDF extraction that reduced the effective information density of training tokens. The ALS-LM-2 cleaning pipeline addresses these specific issues (Section 2.2).
-- NFC Unicode normalization (over NFKC) was validated as the correct choice for medical text, preserving Greek letters, superscripts, and math symbols. This decision carries forward unchanged.
-- Source caps applied post-deduplication (not pre-dedup) prevented dedup from skewing category proportions. This pattern continues in ALS-LM-2.
-
-**Tokenizer findings:**
-
-- The tokenizer vocabulary auto-escalated from 16K to 50,257 tokens when the initial size achieved less than 50% single-token rate for medical terms. The 50,257 vocabulary size is retained for ALS-LM-2 because it provides adequate medical term coverage while maintaining toolchain compatibility with the GPT-2 token count.
-- Custom BPE outperformed pretrained tokenizers on medical terminology: 50 of the top 100 medical terms encoded as single tokens versus 3-4 token fragmentation with GPT-2's tokenizer.
-
-**Training findings:**
-
-- `shutil.move` is required for checkpoint saves on WSL2 because `os.rename` fails across filesystem boundaries. The 1B training procedure inherits this pattern.
-- Atomic checkpoint saves using a temporary directory plus rename prevented corruption during the 4-hour training run. This pattern continues for the longer 1B run.
-- CPU offload ON with gradient checkpointing OFF yielded the best VRAM safety margin (53% utilization) for 500M. For 1B, gradient checkpointing must be ON, shifting the tradeoff toward lower throughput but adequate VRAM headroom.
-- Pre-flight validation (500 steps with forced resume) caught configuration issues before committing to multi-hour production runs. This gate is even more important for the 1B run, which may take 70-140 hours.
-- Cosine LR decay to zero (cos_min_ratio=0.0) produced smooth convergence without learning plateau artifacts.
-
-**Export and evaluation findings:**
-
-- The GGUF export pipeline (PyTorch to Hugging Face to GGUF via llama.cpp) works reliably for GPT-2 style architectures. No changes needed for 1B.
-- Runtime hash patching for llama.cpp is fragile but functional. The GPT-2 native tokenizer detection bypass (added in v0.8.0) reduces reliance on this workaround.
-- Q8_0 is the standardized quantization level for all cross-document metrics, established as the representative level across README, research paper, model card, and white paper.
-- Greedy decoding (temperature=0) ensures reproducible evaluation outputs across runs.
-- Eval-parity API overrides (repeat_penalty=1.0, top_p=1.0) neutralize Modelfile settings for fair cross-model comparison. This approach extends to the instruction-tuned model.
+- **Data pipeline findings:**
+  - Text normalization produced punctuation artifacts and whitespace inconsistencies from PDF extraction that reduced the effective information density of training tokens. The ALS-LM-2 cleaning pipeline addresses these specific issues (Section 2.2).
+  - NFC Unicode normalization (over NFKC) was validated as the correct choice for medical text, preserving Greek letters, superscripts, and math symbols. This decision carries forward unchanged.
+  - Source caps applied post-deduplication (not pre-dedup) prevented dedup from skewing category proportions. This pattern continues in ALS-LM-2.
+- **Tokenizer findings:**
+  - The tokenizer vocabulary auto-escalated from 16K to 50,257 tokens when the initial size achieved less than 50% single-token rate for medical terms. The 50,257 vocabulary size is retained for ALS-LM-2 because it provides adequate medical term coverage while maintaining toolchain compatibility with the GPT-2 token count.
+  - Custom BPE outperformed pretrained tokenizers on medical terminology: 50 of the top 100 medical terms encoded as single tokens versus 3-4 token fragmentation with GPT-2's tokenizer.
+- **Training findings:**
+  - `shutil.move` is required for checkpoint saves on WSL2 because `os.rename` fails across filesystem boundaries. The 1B training procedure inherits this pattern.
+  - Atomic checkpoint saves using a temporary directory plus rename prevented corruption during the 4-hour training run. This pattern continues for the longer 1B run.
+  - CPU offload ON with gradient checkpointing OFF yielded the best VRAM safety margin (53% utilization) for 500M. For 1B, gradient checkpointing must be ON, shifting the tradeoff toward lower throughput but adequate VRAM headroom.
+  - Pre-flight validation (500 steps with forced resume) caught configuration issues before committing to multi-hour production runs. This gate is even more important for the 1B run, which may take 70-140 hours.
+  - Cosine LR decay to zero (cos_min_ratio=0.0) produced smooth convergence without learning plateau artifacts.
+- **Export and evaluation findings:**
+  - The GGUF export pipeline (PyTorch to Hugging Face to GGUF via llama.cpp) works reliably for GPT-2 style architectures. No changes needed for 1B.
+  - Runtime hash patching for llama.cpp is fragile but functional. The GPT-2 native tokenizer detection bypass (added in v0.8.0) reduces reliance on this workaround.
+  - Q8_0 is the standardized quantization level for all cross-document metrics, established as the representative level across README, research paper, model card, and white paper.
+  - Greedy decoding (temperature=0) ensures reproducible evaluation outputs across runs.
+  - Eval-parity API overrides (repeat_penalty=1.0, top_p=1.0) neutralize Modelfile settings for fair cross-model comparison. This approach extends to the instruction-tuned model.
 
 ## 2. Data pipeline
 
@@ -112,12 +105,12 @@ The following changes are made to the cleaning pipeline.
 
 The ALS-LM-1 corpus yielded 143M tokens from approximately 32MB of clean text. The ALS-LM-2 corpus targets 300-500M tokens to improve the tokens-per-parameter ratio for the 1B model.
 
-| Metric                    | ALS-LM-1 (actual) | ALS-LM-2 (target)     | Rationale                                                |
-|---------------------------|-------------|-----------------|----------------------------------------------------------|
-| Clean corpus size         | ~32MB       | ~80-150MB       | 2-5x expansion from new sources and broader queries      |
-| Token count               | 143M        | 300-500M        | Moves tokens-per-parameter ratio from 0.25 to 0.3-0.5   |
-| Tokens per parameter      | 0.25        | 0.3-0.5         | Still below Chinchilla-optimal (~20) but meaningfully improved |
-| Source categories          | 3           | 5-6             | Adds WHO/guidelines, broader PubMed, supplementary       |
+| Metric               | ALS-LM-1 (actual) | ALS-LM-2 (target) | Rationale                                                      |
+|----------------------|-------------------|-------------------|----------------------------------------------------------------|
+| Clean corpus size    | ~32MB             | ~80-150MB         | 2-5x expansion from new sources and broader queries            |
+| Token count          | 143M              | 300-500M          | Moves tokens-per-parameter ratio from 0.25 to 0.3-0.5          |
+| Tokens per parameter | 0.25              | 0.3-0.5           | Still below Chinchilla-optimal (~20) but meaningfully improved |
+| Source categories    | 3                 | 5-6               | Adds WHO/guidelines, broader PubMed, supplementary             |
 
 Even at 500M tokens for a 1B model (0.5 tokens per parameter), the ratio remains far below the Chinchilla-optimal ~20 tokens per parameter. The investigation explicitly acknowledges this deficit as part of the research question: how much factual knowledge can a model acquire in the data-starved regime?
 
@@ -143,15 +136,15 @@ The ALS-LM-1 design doc listed n_layer=32, n_head=16, n_embd=2048 as the "1B" co
 
 Changes from the [500M configuration](../configs/500m.json):
 
-| Parameter                    | 500M (ALS-LM-1)  | 1B (ALS-LM-2)    | Rationale                                                    |
-|------------------------------|------------|------------|--------------------------------------------------------------|
-| n_layer                      | 24         | 30         | 1.25x depth increase for balanced scaling                    |
-| n_head                       | 16         | 20         | Maintains head_dim=80, matching ALS-LM-1 for Flash Attention       |
-| n_embd                       | 1280       | 1600       | 1.25x width increase for balanced scaling                    |
-| block_size                   | 1024       | 1024       | Unchanged: adequate for training document lengths            |
-| vocab_size                   | 50257      | 50257      | Unchanged: same tokenizer vocabulary                         |
-| dropout                      | 0.0        | 0.1        | Enabled for 1B to mitigate overfitting on small corpus       |
-| use_gradient_checkpointing   | false      | true       | Required to fit 1B in 12GB VRAM                              |
+| Parameter                  | 500M (ALS-LM-1) | 1B (ALS-LM-2) | Rationale                                                    |
+|----------------------------|-----------------|---------------|--------------------------------------------------------------|
+| n_layer                    | 24              | 30            | 1.25x depth increase for balanced scaling                    |
+| n_head                     | 16              | 20            | Maintains head_dim=80, matching ALS-LM-1 for Flash Attention |
+| n_embd                     | 1280            | 1600          | 1.25x width increase for balanced scaling                    |
+| block_size                 | 1024            | 1024          | Unchanged: adequate for training document lengths            |
+| vocab_size                 | 50257           | 50257         | Unchanged: same tokenizer vocabulary                         |
+| dropout                    | 0.0             | 0.1           | Enabled for 1B to mitigate overfitting on small corpus       |
+| use_gradient_checkpointing | false           | true          | Required to fit 1B in 12GB VRAM                              |
 
 **Parameter count verification:**
 
@@ -179,25 +172,25 @@ The recommended configuration (n_layer=30, n_head=20, n_embd=1600) provides bala
 
 Alternative configurations considered during research:
 
-| Config       | n_layer | n_head | n_embd | head_dim | Parameters |
-|--------------|---------|--------|--------|----------|------------|
-| Recommended  | 30      | 20     | 1600   | 80       | 1,004.3M   |
-| Alternative A | 32     | 16     | 1536   | 96       | 985.4M     |
-| Alternative B | 24     | 16     | 1792   | 112      | 1,017.3M   |
-| 500M (ALS-LM-1)    | 24      | 16     | 1280   | 80       | 537.9M     |
+| Config          | n_layer | n_head | n_embd | head_dim | Parameters |
+|-----------------|---------|--------|--------|----------|------------|
+| Recommended     | 30      | 20     | 1600   | 80       | 1,004.3M   |
+| Alternative A   | 32      | 16     | 1536   | 96       | 985.4M     |
+| Alternative B   | 24      | 16     | 1792   | 112      | 1,017.3M   |
+| 500M (ALS-LM-1) | 24      | 16     | 1280   | 80       | 537.9M     |
 
 ### 4.2 Memory budget
 
 Resource estimates are derived from DeepSpeed memory formulas and calibrated against ALS-LM-1 actual measurements. The ALS-LM-1 500M model provides ground-truth calibration data for projecting 1B requirements.
 
-| Component                        | 500M (ALS-LM-1 actual) | 1B (projected)   | Notes                                              |
-|----------------------------------|------------------|-------------------|----------------------------------------------------|
-| Model weights (fp16)             | ~1.0 GB          | ~1.9 GB           | Scales linearly with parameter count               |
-| Activations (with grad ckpt)     | ~3-4 GB          | ~3-4 GB           | Roughly independent of depth with grad checkpointing |
-| GPU peak total                   | 6.37 GB          | ~5-8 GB           | ALS-LM-1 actual vs ALS-LM-2 projected range                    |
-| CPU optimizer states (Adam fp32) | included in CPU   | ~7.5 GB           | 4 bytes x 2 states x 1B params                    |
-| CPU gradients (fp16)             | included in CPU   | ~1.9 GB           | 2 bytes x 1B params                               |
-| CPU total                        | 30.3 GB          | ~15-20 GB         | Well within 64GB system RAM                        |
+| Component                        | 500M (ALS-LM-1 actual) | 1B (projected) | Notes                                                |
+|----------------------------------|------------------------|----------------|------------------------------------------------------|
+| Model weights (fp16)             | ~1.0 GB                | ~1.9 GB        | Scales linearly with parameter count                 |
+| Activations (with grad ckpt)     | ~3-4 GB                | ~3-4 GB        | Roughly independent of depth with grad checkpointing |
+| GPU peak total                   | 6.37 GB                | ~5-8 GB        | ALS-LM-1 actual vs ALS-LM-2 projected range          |
+| CPU optimizer states (Adam fp32) | included in CPU        | ~7.5 GB        | 4 bytes x 2 states x 1B params                       |
+| CPU gradients (fp16)             | included in CPU        | ~1.9 GB        | 2 bytes x 1B params                                  |
+| CPU total                        | 30.3 GB                | ~15-20 GB      | Well within 64GB system RAM                          |
 
 The 500M model ran without gradient checkpointing and achieved 6.37 GB peak VRAM (53% utilization of 12GB). The 1B model requires gradient checkpointing, which reduces activation memory at the cost of approximately 30% throughput. With gradient checkpointing enabled, activation memory is roughly independent of model depth because only one layer's activations are stored at a time.
 
@@ -211,16 +204,16 @@ This section specifies the changes to the training configuration for the 1B mode
 
 The base DeepSpeed configuration ([config/ds_zero2.json](../config/ds_zero2.json)) remains unchanged. The following fields change in the per-model configuration file (the new `configs/1b.json`):
 
-| Field                              | 500M (ALS-LM-1)                        | 1B (ALS-LM-2)                         | Rationale                                          |
-|------------------------------------|----------------------------------|---------------------------------|----------------------------------------------------|
-| `model.use_gradient_checkpointing` | false                            | true                            | Required to fit 1B in 12GB VRAM                    |
-| `model.n_layer`                    | 24                               | 30                              | 1B architecture (Section 4.1)                      |
-| `model.n_head`                     | 16                               | 20                              | 1B architecture (Section 4.1)                      |
-| `model.n_embd`                     | 1280                             | 1600                            | 1B architecture (Section 4.1)                      |
-| `model.dropout`                    | 0.0                              | 0.1                             | Overfitting mitigation for larger model            |
-| `training.batch_size`              | 4                                | 2-4                             | May reduce if VRAM pressure requires it            |
-| `training.grad_accum`              | 8                                | 8-16                            | Compensates for smaller micro-batch if needed      |
-| `deepspeed.activation_checkpointing.partition_activations` | false | true              | Enables DeepSpeed-managed activation checkpointing |
+| Field                                                      | 500M (ALS-LM-1) | 1B (ALS-LM-2) | Rationale                                          |
+|------------------------------------------------------------|-----------------|---------------|----------------------------------------------------|
+| `model.use_gradient_checkpointing`                         | false           | true          | Required to fit 1B in 12GB VRAM                    |
+| `model.n_layer`                                            | 24              | 30            | 1B architecture (Section 4.1)                      |
+| `model.n_head`                                             | 16              | 20            | 1B architecture (Section 4.1)                      |
+| `model.n_embd`                                             | 1280            | 1600          | 1B architecture (Section 4.1)                      |
+| `model.dropout`                                            | 0.0             | 0.1           | Overfitting mitigation for larger model            |
+| `training.batch_size`                                      | 4               | 2-4           | May reduce if VRAM pressure requires it            |
+| `training.grad_accum`                                      | 8               | 8-16          | Compensates for smaller micro-batch if needed      |
+| `deepspeed.activation_checkpointing.partition_activations` | false           | true          | Enables DeepSpeed-managed activation checkpointing |
 
 ZeRO Stage 2 with CPU offloading remains the primary memory strategy. ZeRO Stage 3 (which additionally partitions model parameters across CPU and GPU) is available as a fallback if Stage 2 proves insufficient for the 1B model, and is the required configuration for any 3B attempt (Section 5.4).
 
@@ -228,20 +221,20 @@ ZeRO Stage 2 with CPU offloading remains the primary memory strategy. ZeRO Stage
 
 The following table shows key hyperparameters with ALS-LM-1 values and ALS-LM-2 planned values for 1B base training.
 
-| Parameter              | 500M (ALS-LM-1)                         | 1B (ALS-LM-2)                         | Rationale                                          |
-|------------------------|-----------------------------------|---------------------------------|----------------------------------------------------|
-| Learning rate (peak)   | 3e-4                              | 3e-4                            | Standard for this model scale (Chinchilla range)   |
-| LR schedule            | Cosine decay with linear warmup   | Cosine decay with linear warmup | Unchanged                                          |
-| Warmup steps           | 500                               | 500-1000                        | Scale with expected total steps                    |
-| Minimum LR             | 0.0 (cosine decay to zero)        | 0.0 (cosine decay to zero)      | Full decay validated in ALS-LM-1                         |
-| Batch size (effective) | 32 (4 micro x 8 accum)            | 32 (2-4 micro x 8-16 accum)     | Same effective batch; micro-batch may decrease     |
-| Sequence length        | 1024 tokens                       | 1024 tokens                     | Unchanged                                          |
-| Weight decay           | 0.1                               | 0.1                             | Unchanged                                          |
-| Adam betas             | (0.9, 0.95)                       | (0.9, 0.95)                     | Unchanged                                          |
-| Max grad norm          | 1.0                               | 1.0                             | Unchanged                                          |
-| Precision              | fp16 (mixed)                      | fp16 (mixed)                    | Unchanged                                          |
-| Dropout                | 0.0                               | 0.1                             | Enabled for larger model on small corpus           |
-| Epochs                 | 3                                 | 3                               | Same epoch count; more tokens per epoch            |
+| Parameter              | 500M (ALS-LM-1)                 | 1B (ALS-LM-2)                   | Rationale                                        |
+|------------------------|---------------------------------|---------------------------------|--------------------------------------------------|
+| Learning rate (peak)   | 3e-4                            | 3e-4                            | Standard for this model scale (Chinchilla range) |
+| LR schedule            | Cosine decay with linear warmup | Cosine decay with linear warmup | Unchanged                                        |
+| Warmup steps           | 500                             | 500-1000                        | Scale with expected total steps                  |
+| Minimum LR             | 0.0 (cosine decay to zero)      | 0.0 (cosine decay to zero)      | Full decay validated in ALS-LM-1                 |
+| Batch size (effective) | 32 (4 micro x 8 accum)          | 32 (2-4 micro x 8-16 accum)     | Same effective batch; micro-batch may decrease   |
+| Sequence length        | 1024 tokens                     | 1024 tokens                     | Unchanged                                        |
+| Weight decay           | 0.1                             | 0.1                             | Unchanged                                        |
+| Adam betas             | (0.9, 0.95)                     | (0.9, 0.95)                     | Unchanged                                        |
+| Max grad norm          | 1.0                             | 1.0                             | Unchanged                                        |
+| Precision              | fp16 (mixed)                    | fp16 (mixed)                    | Unchanged                                        |
+| Dropout                | 0.0                             | 0.1                             | Enabled for larger model on small corpus         |
+| Epochs                 | 3                               | 3                               | Same epoch count; more tokens per epoch          |
 
 > **ALS-LM-1 lesson:** Cosine LR decay to zero (cos_min_ratio=0.0) produced smooth convergence without learning plateau artifacts ([Section 1.3](#13-v100-technical-findings)). This schedule is retained for 1B training.
 
@@ -251,10 +244,10 @@ Training time estimates are derived from ALS-LM-1 actual throughput scaled to th
 
 | Scenario                           | Throughput (est.)  | Corpus   | Epochs | Time (est.) |
 |------------------------------------|--------------------|----------|--------|-------------|
-| ALS-LM-1 500M (actual)                   | 9,400 tok/s        | 143M tok | 3      | 4h 27m      |
+| ALS-LM-1 500M (actual)             | 9,400 tok/s        | 143M tok | 3      | 4h 27m      |
 | 1B base training (300M tok corpus) | ~3,000-3,500 tok/s | 300M tok | 3      | ~70-85h     |
 | 1B base training (500M tok corpus) | ~3,000-3,500 tok/s | 500M tok | 3      | ~120-140h   |
-| 1B SFT (instruction dataset)      | ~3,000-3,500 tok/s | ~5M tok  | 3-5    | ~1-3h       |
+| 1B SFT (instruction dataset)       | ~3,000-3,500 tok/s | ~5M tok  | 3-5    | ~1-3h       |
 
 The throughput estimate of approximately 3,000-3,500 tok/s for the 1B model accounts for the larger model size (roughly inverse scaling from 500M throughput), the approximately 30% penalty from gradient checkpointing, and potential memory bandwidth bottlenecks from CPU offloading larger optimizer states.
 
@@ -264,10 +257,10 @@ The throughput estimate of approximately 3,000-3,500 tok/s for the 1B model acco
 
 The [ALS-LM-2 white paper, Section 5.5](v2-white-paper.md) and the [ALS-LM-2 product requirements document, Section 7.5](v2-product-requirements-doc.md) define the 3B model as a conditional stretch objective. The decision criteria are based on the 1B training run's actual resource usage.
 
-| Condition                                                                    | Decision                                                                        |
-|------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
-| 1B training uses less than 10 GB peak VRAM and completes within 24 hours     | 3B training may be attempted with ZeRO Stage 3 and aggressive CPU offloading   |
-| 1B training exceeds 10 GB peak VRAM or requires more than 24 hours           | 3B training is deferred; 1B model proceeds directly to instruction tuning      |
+| Condition                                                                 | Decision                                                                      |
+|---------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| 1B training uses less than 10 GB peak VRAM and completes within 24 hours. | 3B training may be attempted with ZeRO Stage 3 and aggressive CPU offloading. |
+| 1B training exceeds 10 GB peak VRAM or requires more than 24 hours.       | 3B training is deferred; 1B model proceeds directly to instruction tuning.    |
 
 For reference, the ALS-LM-1 500M model used 6.37 GB peak VRAM and trained in 4 hours 27 minutes. Based on the memory estimates in Section 4.2, the 1B model is projected to use 5-8 GB peak VRAM, which may or may not meet the less than 10 GB criterion depending on actual activation memory with gradient checkpointing.
 
@@ -425,16 +418,16 @@ Whether to extend the existing `train.py` with an SFT mode or use an external fr
 
 The following table shows recommended SFT hyperparameters. These values are guided by recent literature on SFT for small language models and will be finalized during implementation.
 
-| Parameter              | SFT value              | Pretraining value | Rationale                                                     |
-|------------------------|------------------------|-------------------|---------------------------------------------------------------|
-| Learning rate          | 1e-5 to 5e-5           | 3e-4              | 10-100x lower to preserve pretrained weights                  |
-| LR schedule            | Cosine decay or linear | Cosine decay      | Shorter training; linear may suffice for few epochs           |
-| Warmup steps           | 50-100                 | 500               | Shorter warmup for shorter training                           |
-| Epochs                 | 3-5                    | 3                 | Small dataset; multiple passes needed for learning            |
-| Batch size (effective) | 16-32                  | 32                | May reduce for stability with lower LR                        |
-| Weight decay           | 0.01-0.1               | 0.1               | Lower weight decay to preserve pretrained features            |
-| Dropout                | 0.1                    | 0.1               | Same as pretraining                                           |
-| Loss masking           | Response tokens only   | All tokens        | Core SFT technique: learn to respond, not to repeat prompts  |
+| Parameter              | SFT value              | Pretraining value | Rationale                                                   |
+|------------------------|------------------------|-------------------|-------------------------------------------------------------|
+| Learning rate          | 1e-5 to 5e-5           | 3e-4              | 10-100x lower to preserve pretrained weights                |
+| LR schedule            | Cosine decay or linear | Cosine decay      | Shorter training; linear may suffice for few epochs         |
+| Warmup steps           | 50-100                 | 500               | Shorter warmup for shorter training                         |
+| Epochs                 | 3-5                    | 3                 | Small dataset; multiple passes needed for learning          |
+| Batch size (effective) | 16-32                  | 32                | May reduce for stability with lower LR                      |
+| Weight decay           | 0.01-0.1               | 0.1               | Lower weight decay to preserve pretrained features          |
+| Dropout                | 0.1                    | 0.1               | Same as pretraining                                         |
+| Loss masking           | Response tokens only   | All tokens        | Core SFT technique: learn to respond, not to repeat prompts |
 
 The critical difference from pretraining is the learning rate: SFT learning rates are typically 10-100x lower than pretraining rates. Using the pretraining learning rate (3e-4) for SFT would destabilize the pretrained weights and potentially undo the knowledge acquired during base training.
 
@@ -503,14 +496,14 @@ The evaluation harness applies the instruction wrapper automatically when evalua
 
 ALS-LM-2 enables comparison across all model variants in a single comparison table. The following models are included:
 
-| Model                    | Parameters | Training approach          | Prompt format   | Data source  |
-|--------------------------|------------|----------------------------|-----------------|--------------|
-| ALS-LM-1 500M (v1)        | 516M       | From-scratch               | Completion      | 143M tokens  |
-| GPT-2 large (v1)        | 774M       | Fine-tuned on ALS corpus   | Completion      | 143M tokens  |
-| ALS-LM-2 1B (v2)          | ~1.004B    | From-scratch               | Completion      | 300-500M tok |
-| ALS-LM-2 1B SFT (v2)     | ~1.004B    | From-scratch + SFT         | Instruction     | 300-500M tok |
-| Llama 3.1 8B (v1)       | 8B         | No-retrieval baseline      | Instruction     | Web-scale    |
-| RAG: PubMedBERT 500 (v1) | 8B + RAG  | Retrieval-augmented        | RAG template    | 143M tokens  |
+| Model                    | Parameters | Training approach        | Prompt format | Data source  |
+|--------------------------|------------|--------------------------|---------------|--------------|
+| ALS-LM-1 500M (v1)       | 516M       | From-scratch             | Completion    | 143M tokens  |
+| GPT-2 large (v1)         | 774M       | Fine-tuned on ALS corpus | Completion    | 143M tokens  |
+| ALS-LM-2 1B (v2)         | ~1.004B    | From-scratch             | Completion    | 300-500M tok |
+| ALS-LM-2 1B SFT (v2)     | ~1.004B    | From-scratch + SFT       | Instruction   | 300-500M tok |
+| Llama 3.1 8B (v1)        | 8B         | No-retrieval baseline    | Instruction   | Web-scale    |
+| RAG: PubMedBERT 500 (v1) | 8B + RAG   | Retrieval-augmented      | RAG template  | 143M tokens  |
 
 All models are evaluated on the same 160 questions with the same key facts and scoring methodology. Results are reported at the Q8_0 quantization level for consistency with ALS-LM-1 reporting standards. The comparison report includes per-category breakdowns, failure mode distributions, and coherence rates.
 
@@ -574,10 +567,10 @@ als-lm/
 
 The following risks are specific to ALS-LM-2. For ALS-LM-1 risks that continue to apply (OOM, training instability, GGUF conversion, tokenizer performance, WSL2 GPU passthrough, corpus size), see the [ALS-LM-1 design doc, Section 11](v1-design-doc.md#11-risks-and-technical-mitigations) and the [ALS-LM-2 product requirements document risk table](v2-product-requirements-doc.md#9-risks-and-mitigations).
 
-| Risk                                   | Likelihood | Impact | Description                                                                                                                          | Mitigation                                                                                                                                                         |
-|----------------------------------------|------------|--------|--------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1B exceeds VRAM with ZeRO Stage 2      | Low        | High   | Despite projections showing 5-8 GB peak VRAM, actual usage depends on activation patterns and micro-batch sizing.                    | Readiness gate benchmark validates actual VRAM before full run. ZeRO Stage 3 available as fallback. Reduce micro-batch to 2 if needed.                             |
-| Training time overrun                  | Medium     | Medium | The 70-140 hour estimate is based on throughput extrapolation with significant uncertainty.                                           | Checkpoint every 1,000 steps. Partial results are valid for analysis. Throughput is validated in readiness gate before committing.                                  |
-| Instruction dataset quality            | Medium     | High   | Factual errors in the instruction dataset propagate into SFT training, teaching the model incorrect associations.                    | Validation pipeline (Section 6.3) cross-references against corpus entities and authoritative sources. No evaluation leakage ensures independence.                   |
-| SFT overfitting                        | Medium     | Medium | Small instruction dataset (1,000-5,000 pairs) increases risk of memorization rather than generalization.                              | Validation split with early stopping. Category-diverse training data. Independent evaluation benchmark.                                                            |
-| Perceived capability risk              | High       | Medium | Instruction-tuned model produces coherent responses that appear more trustworthy, even if factual accuracy remains low.              | Measure perceived vs actual capability gap explicitly. Document in model card. Display accuracy metrics alongside output in demo.                                   |
+| Risk                              | Likelihood | Impact | Description                                                                                                             | Mitigation                                                                                                                                        |
+|-----------------------------------|------------|--------|-------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1B exceeds VRAM with ZeRO Stage 2 | Low        | High   | Despite projections showing 5-8 GB peak VRAM, actual usage depends on activation patterns and micro-batch sizing.       | Readiness gate benchmark validates actual VRAM before full run. ZeRO Stage 3 available as fallback. Reduce micro-batch to 2 if needed.            |
+| Training time overrun             | Medium     | Medium | The 70-140 hour estimate is based on throughput extrapolation with significant uncertainty.                             | Checkpoint every 1,000 steps. Partial results are valid for analysis. Throughput is validated in readiness gate before committing.                |
+| Instruction dataset quality       | Medium     | High   | Factual errors in the instruction dataset propagate into SFT training, teaching the model incorrect associations.       | Validation pipeline (Section 6.3) cross-references against corpus entities and authoritative sources. No evaluation leakage ensures independence. |
+| SFT overfitting                   | Medium     | Medium | Small instruction dataset (1,000-5,000 pairs) increases risk of memorization rather than generalization.                | Validation split with early stopping. Category-diverse training data. Independent evaluation benchmark.                                           |
+| Perceived capability risk         | High       | Medium | Instruction-tuned model produces coherent responses that appear more trustworthy, even if factual accuracy remains low. | Measure perceived vs actual capability gap explicitly. Document in model card. Display accuracy metrics alongside output in demo.                 |
