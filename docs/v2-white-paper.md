@@ -9,7 +9,7 @@
 
 ## Abstract
 
-ALS-LM-1 trained a 516M-parameter decoder-only transformer from scratch on 143M tokens of curated amyotrophic lateral sclerosis (ALS) research and evaluated a fine-tuned GPT-2 large (774M parameters) on the same corpus. The from-scratch model achieved 0.21% mean factual accuracy despite a Well-fit training classification, confirming that language-modeling competence does not imply knowledge acquisition at 80x below the Chinchilla-optimal data ratio. The fine-tuned model improved accuracy 15-fold to 3.12% but produced degenerate output for 97.5% of evaluation questions, revealing instruction-following as a limitation orthogonal to factual knowledge. A retrieval-augmented generation (RAG) comparison using Llama 3.1 8B established a 14.3% no-retrieval baseline that no RAG configuration exceeded, identifying retrieval quality as the primary bottleneck.
+ALS-LM-1 trained a 516M-parameter decoder-only transformer from scratch on 143M tokens of curated amyotrophic lateral sclerosis (ALS) research and evaluated a fine-tuned GPT-2 large (774M parameters) on the same corpus. The from-scratch model achieved 0.21% mean factual accuracy despite a Well-fit training classification, confirming that language-modeling competence does not imply knowledge acquisition at 80x below the Chinchilla-optimal data ratio. The fine-tuned model improved accuracy 15-fold to 3.12% but produced degenerate output for 97.5% of evaluation questions, revealing instruction-following as a limitation orthogonal to factual knowledge. A retrieval-augmented generation (RAG) comparison by using Llama 3.1 8B established a 14.3% no-retrieval baseline that no RAG configuration exceeded, identifying retrieval quality as the primary bottleneck.
 
 ALS-LM-2 investigates three hypotheses derived from these findings: (1) expanding and improving the training corpus addresses the data deficit that limited knowledge acquisition, (2) scaling from 516M to 1B parameters provides additional capacity for encoding factual relationships, and (3) supervised fine-tuning on instruction-response pairs resolves the degenerate output problem that prevented the fine-tuned model from expressing its knowledge. This white paper defines tiered success criteria anchored to ALS-LM-1 baselines, with minimum targets of exceeding 3.12% accuracy and 50% response coherence, and stretch targets of exceeding the RAG baseline. The investigation aims to determine whether these three interventions, applied together, can produce a domain-specific model whose factual accuracy approaches or exceeds retrieval-augmented alternatives.
 
@@ -45,11 +45,11 @@ This taxonomy proved essential for understanding the qualitative differences bet
 
 The selection of ALS as the target domain, established in the [ALS-LM-1 white paper](v1-white-paper.md), was motivated by several factors. ALS research is well-represented in open-access literature across PubMed Central, ClinicalTrials.gov, and major health organizations, providing sufficient material for corpus construction. The disease represents a well-defined body of research with clear domain boundaries, making it possible to construct a corpus that is both comprehensive and bounded. ALS knowledge includes structured factual relationships (gene-mutation-phenotype associations, drug-mechanism-trial outcome chains) that lend themselves to benchmark evaluation. Active research frontiers in ALS treatment create opportunities to evaluate temporal accuracy. The author's personal connection to the disease, having a father who suffered from ALS, provided firsthand insight into the impact of the disease and motivated the choice of domain.
 
-These reasons remain applicable to v2.0.0. The same corpus sources are available for expansion, the domain boundaries remain well-defined, and the 160-question evaluation benchmark provides a validated instrument for measuring improvement.
+These reasons remain applicable to ALS-LM-2. The same corpus sources are available for expansion, the domain boundaries remain well-defined, and the 160-question evaluation benchmark provides a validated instrument for measuring improvement.
 
 ## 3. ALS-LM-1 findings
 
-This section consolidates the key quantitative results and failure patterns from [ALS-LM-1](v1-research-paper.md) that motivate the v2.0.0 research agenda. All numbers are reported at the Q8_0 quantization level, established as the representative level in the ALS-LM-1 research paper.
+This section consolidates the key quantitative results and failure patterns from [ALS-LM-1](v1-research-paper.md) that motivate the ALS-LM-2 research agenda. All numbers are reported at the Q8_0 quantization level, established as the representative level in the ALS-LM-1 research paper.
 
 The following table summarizes the aggregate performance of the three approaches evaluated in ALS-LM-1.
 
@@ -60,7 +60,7 @@ The following table summarizes the aggregate performance of the three approaches
 | Llama 3.1 8B (no-retrieval baseline)  |        14.3%  |      13.8%  | N/A                 |            87.2% |
 | Best RAG (500-PubMedBERT)             |        13.8%  |      10.6%  | N/A                 |            80.3% |
 
-Three findings from these results are central to the v2.0.0 approach.
+Three findings from these results are central to the ALS-LM-2 approach.
 
 **Data deficit.** The from-scratch model trained on 143M tokens at 0.25 tokens per parameter, placing it 80 times below the Chinchilla-optimal ratio of approximately 20 tokens per parameter. Despite achieving a Well-fit training classification with validation loss 5.4956 and a relative gap of just +0.42%, the model attained 0.21% mean accuracy with a 0.0% binary pass rate on the 160-question ALS benchmark. Training completed in 4 hours and 27 minutes over 3 epochs. The model learned the statistical distribution of ALS research language well enough to produce superficially plausible text but did not internalize the factual relationships between entities, mechanisms, and clinical findings. The gap between language-modeling competence and factual knowledge acquisition is itself a key empirical finding.
 
@@ -118,7 +118,7 @@ Success criteria are defined in tiers anchored to ALS-LM-1 baselines. The minimu
 
 ### 5.1 Accuracy
 
-Accuracy is measured using the same 160-question ALS benchmark and proportional key-fact fuzzy matching score used in ALS-LM-1.
+Accuracy is measured by using the same 160-question ALS benchmark and proportional key-fact fuzzy matching score used in ALS-LM-1.
 
 | Tier    | Criterion                                                    | Rationale                                                          |
 |---------|--------------------------------------------------------------|--------------------------------------------------------------------|
@@ -189,7 +189,7 @@ If model weights are published, they are accompanied by the full disclaimer fram
 
 Instruction tuning introduces a risk not present in ALS-LM-1. A model that produces coherent, well-structured responses to medical questions may appear more capable and trustworthy than a model that produces degenerate output, even if its factual accuracy remains low. The ALS-LM-1 fine-tuned model's 97.5% degenerate output rate, while a failure of instruction-following, served as a natural barrier to misuse: users quickly recognized the output as unreliable. An instruction-tuned model that responds coherently but inaccurately may not trigger the same skepticism.
 
-This risk requires additional mitigation beyond the ALS-LM-1 disclaimer framework. The v2.0.0 evaluation must explicitly measure the gap between perceived and actual capability, and the model card must document this gap prominently. Any demo interface must display accuracy metrics alongside model output, ensuring that coherent responses are not mistaken for accurate ones.
+This risk requires additional mitigation beyond the ALS-LM-1 disclaimer framework. The ALS-LM-2 evaluation must explicitly measure the gap between perceived and actual capability, and the model card must document this gap prominently. Any demo interface must display accuracy metrics alongside model output, ensuring that coherent responses are not mistaken for accurate ones.
 
 ## 8. Expected contributions
 
@@ -199,13 +199,13 @@ ALS-LM-2 aims to contribute to the understanding of domain-specific language mod
 
 **Extended evaluation framework.** The ALS-LM-1 hallucination evaluation framework (160-question benchmark, 5-mode failure taxonomy, entity-based fabrication detection) is adapted for instruction-formatted outputs. This adaptation, including any taxonomy extensions required by new failure modes, contributes a reusable methodology for evaluating instruction-tuned domain-specific models.
 
-**Data quality impact analysis.** By improving the training corpus between ALS-LM-1 and v2.0.0, the investigation provides empirical evidence on the relationship between corpus quality and factual accuracy in the data-starved regime. The ALS-LM-1 baseline (0.21% accuracy at 0.25 tokens per parameter) establishes a controlled reference point for measuring the impact of corpus expansion and cleaning.
+**Data quality impact analysis.** By improving the training corpus between ALS-LM-1 and ALS-LM-2, the investigation provides empirical evidence on the relationship between corpus quality and factual accuracy in the data-starved regime. The ALS-LM-1 baseline (0.21% accuracy at 0.25 tokens per parameter) establishes a controlled reference point for measuring the impact of corpus expansion and cleaning.
 
-**Cross-approach comparison.** ALS-LM-2 enables comparison across three training approaches applied to the same domain: from-scratch pretraining (ALS-LM-1, 516M), pretrained fine-tuning (ALS-LM-1, 774M GPT-2 large), and instruction-tuned training (v2.0.0, 1B). Combined with the RAG comparison, this provides a four-way analysis of how different architectural approaches handle domain-specific medical knowledge, with emphasis on failure modes and severity rather than accuracy alone.
+**Cross-approach comparison.** ALS-LM-2 enables comparison across three training approaches applied to the same domain: from-scratch pretraining (ALS-LM-1, 516M), pretrained fine-tuning (ALS-LM-1, 774M GPT-2 large), and instruction-tuned training (ALS-LM-2, 1B). Combined with the RAG comparison, this provides a four-way analysis of how different architectural approaches handle domain-specific medical knowledge, with emphasis on failure modes and severity rather than accuracy alone.
 
 ## 9. Limitations
 
-This section documents the known limitations of the v2.0.0 investigation.
+This section documents the known limitations of the ALS-LM-2 investigation.
 
 ### 9.1 Research limitations
 
@@ -221,9 +221,9 @@ Several constraints bound the scope and generalizability of the investigation.
 
 ### 9.2 Scope boundaries
 
-The v2.0.0 investigation is scoped to supervised fine-tuning (SFT) on instruction-response pairs. Reinforcement learning from human feedback (RLHF), direct preference optimization (DPO), and other alignment techniques are out of scope. The evaluation interface remains a command-line demo; no web interface or API deployment is planned. All training data and evaluation are in English only.
+The ALS-LM-2 investigation is scoped to supervised fine-tuning (SFT) on instruction-response pairs. Reinforcement learning from human feedback (RLHF), direct preference optimization (DPO), and other alignment techniques are out of scope. The evaluation interface remains a command-line demo; no web interface or API deployment is planned. All training data and evaluation are in English only.
 
-If the 1B training run demonstrates sufficient hardware headroom (less than 10 GB peak VRAM, completion within 24 hours), a 3B model configuration may be explored as a secondary objective using ZeRO Stage 3 with aggressive CPU offloading. This is a conditional extension, not a planned deliverable.
+If the 1B training run demonstrates sufficient hardware headroom (less than 10 GB peak VRAM, completion within 24 hours), a 3B model configuration may be explored as a secondary objective by using ZeRO Stage 3 with aggressive CPU offloading. This is a conditional extension, not a planned deliverable.
 
 ## 10. Conclusion
 
