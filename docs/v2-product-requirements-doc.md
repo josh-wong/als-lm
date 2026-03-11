@@ -9,7 +9,7 @@
 
 ## 1. Purpose
 
-This document defines the scope, requirements, and success criteria for ALS-LM-2, which investigates whether instruction tuning, data quality improvements, and parameter scaling can address the failure modes identified in [ALS-LM-1](v1-research-paper.md). It serves as the bridge between the project's research vision (outlined in the [ALS-LM-2 white paper](v2-white-paper.md)) and its technical implementation (detailed in the forthcoming design document).
+This document defines the scope, requirements, and success criteria for ALS-LM-2, which investigates whether instruction tuning, data quality improvements, and parameter scaling can address the failure modes identified in [ALS-LM-1](v1-research-paper.md). It serves as the bridge between the project's research vision (outlined in the [ALS-LM-2 white paper](v2-white-paper.md)) and its technical implementation (detailed in the [ALS-LM-2 design document](v2-design-doc.md)).
 
 The [ALS-LM-1 product requirements document](v1-product-requirements-doc.md) scoped the original experiment: training a domain-specific model from scratch on ALS research, evaluating it against a hallucination benchmark, and comparing it with retrieval-augmented generation. This ALS-LM-2 product requirements document (PRD) extends that scope with three coordinated interventions targeting the specific failure modes that ALS-LM-1 revealed, while maintaining the project's identity as a research and education artifact rather than a medical tool.
 
