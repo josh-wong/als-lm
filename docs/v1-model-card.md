@@ -27,12 +27,12 @@ We trained the model with PyTorch and DeepSpeed ZeRO Stage 2 with CPU offloading
 **Model sources:**
 
 - **Repository:** [als-lm on GitHub](https://github.com/josh-wong/als-lm)
-- **Research paper:** [Full methodology and analysis](research-paper.md)
+- **Research paper:** [Full methodology and analysis](v1-research-paper.md)
 - **Interactive demo:** [CLI chat interface](../demo/cli.py)
 
 ## Model variants
 
-As a controlled comparison experiment, we fine-tuned OpenAI's GPT-2 large (774M parameters) on the same ALS corpus to test whether pretrained general knowledge could overcome the data deficit hypothesis observed with the from-scratch model. See [Section 7 of the research paper](research-paper.md#7-general-pretraining-comparison) for the full methodology and analysis.
+As a controlled comparison experiment, we fine-tuned OpenAI's GPT-2 large (774M parameters) on the same ALS corpus to test whether pretrained general knowledge could overcome the data deficit hypothesis observed with the from-scratch model. See [Section 7 of the research paper](v1-research-paper.md#7-general-pretraining-comparison) for the full methodology and analysis.
 
 ### Fine-tuned GPT-2 large (774M)
 
@@ -97,7 +97,7 @@ We trained the model on 19,164 documents (143M tokens) from three publicly avail
 | ClinicalTrials.gov  | Clinical trial records  | Public domain (US government) |
 | Educational sources | Patient/medical content | Public web content            |
 
-All data comes from publicly available sources. We did not use private medical records, content from private support groups, or any data subject to HIPAA or equivalent protections. For the full data collection and processing methodology, including our 11-step cleaning pipeline and deduplication approach, see [Section 3.1 of the research paper](research-paper.md#31-data-pipeline).
+All data comes from publicly available sources. We did not use private medical records, content from private support groups, or any data subject to HIPAA or equivalent protections. For the full data collection and processing methodology, including our 11-step cleaning pipeline and deduplication approach, see [Section 3.1 of the research paper](v1-research-paper.md#31-data-pipeline).
 
 ## Training procedure
 
@@ -113,7 +113,7 @@ We trained for 3 epochs (11,760 steps) over 4 hours and 27 minutes.
 | Precision            | FP16 mixed precision                         |
 | Memory strategy      | DeepSpeed ZeRO Stage 2, CPU offloading       |
 
-Training converged to a final validation loss of 5.4956 with a loss relative gap of +0.42%, which we classify as Well-fit. Despite this healthy training dynamic, the model achieves near-zero factual accuracy—a central finding of the research that we analyze in detail in the [research paper](research-paper.md).
+Training converged to a final validation loss of 5.4956 with a loss relative gap of +0.42%, which we classify as Well-fit. Despite this healthy training dynamic, the model achieves near-zero factual accuracy—a central finding of the research that we analyze in detail in the [research paper](v1-research-paper.md).
 
 ## Evaluation results
 
@@ -127,7 +127,7 @@ We evaluated all three GGUF quantization levels against a 160-question ALS factu
 
 All three quantization levels achieve 0.0% binary pass rate. The dominant failure modes are confident fabrication (33.1%), degenerate output (32.5%), and plausible blending (23.8%). Quantization level has no meaningful effect on evaluation quality, suggesting the accuracy ceiling is determined by training data volume rather than inference precision.
 
-We also conducted a RAG comparison experiment by using four configurations (two embedding models at two chunk sizes) with ChromaDB, benchmarked against a no-retrieval Llama 3.1 8B baseline. The best RAG configuration (500-token chunks with PubMedBERT embeddings) achieved 13.8% mean accuracy but did not exceed the no-retrieval baseline at 14.3%, revealing retrieval quality as the primary bottleneck rather than generation capability. For the full RAG methodology and failure decomposition analysis, see [Section 6 of the research paper](research-paper.md#6-rag-comparison).
+We also conducted a RAG comparison experiment by using four configurations (two embedding models at two chunk sizes) with ChromaDB, benchmarked against a no-retrieval Llama 3.1 8B baseline. The best RAG configuration (500-token chunks with PubMedBERT embeddings) achieved 13.8% mean accuracy but did not exceed the no-retrieval baseline at 14.3%, revealing retrieval quality as the primary bottleneck rather than generation capability. For the full RAG methodology and failure decomposition analysis, see [Section 6 of the research paper](v1-research-paper.md#6-rag-comparison).
 
 ## Bias, risks, and limitations
 
@@ -164,4 +164,4 @@ ALS-LM: A domain-specific language model for ALS knowledge
 https://github.com/josh-wong/als-lm
 ```
 
-For detailed methodology, evaluation results, and analysis, see the [research paper](research-paper.md).
+For detailed methodology, evaluation results, and analysis, see the [research paper](v1-research-paper.md).

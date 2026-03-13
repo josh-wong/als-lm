@@ -200,13 +200,27 @@ When including patient perspectives, this project only uses content that individ
 
 ## Project documents
 
-| Document                                                          | Description                                       |
-|-------------------------------------------------------------------|---------------------------------------------------|
-| [Research paper](docs/research-paper.md)                          | Full experimental results and analysis            |
-| [Model card](docs/model-card.md)                                  | Model documentation, safety, and limitations      |
-| [White paper](docs/white-paper.md)                                | Research motivation, approach, and contributions  |
-| [Product requirements document](docs/product-requirements-doc.md) | Scope, requirements, and success criteria         |
-| [Design document](docs/design-doc.md)                             | Technical architecture and implementation details |
+### ALS-LM-2 (in progress)
+
+Planning documents for the next phase of investigation, targeting instruction tuning, corpus expansion, and parameter scaling.
+
+| Document                                                                      | Description                                       |
+|-------------------------------------------------------------------------------|---------------------------------------------------|
+| [White paper](docs/v2-white-paper.md)                                         | Research vision, hypotheses, and success criteria  |
+| [Product requirements document](docs/v2-product-requirements-doc.md)          | Scope, requirements, and milestones               |
+| [Design document](docs/v2-design-doc.md)                                      | Technical architecture and implementation details |
+
+### ALS-LM-1 (complete)
+
+Documentation from the original investigation into domain-specific language model training on ALS research.
+
+| Document                                                                      | Description                                       |
+|-------------------------------------------------------------------------------|---------------------------------------------------|
+| [Research paper](docs/v1-research-paper.md)                                   | Full experimental results and analysis            |
+| [Model card](docs/v1-model-card.md)                                           | Model documentation, safety, and limitations      |
+| [White paper](docs/v1-white-paper.md)                                         | Research motivation, approach, and contributions  |
+| [Product requirements document](docs/v1-product-requirements-doc.md)          | Scope, requirements, and success criteria         |
+| [Design document](docs/v1-design-doc.md)                                      | Technical architecture and implementation details |
 
 ## License
 
