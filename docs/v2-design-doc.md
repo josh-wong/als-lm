@@ -1,4 +1,4 @@
-# ALS-LM 2: Design document
+# ALS-LM-2: Design document
 
 **Author:** [josh-wong](https://github.com/josh-wong)
 **Date:** March 2026
@@ -91,7 +91,7 @@ New source categories for ALS-LM-2 include the following.
 
 ### 2.2 Cleaning improvements
 
-The ALS-LM-1 processing pipeline's 11-step cleaning process ([ALS-LM-1, Section 2.3](als-lm-1-design-doc.md#23-processing-pipeline)) is retained with targeted fixes for artifacts identified during ALS-LM-1 development.
+The ALS-LM-1 processing pipeline's 11-step cleaning process ([ALS-LM-1, Section 2.3](v1-design-doc.md#23-processing-pipeline)) is retained with targeted fixes for artifacts identified during ALS-LM-1 development.
 
 The following changes are made to the cleaning pipeline.
 
@@ -99,7 +99,7 @@ The following changes are made to the cleaning pipeline.
 - **Whitespace consistency:** Address cases where PDF column extraction produces mid-word line breaks and irregular spacing between sentences. The fix extends the existing whitespace normalization step (step 8) with pattern-based repair for common PDF extraction artifacts.
 - **Improved paragraph boundary detection:** Better heuristics for distinguishing paragraph breaks from column breaks in multi-column PDF layouts, reducing cases where unrelated text is concatenated.
 
-> **ALS-LM-1 lesson:** NFC Unicode normalization preserves Greek letters, superscripts, and math symbols important in medical literature ([Section 1.3](#13-v100-technical-findings)). The new punctuation repair step operates before NFC normalization to avoid interfering with this validated choice.
+> **ALS-LM-1 lesson:** NFC Unicode normalization preserves Greek letters, superscripts, and math symbols important in medical literature ([Section 1.3](#13-als-lm-1-technical-findings)). The new punctuation repair step operates before NFC normalization to avoid interfering with this validated choice.
 
 ### 2.3 Updated corpus size targets
 
@@ -118,7 +118,7 @@ Even at 500M tokens for a 1B model (0.5 tokens per parameter), the ratio remains
 
 The tokenizer is re-trained on the expanded and cleaned corpus using the same Hugging Face `tokenizers` library and BPE algorithm described in the [ALS-LM-1 design doc, Section 3](v1-design-doc.md#3-tokenizer). The vocabulary size remains 50,257 tokens.
 
-> **ALS-LM-1 lesson:** The tokenizer vocabulary escalated from 16K to 50,257 during ALS-LM-1 development when the initial size achieved less than 50% single-token rate for medical terms. The 50,257 size was validated by medical term coverage testing ([Section 1.3](#13-v100-technical-findings)).
+> **ALS-LM-1 lesson:** The tokenizer vocabulary escalated from 16K to 50,257 during ALS-LM-1 development when the initial size achieved less than 50% single-token rate for medical terms. The 50,257 size was validated by medical term coverage testing ([Section 1.3](#13-als-lm-1-technical-findings)).
 
 **What changes for ALS-LM-2:**
 
@@ -194,7 +194,7 @@ Resource estimates are derived from DeepSpeed memory formulas and calibrated aga
 
 The 500M model ran without gradient checkpointing and achieved 6.37 GB peak VRAM (53% utilization of 12GB). The 1B model requires gradient checkpointing, which reduces activation memory at the cost of approximately 30% throughput. With gradient checkpointing enabled, activation memory is roughly independent of model depth because only one layer's activations are stored at a time.
 
-> **ALS-LM-1 lesson:** CPU offload ON with gradient checkpointing OFF yielded 53% VRAM utilization for 500M ([Section 1.3](#13-v100-technical-findings)). For 1B, gradient checkpointing must be ON, and the readiness gate benchmark will confirm actual VRAM usage before committing to the full training run.
+> **ALS-LM-1 lesson:** CPU offload ON with gradient checkpointing OFF yielded 53% VRAM utilization for 500M ([Section 1.3](#13-als-lm-1-technical-findings)). For 1B, gradient checkpointing must be ON, and the readiness gate benchmark will confirm actual VRAM usage before committing to the full training run.
 
 ## 5. Training
 
@@ -236,7 +236,7 @@ The following table shows key hyperparameters with ALS-LM-1 values and ALS-LM-2 
 | Dropout                | 0.0                             | 0.1                             | Enabled for larger model on small corpus         |
 | Epochs                 | 3                               | 3                               | Same epoch count; more tokens per epoch          |
 
-> **ALS-LM-1 lesson:** Cosine LR decay to zero (cos_min_ratio=0.0) produced smooth convergence without learning plateau artifacts ([Section 1.3](#13-v100-technical-findings)). This schedule is retained for 1B training.
+> **ALS-LM-1 lesson:** Cosine LR decay to zero (cos_min_ratio=0.0) produced smooth convergence without learning plateau artifacts ([Section 1.3](#13-als-lm-1-technical-findings)). This schedule is retained for 1B training.
 
 ### 5.3 Resource estimates and training duration
 
@@ -251,7 +251,7 @@ Training time estimates are derived from ALS-LM-1 actual throughput scaled to th
 
 The throughput estimate of approximately 3,000-3,500 tok/s for the 1B model accounts for the larger model size (roughly inverse scaling from 500M throughput), the approximately 30% penalty from gradient checkpointing, and potential memory bandwidth bottlenecks from CPU offloading larger optimizer states.
 
-> **ALS-LM-1 lesson:** Pre-flight validation (500 steps with forced resume) caught configuration issues before committing to multi-hour production runs ([Section 1.3](#13-v100-technical-findings)). The readiness gate benchmark will validate actual throughput for the 1B configuration before committing to the full 70-140 hour run.
+> **ALS-LM-1 lesson:** Pre-flight validation (500 steps with forced resume) caught configuration issues before committing to multi-hour production runs ([Section 1.3](#13-als-lm-1-technical-findings)). The readiness gate benchmark will validate actual throughput for the 1B configuration before committing to the full 70-140 hour run.
 
 ### 5.4 3B go/no-go decision criteria
 
@@ -266,7 +266,7 @@ For reference, the ALS-LM-1 500M model used 6.37 GB peak VRAM and trained in 4 h
 
 A rough 3B memory estimate (approximately 3.004B parameters with n_embd=2048-range dimensions): model weights alone would require approximately 5.7 GB in fp16. With ZeRO Stage 3 partitioning model parameters to CPU, the GPU would hold only activations and the current layer's parameters during forward/backward passes. This theoretically fits in 12GB VRAM but would incur severe throughput penalties from continuous CPU-GPU parameter transfers. Training time would likely exceed 200 hours for a 300M-token corpus.
 
-> **ALS-LM-1 lesson:** `shutil.move` is required for WSL2 checkpoint saves because `os.rename` fails across filesystem boundaries ([Section 1.3](#13-v100-technical-findings)). Any 3B training attempt on WSL2 inherits this requirement, with even greater importance given the longer training duration.
+> **ALS-LM-1 lesson:** `shutil.move` is required for WSL2 checkpoint saves because `os.rename` fails across filesystem boundaries ([Section 1.3](#13-als-lm-1-technical-findings)). Any 3B training attempt on WSL2 inherits this requirement, with even greater importance given the longer training duration.
 
 ## 6. Instruction dataset
 
@@ -461,7 +461,7 @@ IMPORTANT: You are a research artifact, not a medical resource. Your outputs may
 """
 ```
 
-> **ALS-LM-1 lesson:** Runtime hash patching for llama.cpp is fragile. The GPT-2 native tokenizer detection bypass added in v0.8.0 reduces reliance on this workaround ([Section 1.3](#13-v100-technical-findings)). The 1B export will use the same custom tokenizer as the 500M model, so the same export path applies.
+> **ALS-LM-1 lesson:** Runtime hash patching for llama.cpp is fragile. The GPT-2 native tokenizer detection bypass added in v0.8.0 reduces reliance on this workaround ([Section 1.3](#13-als-lm-1-technical-findings)). The 1B export will use the same custom tokenizer as the 500M model, so the same export path applies.
 
 ## 9. Evaluation
 
@@ -490,7 +490,7 @@ What is the mechanism of action of riluzole?
 
 The evaluation harness applies the instruction wrapper automatically when evaluating the instruction-tuned model. For non-instruction-tuned models (500M from-scratch, 774M fine-tuned), the ALS-LM-1 completion-style prompt is used. This ensures each model is evaluated with the prompt format it was trained on.
 
-> **ALS-LM-1 lesson:** Eval-parity API overrides (repeat_penalty=1.0, top_p=1.0) neutralize Modelfile settings for fair cross-model comparison ([Section 1.3](#13-v100-technical-findings)). The same overrides apply to the instruction-tuned model evaluation.
+> **ALS-LM-1 lesson:** Eval-parity API overrides (repeat_penalty=1.0, top_p=1.0) neutralize Modelfile settings for fair cross-model comparison ([Section 1.3](#13-als-lm-1-technical-findings)). The same overrides apply to the instruction-tuned model evaluation.
 
 ### 9.2 Cross-model comparison methodology
 

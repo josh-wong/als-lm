@@ -3,7 +3,7 @@
 **Author:** [josh-wong](https://github.com/josh-wong)
 **Date:** March 11, 2026
 **Last revised:** March 11, 2026
-**Status:** Draft
+**Status:** Approved
 
 ---
 
@@ -149,8 +149,8 @@ All training and inference must run on consumer-grade hardware without requiring
 |---------|------------------------------------------------------------------------------------------------|-------------|
 | NFR-1.1 | All training (base model and SFT) runs on a single RTX 3060 (12GB VRAM) with 64GB system RAM.  | Must have   |
 | NFR-1.2 | 1B model training completes within a reasonable timeframe given consumer hardware constraints. | Should have |
-| NFR-1.3 | Inference for the instruction-tuned model runs locally via Ollama without noticeable lag       | Must have   |
-| NFR-1.4 | Resource usage (peak VRAM, system RAM, training time) is logged for all training runs          | Must have   |
+| NFR-1.3 | Inference for the instruction-tuned model runs locally via Ollama without noticeable lag.      | Must have   |
+| NFR-1.4 | Resource usage (peak VRAM, system RAM, training time) is logged for all training runs.         | Must have   |
 
 ### NFR-2: Reproducibility
 
