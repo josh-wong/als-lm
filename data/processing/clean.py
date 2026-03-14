@@ -385,7 +385,7 @@ UNICODE_CLEANUP_TABLE = str.maketrans({
 })
 
 # Regex patterns for line-break rejoining (compiled once at module level)
-HYPHEN_BREAK_PATTERN = re.compile(r"(?<![0-9])([a-zA-Z])-\n([a-z])")
+HYPHEN_BREAK_PATTERN = re.compile(r"([a-z])-\n([a-z])")
 SOFT_BREAK_PATTERN = re.compile(r"([a-z]{3,})\n([a-z])")
 
 
@@ -425,7 +425,7 @@ def _rejoin_line_breaks(text: str) -> str:
     Uses a conservative heuristic that only rejoins when the context is
     unambiguously a broken word:
 
-    - Hyphenated breaks: word-char-hyphen-newline-lowercase (e.g.,
+    - Hyphenated breaks: lowercase-hyphen-newline-lowercase (e.g.,
       "neuro-\\ndegenerative") are rejoined by removing both the hyphen
       and the newline
     - Soft breaks: 3+ lowercase letters before a newline followed by a

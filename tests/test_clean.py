@@ -134,6 +134,8 @@ class TestRejoinLineBreaks:
             # NOT rejoined cases (safety)
             ("SOD1-\nmutant", "SOD1-\nmutant"),          # digit before hyphen preserved
             ("SOD1A-\nmutant", "SOD1A-\nmutant"),        # digit-letter before hyphen
+            ("FUS-\nrelated", "FUS-\nrelated"),            # uppercase abbrev preserved
+            ("ALS-\nassociated", "ALS-\nassociated"),      # uppercase abbrev preserved
             ("The\nresults", "The\nresults"),             # uppercase start line 1
             ("word\nCapitalized", "word\nCapitalized"),   # uppercase start line 2
             ("ab\nword", "ab\nword"),                     # 2-char word not rejoined
@@ -146,6 +148,8 @@ class TestRejoinLineBreaks:
             "exactly-3-chars-rejoined",
             "digit-hyphen-preserved",
             "digit-letter-hyphen-preserved",
+            "uppercase-abbrev-FUS-preserved",
+            "uppercase-abbrev-ALS-preserved",
             "uppercase-start-line1-preserved",
             "uppercase-start-line2-preserved",
             "2-char-word-preserved",
