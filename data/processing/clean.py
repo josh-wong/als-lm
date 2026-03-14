@@ -366,6 +366,81 @@ def _normalize_unicode(text: str) -> str:
     return text
 
 
+# ---------------------------------------------------------------------------
+# Punctuation canonicalization and line-break rejoining
+# ---------------------------------------------------------------------------
+
+# Exotic whitespace -> ASCII space translation table
+WHITESPACE_TABLE = str.maketrans({
+    "\u00a0": " ",   # non-breaking space
+    "\u2009": " ",   # thin space
+    "\u2007": " ",   # figure space
+    "\u202f": " ",   # narrow no-break space
+    "\u205f": " ",   # medium mathematical space
+    "\u3000": " ",   # ideographic space
+})
+
+# Zero-width characters to remove entirely
+ZERO_WIDTH_CHARS = "\u200b\u200c\u200d\ufeff"
+
+# Regex patterns for line-break rejoining (compiled once at module level)
+HYPHEN_BREAK_PATTERN = re.compile(r"(\w)-\n([a-z])")
+SOFT_BREAK_PATTERN = re.compile(r"([a-z]{3,})\n([a-z])")
+
+
+def _canonicalize_punctuation(text: str) -> str:
+    """Normalize PDF-extraction artifacts to canonical ASCII forms.
+
+    Handles four categories of artifact:
+
+    - Ligatures (fi, fl, ffi, ffl) decomposed to ASCII letter sequences
+    - Figure dash (U+2012) and minus sign (U+2212) normalized to hyphen-minus
+    - Exotic whitespace variants normalized to ASCII space
+    - Zero-width characters (U+200B, U+200C, U+200D, U+FEFF) removed
+
+    Em dash (U+2014) and en dash (U+2013) are intentionally preserved.
+    """
+    # Ligature decomposition (belt-and-suspenders with ftfy)
+    text = text.replace("\ufb01", "fi")
+    text = text.replace("\ufb02", "fl")
+    text = text.replace("\ufb03", "ffi")
+    text = text.replace("\ufb04", "ffl")
+
+    # Dash variant normalization (figure dash and minus sign only)
+    text = text.replace("\u2012", "-")   # figure dash
+    text = text.replace("\u2212", "-")   # minus sign
+
+    # Exotic whitespace normalization
+    text = text.translate(WHITESPACE_TABLE)
+
+    # Zero-width character removal
+    for ch in ZERO_WIDTH_CHARS:
+        text = text.replace(ch, "")
+
+    return text
+
+
+def _rejoin_line_breaks(text: str) -> str:
+    """Rejoin mid-word line breaks from PDF column extraction.
+
+    Uses a conservative heuristic that only rejoins when the context is
+    unambiguously a broken word:
+
+    - Hyphenated breaks: word-hyphen-newline-lowercase (e.g., "neuro-\\n
+      degenerative") are rejoined by removing both the hyphen and newline
+    - Soft breaks: lowercase-to-lowercase across a newline (e.g., "neuro\\n
+      degenerative") are rejoined by removing the newline
+
+    Lines starting with uppercase, following digits, or following punctuation
+    are left unchanged to avoid corrupting abbreviations and sentence breaks.
+    """
+    # Hyphenated breaks first (more specific pattern)
+    text = HYPHEN_BREAK_PATTERN.sub(r"\1\2", text)
+    # Then unhyphenated mid-word breaks
+    text = SOFT_BREAK_PATTERN.sub(r"\1\2", text)
+    return text
+
+
 def _normalize_whitespace(text: str) -> str:
     """Normalize whitespace while preserving paragraph breaks.
 
@@ -484,6 +559,8 @@ def clean_document(
     5. Strip clinical trial status lines (clinical_trials source only)
     6. PII re-scrubbing (patient narratives only)
     7. Unicode normalization (ftfy + NFC)
+    7a. Punctuation canonicalization (ligatures, dash variants, whitespace)
+    7b. Line break rejoining (mid-word and hyphenated breaks)
     8. Whitespace normalization
     9. English language safety net (warn if non-English detected)
     10. Medical abbreviation normalization
@@ -546,6 +623,12 @@ def clean_document(
 
     # Step 7: Unicode normalization
     text = _normalize_unicode(text)
+
+    # Step 7a: Punctuation canonicalization
+    text = _canonicalize_punctuation(text)
+
+    # Step 7b: Line break rejoining
+    text = _rejoin_line_breaks(text)
 
     # Step 8: Whitespace normalization
     text = _normalize_whitespace(text)
