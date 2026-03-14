@@ -370,21 +370,22 @@ def _normalize_unicode(text: str) -> str:
 # Punctuation canonicalization and line-break rejoining
 # ---------------------------------------------------------------------------
 
-# Exotic whitespace -> ASCII space translation table
-WHITESPACE_TABLE = str.maketrans({
-    "\u00a0": " ",   # non-breaking space
-    "\u2009": " ",   # thin space
-    "\u2007": " ",   # figure space
-    "\u202f": " ",   # narrow no-break space
-    "\u205f": " ",   # medium mathematical space
-    "\u3000": " ",   # ideographic space
+# Translation table: exotic whitespace -> ASCII space, zero-width chars -> deleted
+PUNCTUATION_TABLE = str.maketrans({
+    "\u00a0": " ",    # non-breaking space
+    "\u2009": " ",    # thin space
+    "\u2007": " ",    # figure space
+    "\u202f": " ",    # narrow no-break space
+    "\u205f": " ",    # medium mathematical space
+    "\u3000": " ",    # ideographic space
+    "\u200b": None,   # zero-width space (deleted)
+    "\u200c": None,   # zero-width non-joiner (deleted)
+    "\u200d": None,   # zero-width joiner (deleted)
+    "\ufeff": None,   # byte order mark (deleted)
 })
 
-# Zero-width characters to remove entirely
-ZERO_WIDTH_CHARS = "\u200b\u200c\u200d\ufeff"
-
 # Regex patterns for line-break rejoining (compiled once at module level)
-HYPHEN_BREAK_PATTERN = re.compile(r"(\w)-\n([a-z])")
+HYPHEN_BREAK_PATTERN = re.compile(r"([a-zA-Z])-\n([a-z])")
 SOFT_BREAK_PATTERN = re.compile(r"([a-z]{3,})\n([a-z])")
 
 
@@ -410,12 +411,8 @@ def _canonicalize_punctuation(text: str) -> str:
     text = text.replace("\u2012", "-")   # figure dash
     text = text.replace("\u2212", "-")   # minus sign
 
-    # Exotic whitespace normalization
-    text = text.translate(WHITESPACE_TABLE)
-
-    # Zero-width character removal
-    for ch in ZERO_WIDTH_CHARS:
-        text = text.replace(ch, "")
+    # Exotic whitespace normalization and zero-width character removal
+    text = text.translate(PUNCTUATION_TABLE)
 
     return text
 

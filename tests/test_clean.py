@@ -55,11 +55,12 @@ class TestDashNormalization:
         "input_text, expected",
         [
             ("TDP\u201243", "TDP-43"),          # figure dash -> hyphen
+            ("ALSFRS\u2012R", "ALSFRS-R"),      # figure dash in ALSFRS-R
             ("SOD1\u2212G93A", "SOD1-G93A"),    # minus sign -> hyphen
             ("em\u2014dash", "em\u2014dash"),    # em dash preserved
             ("en\u2013dash", "en\u2013dash"),    # en dash preserved
         ],
-        ids=["figure-dash", "minus-sign", "em-dash-preserved", "en-dash-preserved"],
+        ids=["figure-dash", "figure-dash-alsfrs-r", "minus-sign", "em-dash-preserved", "en-dash-preserved"],
     )
     def test_dash(self, input_text, expected):
         assert _canonicalize_punctuation(input_text) == expected
@@ -130,6 +131,7 @@ class TestRejoinLineBreaks:
             ("neuro\ndegenerative", "neurodegenerative"),
             ("neuro-\ndegenerative", "neurodegenerative"),
             # NOT rejoined cases (safety)
+            ("SOD1-\nmutant", "SOD1-\nmutant"),      # digit before hyphen preserved
             ("The\nresults", "The\nresults"),        # uppercase start
             ("SOD1\nmutation", "SOD1\nmutation"),    # digit end
             ("end.\nStart", "end.\nStart"),           # punctuation end
@@ -137,6 +139,7 @@ class TestRejoinLineBreaks:
         ids=[
             "lowercase-to-lowercase",
             "hyphenated-break",
+            "digit-hyphen-preserved",
             "uppercase-start-preserved",
             "digit-end-preserved",
             "punctuation-end-preserved",

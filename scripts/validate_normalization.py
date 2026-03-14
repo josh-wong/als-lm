@@ -49,6 +49,9 @@ def find_raw_terms(raw_text: str, abbreviation_map: list[dict]) -> set[str]:
     for entry in abbreviation_map:
         canonical = entry["canonical"]
         for variant in entry["variants"]:
+            # Variants are regex patterns (e.g. "C9orf72|C9ORF72"), not
+            # literals, so they are NOT re.escape()'d — unlike canonical
+            # terms in check_term_survival() below.
             pattern = re.compile(r"\b" + variant + r"\b", re.IGNORECASE)
             if pattern.search(raw_text):
                 found.add(canonical)
