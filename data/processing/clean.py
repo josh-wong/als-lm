@@ -426,10 +426,13 @@ def _rejoin_line_breaks(text: str) -> str:
     Uses a conservative heuristic that only rejoins when the context is
     unambiguously a broken word:
 
-    - Hyphenated breaks: word-hyphen-newline-lowercase (e.g., "neuro-\\n
-      degenerative") are rejoined by removing both the hyphen and newline
-    - Soft breaks: lowercase-to-lowercase across a newline (e.g., "neuro\\n
-      degenerative") are rejoined by removing the newline
+    - Hyphenated breaks: word-char-hyphen-newline-lowercase (e.g.,
+      "neuro-\\ndegenerative") are rejoined by removing both the hyphen
+      and the newline
+    - Soft breaks: 3+ lowercase letters before a newline followed by a
+      lowercase letter (e.g., "neuro\\ndegenerative") are rejoined by
+      removing the newline. The 3-char minimum prevents short words like
+      "The" from being falsely merged with the next line.
 
     Lines starting with uppercase, following digits, or following punctuation
     are left unchanged to avoid corrupting abbreviations and sentence breaks.
