@@ -144,14 +144,19 @@ def _extract_section(text: str, header: str) -> str:
     return remaining[:next_section.start()] if next_section else remaining
 
 
-def _parse_table_rows(section_text: str) -> list[dict[str, str]]:
+def _parse_table_rows(
+    section_text: str,
+    first_table_only: bool = False,
+) -> list[dict[str, str]]:
     """Parse Markdown table rows from a section into dicts.
 
     Skips the header row and separator line. Returns a list of dicts
     mapping column header names to cell values.
 
     Args:
-        section_text: Text containing a single Markdown table.
+        section_text: Text containing one or more Markdown tables.
+        first_table_only: If True, stop parsing after the first
+            complete table (useful when a section has multiple tables).
 
     Returns:
         List of row dicts with stripped cell values.
@@ -159,20 +164,27 @@ def _parse_table_rows(section_text: str) -> list[dict[str, str]]:
     rows = []
     headers: list[str] = []
     header_found = False
+    in_table = False
 
     for line in section_text.split("\n"):
-        line = line.strip()
-        if not line.startswith("|"):
+        stripped = line.strip()
+        if not stripped.startswith("|"):
+            # If we were in a table and hit a non-table line, the
+            # first table is complete
+            if in_table and first_table_only:
+                break
             continue
         # Skip separator rows
-        if re.match(r"^\|[\s\-|]+\|$", line):
+        if re.match(r"^\|[\s\-|]+\|$", stripped):
+            in_table = True
             continue
 
-        cells = [c.strip() for c in line.strip("|").split("|")]
+        cells = [c.strip() for c in stripped.strip("|").split("|")]
 
         if not header_found:
             headers = cells
             header_found = True
+            in_table = True
         else:
             row = dict(zip(headers, cells))
             rows.append(row)
@@ -252,7 +264,7 @@ def parse_stats(stats_path: Path) -> dict:
     # --- Document length analysis ---
     try:
         section = _extract_section(text, "Document length analysis")
-        rows = _parse_table_rows(section)
+        rows = _parse_table_rows(section, first_table_only=True)
         lengths = {}
         for row in rows:
             metric = row.get("Metric", "").strip()
@@ -329,13 +341,16 @@ def _fmt_bytes_mb(size_bytes: int) -> str:
 
 
 def count_raw_docs_per_source(raw_dir: Path) -> dict[str, int]:
-    """Count JSON files per source directory in data/raw/.
+    """Count document JSON files per source directory in data/raw/.
+
+    Excludes checkpoint files (.checkpoint.json) which are scraper
+    state files, not documents.
 
     Args:
         raw_dir: Path to the raw data directory.
 
     Returns:
-        Dict mapping source directory name to JSON file count.
+        Dict mapping source directory name to document JSON file count.
     """
     counts: dict[str, int] = {}
     if not raw_dir.exists():
@@ -344,8 +359,11 @@ def count_raw_docs_per_source(raw_dir: Path) -> dict[str, int]:
 
     for source_dir in sorted(raw_dir.iterdir()):
         if source_dir.is_dir():
-            json_count = len(list(source_dir.glob("*.json")))
-            counts[source_dir.name] = json_count
+            json_files = [
+                f for f in source_dir.glob("*.json")
+                if f.name != ".checkpoint.json"
+            ]
+            counts[source_dir.name] = len(json_files)
 
     return counts
 
@@ -354,7 +372,7 @@ def count_raw_docs_per_source(raw_dir: Path) -> dict[str, int]:
 RAW_DIR_TO_CATEGORY = {
     "pubmed": "biomedical_research",
     "pubmed_abstracts": "biomedical_research",
-    "bookshelf": "biomedical_research",
+    "bookshelf": "educational",
     "cdc": "educational",
     "educational": "educational",
     "clinicaltrials": "clinical_trials",
