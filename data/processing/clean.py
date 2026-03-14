@@ -366,6 +366,75 @@ def _normalize_unicode(text: str) -> str:
     return text
 
 
+# ---------------------------------------------------------------------------
+# Punctuation canonicalization and line-break rejoining
+# ---------------------------------------------------------------------------
+
+# Translation table: exotic whitespace -> ASCII space, zero-width chars -> deleted
+UNICODE_CLEANUP_TABLE = str.maketrans({
+    "\u00a0": " ",    # non-breaking space
+    "\u2009": " ",    # thin space
+    "\u2007": " ",    # figure space
+    "\u202f": " ",    # narrow no-break space
+    "\u205f": " ",    # medium mathematical space
+    "\u3000": " ",    # ideographic space
+    "\u200b": None,   # zero-width space (deleted)
+    "\u200c": None,   # zero-width non-joiner (deleted)
+    "\u200d": None,   # zero-width joiner (deleted)
+    "\ufeff": None,   # byte order mark (deleted)
+})
+
+# Regex pattern for line-break rejoining (compiled once at module level)
+HYPHEN_BREAK_PATTERN = re.compile(r"([a-z])-\n([a-z])")
+
+
+def _canonicalize_punctuation(text: str) -> str:
+    """Normalize PDF-extraction artifacts to canonical ASCII forms.
+
+    Handles four categories of artifact:
+
+    - Ligatures (ff, fi, fl, ffi, ffl) decomposed to ASCII letter sequences
+    - Figure dash (U+2012) and minus sign (U+2212) normalized to hyphen-minus
+    - Exotic whitespace variants normalized to ASCII space
+    - Zero-width characters (U+200B, U+200C, U+200D, U+FEFF) removed
+
+    Em dash (U+2014) and en dash (U+2013) are intentionally preserved
+    because they carry semantic meaning (ranges, parenthetical asides)
+    that differs from hyphens in compound terms like TDP-43.
+    """
+    # Ligature decomposition (belt-and-suspenders with ftfy)
+    text = text.replace("\ufb00", "ff")
+    text = text.replace("\ufb01", "fi")
+    text = text.replace("\ufb02", "fl")
+    text = text.replace("\ufb03", "ffi")
+    text = text.replace("\ufb04", "ffl")
+
+    # Dash variant normalization (figure dash and minus sign only)
+    text = text.replace("\u2012", "-")   # figure dash
+    text = text.replace("\u2212", "-")   # minus sign
+
+    # Exotic whitespace normalization and zero-width character removal
+    text = text.translate(UNICODE_CLEANUP_TABLE)
+
+    return text
+
+
+def _rejoin_line_breaks(text: str) -> str:
+    """Rejoin hyphenated line breaks from PDF column extraction.
+
+    Matches lowercase-hyphen-newline-lowercase patterns (e.g.,
+    "neuro-\\ndegenerative") and removes the newline while keeping the
+    hyphen. This preserves legitimate compound words like
+    "receptor-mediated" that happen to break at a line end while still
+    repairing the line break.
+
+    Lines starting with uppercase, following digits, or following punctuation
+    are left unchanged to avoid corrupting abbreviations and sentence breaks.
+    """
+    text = HYPHEN_BREAK_PATTERN.sub(r"\1-\2", text)
+    return text
+
+
 def _normalize_whitespace(text: str) -> str:
     """Normalize whitespace while preserving paragraph breaks.
 
@@ -484,11 +553,13 @@ def clean_document(
     5. Strip clinical trial status lines (clinical_trials source only)
     6. PII re-scrubbing (patient narratives only)
     7. Unicode normalization (ftfy + NFC)
-    8. Whitespace normalization
-    9. English language safety net (warn if non-English detected)
-    10. Medical abbreviation normalization
-    11. Embed document title as header
-    12. Minimum length check
+    8. Punctuation canonicalization (ligatures, dash variants, whitespace)
+    9. Line break rejoining (hyphenated breaks only)
+    10. Whitespace normalization
+    11. English language safety net (warn if non-English detected)
+    12. Medical abbreviation normalization
+    13. Embed document title as header
+    14. Minimum length check
 
     Args:
         doc: Raw document dict with Phase 1 JSON schema fields.
@@ -547,10 +618,16 @@ def clean_document(
     # Step 7: Unicode normalization
     text = _normalize_unicode(text)
 
-    # Step 8: Whitespace normalization
+    # Step 8: Punctuation canonicalization
+    text = _canonicalize_punctuation(text)
+
+    # Step 9: Line break rejoining
+    text = _rejoin_line_breaks(text)
+
+    # Step 10: Whitespace normalization
     text = _normalize_whitespace(text)
 
-    # Step 9: English language safety net
+    # Step 11: English language safety net
     # PubMed queries already filter for English, but this catches edge cases
     # from other sources. Checks that common English stop words appear in
     # the first 200 words as a lightweight heuristic.
@@ -566,13 +643,13 @@ def clean_document(
                 doc_id,
             )
 
-    # Step 10: Medical abbreviation normalization
+    # Step 12: Medical abbreviation normalization
     text = normalize_abbreviations(text)
 
-    # Step 11: Embed document title as header
+    # Step 13: Embed document title as header
     text = _embed_title(text, title)
 
-    # Step 12: Minimum length check
+    # Step 14: Minimum length check
     word_count = len(text.split())
     if word_count < MIN_WORD_COUNT:
         if rejected_path:
