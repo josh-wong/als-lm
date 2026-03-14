@@ -33,12 +33,13 @@ class TestLigatureDecomposition:
     @pytest.mark.parametrize(
         "input_text, expected",
         [
+            ("\ufb00ect", "ffect"),               # ff ligature
             ("\ufb01broblast", "fibroblast"),   # fi ligature
             ("\ufb02uoride", "fluoride"),         # fl ligature
             ("\ufb03ce", "ffice"),                 # ffi ligature
             ("\ufb04ower", "fflower"),             # ffl ligature
         ],
-        ids=["fi-ligature", "fl-ligature", "ffi-ligature", "ffl-ligature"],
+        ids=["ff-ligature", "fi-ligature", "fl-ligature", "ffi-ligature", "ffl-ligature"],
     )
     def test_ligature(self, input_text, expected):
         assert _canonicalize_punctuation(input_text) == expected
@@ -122,38 +123,34 @@ class TestZeroWidthRemoval:
 # ---------------------------------------------------------------------------
 
 class TestRejoinLineBreaks:
-    """Mid-word and hyphenated line breaks are rejoined conservatively."""
+    """Hyphenated line breaks are rejoined; hyphen is preserved."""
 
     @pytest.mark.parametrize(
         "input_text, expected",
         [
-            # Rejoined cases
-            ("neuro\ndegenerative", "neurodegenerative"),
-            ("neuro-\ndegenerative", "neurodegenerative"),
-            ("abc\nword", "abcword"),                    # exactly 3 chars rejoined
+            # Rejoined cases (hyphen kept, newline removed)
+            ("neuro-\ndegenerative", "neuro-degenerative"),
+            ("receptor-\nmediated", "receptor-mediated"),
+            ("dose-\ndependent", "dose-dependent"),
             # NOT rejoined cases (safety)
-            ("SOD1-\nmutant", "SOD1-\nmutant"),          # digit before hyphen preserved
+            ("SOD1-\nmutant", "SOD1-\nmutant"),          # digit before hyphen
             ("SOD1A-\nmutant", "SOD1A-\nmutant"),        # digit-letter before hyphen
-            ("FUS-\nrelated", "FUS-\nrelated"),            # uppercase abbrev preserved
-            ("ALS-\nassociated", "ALS-\nassociated"),      # uppercase abbrev preserved
-            ("The\nresults", "The\nresults"),             # uppercase start line 1
-            ("word\nCapitalized", "word\nCapitalized"),   # uppercase start line 2
-            ("ab\nword", "ab\nword"),                     # 2-char word not rejoined
-            ("SOD1\nmutation", "SOD1\nmutation"),         # digit end
+            ("FUS-\nrelated", "FUS-\nrelated"),            # uppercase abbrev
+            ("ALS-\nassociated", "ALS-\nassociated"),      # uppercase abbrev
+            ("word\nCapitalized", "word\nCapitalized"),   # no hyphen, not rejoined
+            ("neuro\ndegenerative", "neuro\ndegenerative"),  # no hyphen, not rejoined
             ("end.\nStart", "end.\nStart"),               # punctuation end
         ],
         ids=[
-            "lowercase-to-lowercase",
-            "hyphenated-break",
-            "exactly-3-chars-rejoined",
+            "hyphenated-break-rejoined",
+            "compound-word-preserved",
+            "compound-word-dose-dependent",
             "digit-hyphen-preserved",
             "digit-letter-hyphen-preserved",
             "uppercase-abbrev-FUS-preserved",
             "uppercase-abbrev-ALS-preserved",
-            "uppercase-start-line1-preserved",
-            "uppercase-start-line2-preserved",
-            "2-char-word-preserved",
-            "digit-end-preserved",
+            "no-hyphen-not-rejoined",
+            "soft-break-not-rejoined",
             "punctuation-end-preserved",
         ],
     )

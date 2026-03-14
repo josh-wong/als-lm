@@ -384,9 +384,8 @@ UNICODE_CLEANUP_TABLE = str.maketrans({
     "\ufeff": None,   # byte order mark (deleted)
 })
 
-# Regex patterns for line-break rejoining (compiled once at module level)
+# Regex pattern for line-break rejoining (compiled once at module level)
 HYPHEN_BREAK_PATTERN = re.compile(r"([a-z])-\n([a-z])")
-SOFT_BREAK_PATTERN = re.compile(r"([a-z]{3,})\n([a-z])")
 
 
 def _canonicalize_punctuation(text: str) -> str:
@@ -404,6 +403,7 @@ def _canonicalize_punctuation(text: str) -> str:
     that differs from hyphens in compound terms like TDP-43.
     """
     # Ligature decomposition (belt-and-suspenders with ftfy)
+    text = text.replace("\ufb00", "ff")
     text = text.replace("\ufb01", "fi")
     text = text.replace("\ufb02", "fl")
     text = text.replace("\ufb03", "ffi")
@@ -420,26 +420,18 @@ def _canonicalize_punctuation(text: str) -> str:
 
 
 def _rejoin_line_breaks(text: str) -> str:
-    """Rejoin mid-word line breaks from PDF column extraction.
+    """Rejoin hyphenated line breaks from PDF column extraction.
 
-    Uses a conservative heuristic that only rejoins when the context is
-    unambiguously a broken word:
-
-    - Hyphenated breaks: lowercase-hyphen-newline-lowercase (e.g.,
-      "neuro-\\ndegenerative") are rejoined by removing both the hyphen
-      and the newline
-    - Soft breaks: 3+ lowercase letters before a newline followed by a
-      lowercase letter (e.g., "neuro\\ndegenerative") are rejoined by
-      removing the newline. The 3-char minimum prevents short words like
-      "The" from being falsely merged with the next line.
+    Matches lowercase-hyphen-newline-lowercase patterns (e.g.,
+    "neuro-\\ndegenerative") and removes the newline while keeping the
+    hyphen. This preserves legitimate compound words like
+    "receptor-mediated" that happen to break at a line end while still
+    repairing the line break.
 
     Lines starting with uppercase, following digits, or following punctuation
     are left unchanged to avoid corrupting abbreviations and sentence breaks.
     """
-    # Hyphenated breaks first (more specific pattern)
-    text = HYPHEN_BREAK_PATTERN.sub(r"\1\2", text)
-    # Then unhyphenated mid-word breaks
-    text = SOFT_BREAK_PATTERN.sub(r"\1\2", text)
+    text = HYPHEN_BREAK_PATTERN.sub(r"\1-\2", text)
     return text
 
 
@@ -562,7 +554,7 @@ def clean_document(
     6. PII re-scrubbing (patient narratives only)
     7. Unicode normalization (ftfy + NFC)
     8. Punctuation canonicalization (ligatures, dash variants, whitespace)
-    9. Line break rejoining (mid-word and hyphenated breaks)
+    9. Line break rejoining (hyphenated breaks only)
     10. Whitespace normalization
     11. English language safety net (warn if non-English detected)
     12. Medical abbreviation normalization
