@@ -371,7 +371,7 @@ def _normalize_unicode(text: str) -> str:
 # ---------------------------------------------------------------------------
 
 # Translation table: exotic whitespace -> ASCII space, zero-width chars -> deleted
-PUNCTUATION_TABLE = str.maketrans({
+UNICODE_CLEANUP_TABLE = str.maketrans({
     "\u00a0": " ",    # non-breaking space
     "\u2009": " ",    # thin space
     "\u2007": " ",    # figure space
@@ -385,7 +385,7 @@ PUNCTUATION_TABLE = str.maketrans({
 })
 
 # Regex patterns for line-break rejoining (compiled once at module level)
-HYPHEN_BREAK_PATTERN = re.compile(r"([a-zA-Z])-\n([a-z])")
+HYPHEN_BREAK_PATTERN = re.compile(r"(?<![0-9])([a-zA-Z])-\n([a-z])")
 SOFT_BREAK_PATTERN = re.compile(r"([a-z]{3,})\n([a-z])")
 
 
@@ -399,7 +399,9 @@ def _canonicalize_punctuation(text: str) -> str:
     - Exotic whitespace variants normalized to ASCII space
     - Zero-width characters (U+200B, U+200C, U+200D, U+FEFF) removed
 
-    Em dash (U+2014) and en dash (U+2013) are intentionally preserved.
+    Em dash (U+2014) and en dash (U+2013) are intentionally preserved
+    because they carry semantic meaning (ranges, parenthetical asides)
+    that differs from hyphens in compound terms like TDP-43.
     """
     # Ligature decomposition (belt-and-suspenders with ftfy)
     text = text.replace("\ufb01", "fi")
@@ -412,7 +414,7 @@ def _canonicalize_punctuation(text: str) -> str:
     text = text.replace("\u2212", "-")   # minus sign
 
     # Exotic whitespace normalization and zero-width character removal
-    text = text.translate(PUNCTUATION_TABLE)
+    text = text.translate(UNICODE_CLEANUP_TABLE)
 
     return text
 
@@ -559,13 +561,13 @@ def clean_document(
     5. Strip clinical trial status lines (clinical_trials source only)
     6. PII re-scrubbing (patient narratives only)
     7. Unicode normalization (ftfy + NFC)
-    7a. Punctuation canonicalization (ligatures, dash variants, whitespace)
-    7b. Line break rejoining (mid-word and hyphenated breaks)
-    8. Whitespace normalization
-    9. English language safety net (warn if non-English detected)
-    10. Medical abbreviation normalization
-    11. Embed document title as header
-    12. Minimum length check
+    8. Punctuation canonicalization (ligatures, dash variants, whitespace)
+    9. Line break rejoining (mid-word and hyphenated breaks)
+    10. Whitespace normalization
+    11. English language safety net (warn if non-English detected)
+    12. Medical abbreviation normalization
+    13. Embed document title as header
+    14. Minimum length check
 
     Args:
         doc: Raw document dict with Phase 1 JSON schema fields.
@@ -624,16 +626,16 @@ def clean_document(
     # Step 7: Unicode normalization
     text = _normalize_unicode(text)
 
-    # Step 7a: Punctuation canonicalization
+    # Step 8: Punctuation canonicalization
     text = _canonicalize_punctuation(text)
 
-    # Step 7b: Line break rejoining
+    # Step 9: Line break rejoining
     text = _rejoin_line_breaks(text)
 
-    # Step 8: Whitespace normalization
+    # Step 10: Whitespace normalization
     text = _normalize_whitespace(text)
 
-    # Step 9: English language safety net
+    # Step 11: English language safety net
     # PubMed queries already filter for English, but this catches edge cases
     # from other sources. Checks that common English stop words appear in
     # the first 200 words as a lightweight heuristic.
@@ -649,13 +651,13 @@ def clean_document(
                 doc_id,
             )
 
-    # Step 10: Medical abbreviation normalization
+    # Step 12: Medical abbreviation normalization
     text = normalize_abbreviations(text)
 
-    # Step 11: Embed document title as header
+    # Step 13: Embed document title as header
     text = _embed_title(text, title)
 
-    # Step 12: Minimum length check
+    # Step 14: Minimum length check
     word_count = len(text.split())
     if word_count < MIN_WORD_COUNT:
         if rejected_path:

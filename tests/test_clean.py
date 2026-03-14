@@ -130,17 +130,25 @@ class TestRejoinLineBreaks:
             # Rejoined cases
             ("neuro\ndegenerative", "neurodegenerative"),
             ("neuro-\ndegenerative", "neurodegenerative"),
+            ("abc\nword", "abcword"),                    # exactly 3 chars rejoined
             # NOT rejoined cases (safety)
-            ("SOD1-\nmutant", "SOD1-\nmutant"),      # digit before hyphen preserved
-            ("The\nresults", "The\nresults"),        # uppercase start
-            ("SOD1\nmutation", "SOD1\nmutation"),    # digit end
-            ("end.\nStart", "end.\nStart"),           # punctuation end
+            ("SOD1-\nmutant", "SOD1-\nmutant"),          # digit before hyphen preserved
+            ("SOD1A-\nmutant", "SOD1A-\nmutant"),        # digit-letter before hyphen
+            ("The\nresults", "The\nresults"),             # uppercase start line 1
+            ("word\nCapitalized", "word\nCapitalized"),   # uppercase start line 2
+            ("ab\nword", "ab\nword"),                     # 2-char word not rejoined
+            ("SOD1\nmutation", "SOD1\nmutation"),         # digit end
+            ("end.\nStart", "end.\nStart"),               # punctuation end
         ],
         ids=[
             "lowercase-to-lowercase",
             "hyphenated-break",
+            "exactly-3-chars-rejoined",
             "digit-hyphen-preserved",
-            "uppercase-start-preserved",
+            "digit-letter-hyphen-preserved",
+            "uppercase-start-line1-preserved",
+            "uppercase-start-line2-preserved",
+            "2-char-word-preserved",
             "digit-end-preserved",
             "punctuation-end-preserved",
         ],
@@ -159,10 +167,13 @@ class TestMedicalTermSurvival:
     def _build_synthetic_document(self):
         """Build a document containing all 12 canonical terms.
 
-        Uses figure dashes and minus signs in some terms to verify that
-        punctuation canonicalization does not corrupt medical abbreviations.
+        Uses figure dashes, minus signs, and a hyphenated line break to
+        verify that punctuation canonicalization and line-break rejoining
+        do not corrupt medical abbreviations.
         """
-        # Build a long enough document (>100 words) containing all terms
+        # Build a long enough document (>100 words) containing all terms.
+        # Paragraphs are newline-separated (not space-joined) so that
+        # _rejoin_line_breaks is exercised by the pipeline.
         canonical_terms = [entry["canonical"] for entry in ABBREVIATION_MAP]
         paragraphs = [
             "This is a research document about amyotrophic lateral sclerosis.",
@@ -174,7 +185,9 @@ class TestMedicalTermSurvival:
             "The C9orf72 repeat expansion is the most common genetic cause.",
             "Electromyography or EMG is used for diagnosis.",
             "Motor neuron disease or MND is an alternative name for ALS.",
-            "The ALSFRS-R scale measures functional decline over time.",
+            # Hyphenated line break: SOD1-mutant must survive intact
+            "The ALSFRS-R scale measures functional decline. SOD1-\nmutant "
+            "mice are commonly used in preclinical studies over time.",
             "Primary lateral sclerosis or PLS is a related condition.",
             "Upper motor neuron or UMN signs include spasticity.",
             "Lower motor neuron or LMN signs include muscle atrophy.",
@@ -182,7 +195,7 @@ class TestMedicalTermSurvival:
             "has been studied extensively in multiple randomized controlled "
             "trials across different populations and geographic regions.",
         ]
-        text = " ".join(paragraphs)
+        text = "\n".join(paragraphs)
         return {
             "id": "test-survival-001",
             "source": "pubmed",

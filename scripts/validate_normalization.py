@@ -112,7 +112,8 @@ def validate_documents(
         return 2
 
     total_processed = 0
-    total_skipped = 0
+    total_empty = 0
+    total_rejected = 0
     total_passed = 0
     total_failed = 0
     term_checked_count: dict[str, int] = {t: 0 for t in CANONICAL_TERMS}
@@ -124,7 +125,7 @@ def validate_documents(
         raw_text = doc.get("text", "")
 
         if not raw_text or not raw_text.strip():
-            total_skipped += 1
+            total_empty += 1
             continue
 
         # Find which canonical terms exist in the raw text
@@ -134,7 +135,7 @@ def validate_documents(
         cleaned = clean_document(doc)
 
         if cleaned is None:
-            total_skipped += 1
+            total_rejected += 1
             if verbose:
                 print(f"  SKIP  {doc_id} (rejected by pipeline)")
             continue
@@ -171,7 +172,8 @@ def validate_documents(
     print("=" * 60)
     print(f"  Documents loaded:    {len(documents)}")
     print(f"  Documents processed: {total_processed}")
-    print(f"  Documents skipped:   {total_skipped}")
+    print(f"  Documents empty:     {total_empty}")
+    print(f"  Documents rejected:  {total_rejected}")
     print(f"  Documents passed:    {total_passed}")
     print(f"  Documents failed:    {total_failed}")
     print()
