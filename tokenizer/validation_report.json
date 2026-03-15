@@ -9,8 +9,8 @@
     "num_terms": 100
   },
   "tokenizers": {
-    "old_v01": {
-      "name": "ALS v0.1",
+    "v1_0": {
+      "name": "v1.0 ALS-LM",
       "path": "tokenizer/v1.0/als_tokenizer.json",
       "vocab_size": 50257,
       "total_corpus_tokens": 141734249,
@@ -19,8 +19,8 @@
       "encoding_speed_tps": 425681,
       "pct_docs_within_1024": 54.5
     },
-    "new_production": {
-      "name": "ALS Production",
+    "v1_2": {
+      "name": "v1.2 ALS-LM",
       "path": "tokenizer/als_tokenizer.json",
       "vocab_size": 50257,
       "total_corpus_tokens": 141734249,
