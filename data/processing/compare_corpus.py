@@ -227,7 +227,7 @@ def parse_stats(stats_path: Path) -> dict:
             value = row.get("Value", "").strip()
             summary[metric] = value
         result["corpus_summary"] = summary
-    except Exception as e:
+    except (ValueError, KeyError) as e:
         logger.warning("Failed to parse Corpus summary: %s", e)
         result["corpus_summary"] = {}
 
@@ -246,7 +246,7 @@ def parse_stats(stats_path: Path) -> dict:
                 "percentage": row.get("Percentage", "0%").strip(),
             }
         result["source_distribution"] = sources
-    except Exception as e:
+    except (ValueError, KeyError) as e:
         logger.warning("Failed to parse Source distribution: %s", e)
         result["source_distribution"] = {}
 
@@ -261,7 +261,7 @@ def parse_stats(stats_path: Path) -> dict:
             if reason:
                 rejections[reason] = _parse_number(count_str)
         result["rejection_summary"] = rejections
-    except Exception as e:
+    except (ValueError, KeyError) as e:
         logger.warning("Failed to parse Rejection summary: %s", e)
         result["rejection_summary"] = {}
 
@@ -276,7 +276,7 @@ def parse_stats(stats_path: Path) -> dict:
             if metric:
                 lengths[metric] = _parse_number(words_str)
         result["document_length"] = lengths
-    except Exception as e:
+    except (ValueError, KeyError) as e:
         logger.warning("Failed to parse Document length analysis: %s", e)
         result["document_length"] = {}
 
