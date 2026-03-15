@@ -327,7 +327,7 @@ def _get_size_advisory(total_mb: float) -> str:
     elif total_mb > 32:
         return "Minimum met"
     else:
-        return "Below v1.0.0"
+        return "Below minimum"
 
 
 def _fmt_bytes_mb(size_bytes: int) -> str:
@@ -817,8 +817,8 @@ def main() -> None:
     parser.add_argument(
         "--baseline-dir",
         type=Path,
-        default=Path("data/processed/v1.0.0"),
-        help="Path to baseline directory (default: data/processed/v1.0.0)",
+        default=None,
+        help="Path to baseline directory (default: data/processed/<baseline-version>)",
     )
     parser.add_argument(
         "--output",
@@ -840,6 +840,9 @@ def main() -> None:
         level=log_level,
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     )
+
+    if args.baseline_dir is None:
+        args.baseline_dir = Path(f"data/processed/{args.baseline_version}")
 
     train_path = Path("data/processed/train.txt")
     val_path = Path("data/processed/val.txt")

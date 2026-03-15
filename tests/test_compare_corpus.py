@@ -181,10 +181,10 @@ class TestGetSizeAdvisory:
         assert _get_size_advisory(50.0) == "Minimum met"
 
     def test_below_minimum(self):
-        assert _get_size_advisory(10.0) == "Below v1.0.0"
+        assert _get_size_advisory(10.0) == "Below minimum"
 
     def test_at_32_boundary(self):
-        assert _get_size_advisory(32.0) == "Below v1.0.0"
+        assert _get_size_advisory(32.0) == "Below minimum"
 
     def test_just_above_32(self):
         assert _get_size_advisory(32.1) == "Minimum met"
