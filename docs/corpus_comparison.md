@@ -1,6 +1,6 @@
 # Corpus comparison: v1.0.0 vs v1.2.0
 
-Side-by-side comparison of corpus metrics before and after Phase 35 normalization fixes and Phase 36 source expansion.
+Side-by-side comparison of corpus metrics before and after text normalization improvements and source expansion.
 
 ## Corpus size
 
