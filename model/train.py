@@ -306,8 +306,8 @@ def parse_args():
     parser.add_argument(
         "--data-dir",
         type=str,
-        default="data/tokenized",
-        help="Path to tokenized data directory (default: data/tokenized)",
+        default="data/tokenized/v1.2.0",
+        help="Path to tokenized data directory (default: data/tokenized/v1.2.0; use data/tokenized for v1.0)",
     )
     parser.add_argument(
         "--tokenizer-path",
@@ -400,6 +400,19 @@ def parse_args():
 
 
 # ---------------------------------------------------------------------------
+# Tokenizer hash verification
+# ---------------------------------------------------------------------------
+def compute_tokenizer_hash(path):
+    """Compute SHA-256 hash of a tokenizer file for integrity verification."""
+    import hashlib
+    sha256 = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(8192), b""):
+            sha256.update(chunk)
+    return sha256.hexdigest()
+
+
+# ---------------------------------------------------------------------------
 # Startup validation
 # ---------------------------------------------------------------------------
 def validate_data_files(data_dir):
@@ -460,6 +473,17 @@ def load_and_validate_vocab(data_dir, tokenizer_path, is_finetune=False):
             f"--tokenizer {tokenizer_path}\n"
         )
         sys.exit(1)
+
+    # Verify tokenizer hash if present in meta.pkl (advisory, not fatal)
+    if "tokenizer_hash" in meta and not is_finetune and os.path.isfile(tokenizer_path):
+        stored_hash = meta["tokenizer_hash"]
+        actual_hash = compute_tokenizer_hash(tokenizer_path)
+        if stored_hash != actual_hash:
+            print(f"\nWARNING: Tokenizer hash mismatch!")
+            print(f"  meta.pkl hash:    {stored_hash[:16]}...")
+            print(f"  tokenizer hash:   {actual_hash[:16]}...")
+            print(f"  The tokenizer may have changed since data was tokenized.")
+            print(f"  Training will proceed, but results may be unreliable.\n")
 
     return meta_vocab_size
 

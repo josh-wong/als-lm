@@ -20,6 +20,7 @@ Usage:
 """
 
 import argparse
+import hashlib
 import json
 import os
 import pickle
@@ -36,6 +37,60 @@ from tokenizers import Tokenizer
 # Import the existing training function
 sys.path.insert(0, str(Path(__file__).parent))
 from train_tokenizer import build_tokenizer, train_single_tokenizer, vocab_size_label
+
+
+def compute_tokenizer_hash(tokenizer_path: Path) -> str:
+    """Compute SHA-256 hash of a tokenizer file.
+
+    Returns a 64-character hex string that uniquely identifies the tokenizer
+    binary content. Used to detect tokenizer changes between retokenization
+    and training.
+    """
+    sha256 = hashlib.sha256()
+    with open(tokenizer_path, "rb") as f:
+        for chunk in iter(lambda: f.read(8192), b""):
+            sha256.update(chunk)
+    return sha256.hexdigest()
+
+
+def check_degradation(
+    new_tok,
+    old_tok,
+    terms: list[dict],
+    threshold: int = 10,
+) -> list[dict]:
+    """Compare new vs old tokenizer encoding and report degraded terms.
+
+    A term is degraded when the new tokenizer uses more subtokens than the
+    old tokenizer to encode it. Returns a list of degradation records. Prints
+    a warning if the count exceeds the threshold.
+    """
+    degraded = []
+    for t in terms:
+        term = t["term"]
+        category = t.get("category", "unknown")
+        old_count = len(old_tok.encode(term).ids)
+        new_count = len(new_tok.encode(term).ids)
+        if new_count > old_count:
+            degraded.append({
+                "term": term,
+                "old_subtokens": old_count,
+                "new_subtokens": new_count,
+                "category": category,
+            })
+
+    if len(degraded) > threshold:
+        print(
+            f"\n  WARNING: {len(degraded)} terms degraded (threshold: {threshold})."
+            f"\n  The new tokenizer uses more subtokens for these terms than the old one."
+            f"\n  This is advisory only — training will proceed."
+        )
+        for d in degraded[:5]:
+            print(f"    {d['term']}: {d['old_subtokens']} -> {d['new_subtokens']} subtokens")
+        if len(degraded) > 5:
+            print(f"    ... and {len(degraded) - 5} more")
+
+    return degraded
 
 
 # General English words to filter out of the medical term list.
@@ -165,15 +220,24 @@ def step2_validate_corpus(corpus_path: Path, dry_run: bool = False) -> float:
 def step3_retrain_tokenizers(
     corpus_path: Path,
     tokenizer_dir: Path,
+    vocab_sizes: list[int] | None = None,
     dry_run: bool = False,
 ) -> list[dict]:
-    """Retrain tokenizers at 16K and 32K vocabulary sizes.
+    """Retrain tokenizers at specified vocabulary sizes.
+
+    Args:
+        corpus_path: Path to training corpus text file.
+        tokenizer_dir: Directory to write tokenizer JSON files.
+        vocab_sizes: List of vocab sizes to train. Defaults to [16384, 32768].
+        dry_run: If True, report planned actions without executing.
 
     Returns a list of training statistics dictionaries.
     """
-    print("\n=== Step 3: Retrain tokenizers at 16K and 32K ===")
+    if vocab_sizes is None:
+        vocab_sizes = [16384, 32768]
 
-    vocab_sizes = [16384, 32768]
+    sizes_desc = ", ".join(str(v) for v in vocab_sizes)
+    print(f"\n=== Step 3: Retrain tokenizers at {sizes_desc} ===")
 
     if dry_run:
         for vs in vocab_sizes:
@@ -280,17 +344,24 @@ def step5_select_winner(
     """
     print("\n=== Step 5: Select winner based on medical term coverage ===")
 
+    # Discover all trained tokenizer candidates dynamically
     candidates = []
-    for label in ["16k", "32k"]:
-        tok_path = tokenizer_dir / f"als_tokenizer_{label}.json"
-        if not tok_path.exists():
-            print(f"  WARNING: {tok_path} not found, skipping")
-            continue
-        candidates.append((label, tok_path))
+    for tok_file in sorted(tokenizer_dir.glob("als_tokenizer_*.json")):
+        label = tok_file.stem.replace("als_tokenizer_", "")
+        candidates.append((label, tok_file))
 
     if not candidates:
         print("  ERROR: No trained tokenizers found", file=sys.stderr)
         sys.exit(1)
+
+    # Single-candidate shortcut: skip competitive evaluation
+    if len(candidates) == 1:
+        label, tok_path = candidates[0]
+        canonical_path = tokenizer_dir / "als_tokenizer.json"
+        print(f"  Single candidate: {label} — copying directly to als_tokenizer.json")
+        if not dry_run:
+            shutil.copy2(str(tok_path), str(canonical_path))
+        return str(canonical_path)
 
     if dry_run:
         print(f"  [DRY RUN] Would evaluate {len(candidates)} candidates against {len(terms)} terms")
@@ -645,16 +716,33 @@ def step6_validation_report(
         json.dump(report, f, indent=2, ensure_ascii=False)
     print(f"  JSON report saved to {json_path}")
 
+    # Determine labels based on archive version
+    label_map = {
+        "v1.0": ("v1.0 ALS-LM", "v1.2 ALS-LM"),
+        "v0.1": ("v0.1 ALS-LM", "New v0.2 ALS-LM"),
+    }
+    old_label, new_label = label_map.get(archive_version, ("v0.1 ALS-LM", "New v0.2 ALS-LM"))
+
     # Generate Markdown report
-    md_lines = _generate_validation_md(report)
+    md_lines = _generate_validation_md(report, old_label=old_label, new_label=new_label)
     md_path = tokenizer_dir / "VALIDATION.md"
     with open(md_path, "w", encoding="utf-8") as f:
         f.write("\n".join(md_lines))
     print(f"  Markdown report saved to {md_path}")
 
 
-def _generate_validation_md(report: dict) -> list[str]:
-    """Generate a human-readable Markdown validation report."""
+def _generate_validation_md(
+    report: dict,
+    old_label: str = "v0.1 ALS-LM",
+    new_label: str = "New v0.2 ALS-LM",
+) -> list[str]:
+    """Generate a human-readable Markdown validation report.
+
+    Args:
+        report: The JSON report dict from step6.
+        old_label: Column label for the previous tokenizer.
+        new_label: Column label for the new tokenizer.
+    """
     lines = []
     meta = report["metadata"]
     toks = report["tokenizers"]
@@ -667,7 +755,7 @@ def _generate_validation_md(report: dict) -> list[str]:
     lines.append("# Tokenizer validation report")
     lines.append("")
     lines.append(
-        "Three-way comparison of the v0.1 prototype tokenizer, the new production "
+        f"Three-way comparison of the {old_label} tokenizer, the {new_label} "
         "tokenizer, and the GPT-2 standard tokenizer. This report validates medical "
         "term handling, corpus-level efficiency, and encoding performance."
     )
@@ -685,7 +773,7 @@ def _generate_validation_md(report: dict) -> list[str]:
         "Key metrics comparing tokenizer efficiency across the full corpus."
     )
     lines.append("")
-    lines.append(f"| {'Metric':<35} | {'v0.1 ALS-LM':>15} | {'New v0.2 ALS-LM':>16} | {'GPT-2':>14} |")
+    lines.append(f"| {'Metric':<35} | {old_label:>15} | {new_label:>16} | {'GPT-2':>14} |")
     lines.append(f"|{'-' * 37}|{'-' * 17}|{'-' * 18}|{'-' * 16}|")
     lines.append(f"| {'Vocabulary size':<35} | {old['vocab_size']:>15,} | {new['vocab_size']:>16,} | {gpt2['vocab_size']:>14,} |")
     lines.append(f"| {'Total corpus tokens':<35} | {old['total_corpus_tokens']:>15,} | {new['total_corpus_tokens']:>16,} | {gpt2['total_corpus_tokens']:>14,} |")
@@ -718,7 +806,7 @@ def _generate_validation_md(report: dict) -> list[str]:
         lines.append(f"Terms in this category: {len(cat_terms)}")
         lines.append("")
 
-        lines.append(f"| {'Term':<35} | {'v0.1 ALS-LM':>11} | {'New v0.2 ALS-LM':>15} | {'GPT-2':>5} | {'New v0.2 ALS-LM tokens':<50} |")
+        lines.append(f"| {'Term':<35} | {old_label:>11} | {new_label:>15} | {'GPT-2':>5} | {new_label + ' tokens':<50} |")
         lines.append(f"|{'-' * 37}|{'-' * 13}|{'-' * 17}|{'-' * 7}|{'-' * 52}|")
 
         # Sort by new subtoken count descending
@@ -760,7 +848,7 @@ def _generate_validation_md(report: dict) -> list[str]:
         "Aggregate comparison across all evaluated terms."
     )
     lines.append("")
-    lines.append(f"| {'Metric':<35} | {'v0.1 ALS-LM':>15} | {'New v0.2 ALS-LM':>16} | {'GPT-2':>14} |")
+    lines.append(f"| {'Metric':<35} | {old_label:>15} | {new_label:>16} | {'GPT-2':>14} |")
     lines.append(f"|{'-' * 37}|{'-' * 17}|{'-' * 18}|{'-' * 16}|")
     lines.append(f"| {'Average subtokens per term':<35} | {old_avg:>15.2f} | {new_avg:>16.2f} | {gpt2_avg:>14.2f} |")
     lines.append(f"| {'Single-token terms':<35} | {old_single:>15} | {new_single:>16} | {gpt2_single:>14} |")
@@ -768,8 +856,8 @@ def _generate_validation_md(report: dict) -> list[str]:
 
     lines.append(f"| {'Comparison':<35} | {'Wins':>6} | {'Losses':>6} | {'Ties':>6} |")
     lines.append(f"|{'-' * 37}|{'-' * 8}|{'-' * 8}|{'-' * 8}|")
-    lines.append(f"| {'New v0.2 ALS-LM vs v0.1 ALS-LM':<35} | {new_vs_old_wins:>6} | {new_vs_old_losses:>6} | {new_vs_old_ties:>6} |")
-    lines.append(f"| {'New v0.2 ALS-LM vs GPT-2':<35} | {new_vs_gpt2_wins:>6} | {new_vs_gpt2_losses:>6} | {new_vs_gpt2_ties:>6} |")
+    lines.append(f"| {new_label + ' vs ' + old_label:<35} | {new_vs_old_wins:>6} | {new_vs_old_losses:>6} | {new_vs_old_ties:>6} |")
+    lines.append(f"| {new_label + ' vs GPT-2':<35} | {new_vs_gpt2_wins:>6} | {new_vs_gpt2_losses:>6} | {new_vs_gpt2_ties:>6} |")
     lines.append("")
 
     lines.append("---")
@@ -915,6 +1003,8 @@ def step8_retokenize_corpus(
         "vocab_size": vocab_size,
         "itos": itos,
         "stoi": stoi,
+        "tokenizer_hash": compute_tokenizer_hash(tok_path),
+        "tokenizer_version": "v1.2",
     }
 
     meta_path = output_dir / "meta.pkl"
@@ -944,8 +1034,8 @@ def main():
     )
     parser.add_argument(
         "--archive-version",
-        default="v0.1",
-        help="Version label for archive directory (default: v0.1). Use v0.2 for Phase 4.2.1.",
+        default="v1.0",
+        help="Version label for archive directory (default: v1.0)",
     )
     parser.add_argument(
         "--steps",
@@ -969,8 +1059,13 @@ def main():
     )
     parser.add_argument(
         "--output-dir",
-        default="data/tokenized",
-        help="Binary output directory (default: data/tokenized)",
+        default="data/tokenized/v1.2.0",
+        help="Binary output directory (default: data/tokenized/v1.2.0)",
+    )
+    parser.add_argument(
+        "--vocab-sizes",
+        default="50257",
+        help="Comma-separated vocab sizes to train (default: 50257)",
     )
     parser.add_argument(
         "--terms",
@@ -984,6 +1079,7 @@ def main():
     tokenizer_dir = Path(args.tokenizer_dir)
     output_dir = Path(args.output_dir)
     terms_path = Path(args.terms)
+    vocab_sizes = [int(v.strip()) for v in args.vocab_sizes.split(",")]
 
     # Determine which steps to run
     all_steps = set(range(1, 9))
@@ -1005,6 +1101,7 @@ def main():
     print(f"Tokenizer dir: {tokenizer_dir}")
     print(f"Output dir: {output_dir}")
     print(f"Archive version: {args.archive_version}")
+    print(f"Vocab sizes: {vocab_sizes}")
 
     start_time = time.time()
 
@@ -1018,7 +1115,7 @@ def main():
 
     # Step 3: Retrain tokenizers
     if 3 in steps_to_run:
-        step3_retrain_tokenizers(corpus_path, tokenizer_dir, dry_run=args.dry_run)
+        step3_retrain_tokenizers(corpus_path, tokenizer_dir, vocab_sizes=vocab_sizes, dry_run=args.dry_run)
 
     # Step 4: Build medical term list
     terms = []
@@ -1040,6 +1137,20 @@ def main():
     # Step 5: Select winner
     if 5 in steps_to_run:
         step5_select_winner(tokenizer_dir, terms, dry_run=args.dry_run)
+
+    # Degradation check (advisory, between steps 5 and 6)
+    if 5 in steps_to_run and not args.dry_run:
+        new_tok_path = tokenizer_dir / "als_tokenizer.json"
+        old_tok_path = tokenizer_dir / args.archive_version / "als_tokenizer.json"
+        if new_tok_path.exists() and old_tok_path.exists() and terms:
+            print("\n  Running degradation check...")
+            new_tok = Tokenizer.from_file(str(new_tok_path))
+            old_tok = Tokenizer.from_file(str(old_tok_path))
+            degraded = check_degradation(new_tok, old_tok, terms)
+            if degraded:
+                print(f"  {len(degraded)} terms degraded (advisory only)")
+            else:
+                print("  No term degradation detected")
 
     # Step 6: Validation report
     if 6 in steps_to_run:
