@@ -1,16 +1,15 @@
 """Corpus comparison report generator for ALS-LM.
 
-Snapshots v1.0.0 baseline statistics, parses both baseline and current
-stats.md files, and generates a side-by-side comparison report at
-docs/corpus_comparison.md. Designed to be run after the processing
-pipeline re-run to quantify corpus improvements.
+Snapshots a baseline version's statistics, parses both baseline and current
+stats.md files, and generates a side-by-side comparison report. Designed
+to be run after a processing pipeline re-run to quantify corpus changes.
 
 Usage:
-    python -m data.processing.compare_corpus
-    python -m data.processing.compare_corpus --snapshot-only
+    python -m data.processing.compare_corpus --baseline-version v1.0.0 --current-version v1.2.0
+    python -m data.processing.compare_corpus --snapshot-only --baseline-version v1.0.0
 
 Functions:
-    snapshot_baseline: Save current stats and file sizes as v1.0.0 baseline.
+    snapshot_baseline: Save current stats and file sizes as a versioned baseline.
     parse_stats: Extract structured metrics from a stats.md Markdown file.
     generate_comparison_report: Produce the side-by-side comparison report.
 """
@@ -35,31 +34,36 @@ def snapshot_baseline(
     stats_path: Path,
     train_path: Path,
     val_path: Path,
+    raw_dir: Path,
     snapshot_dir: Path,
 ) -> bool:
-    """Save current corpus stats as the v1.0.0 baseline.
+    """Save current corpus stats as a versioned baseline.
 
     Creates the snapshot directory and copies stats.md into it, then
-    records train.txt and val.txt file sizes in a JSON sidecar. This
-    operation is idempotent: if the snapshot directory already exists,
-    it logs a message and returns without overwriting.
+    records train.txt and val.txt file sizes and raw document counts
+    per source in a JSON sidecar. This operation is idempotent: if the
+    snapshot directory already exists, it logs a message and returns
+    without overwriting.
 
     Args:
         stats_path: Path to current data/stats.md.
         train_path: Path to current data/processed/train.txt.
         val_path: Path to current data/processed/val.txt.
-        snapshot_dir: Directory to store the v1.0.0 snapshot.
+        raw_dir: Path to data/raw/ for raw doc count snapshotting.
+        snapshot_dir: Directory to store the baseline snapshot.
 
     Returns:
         True if a snapshot was created, False if it already existed.
+
+    Raises:
+        FileNotFoundError: If stats_path does not exist.
     """
     if snapshot_dir.exists():
         logger.info("Baseline snapshot already exists at %s — skipping", snapshot_dir)
         return False
 
     if not stats_path.exists():
-        logger.error("Cannot snapshot: %s does not exist", stats_path)
-        sys.exit(1)
+        raise FileNotFoundError(f"Cannot snapshot: {stats_path} does not exist")
 
     snapshot_dir.mkdir(parents=True, exist_ok=True)
 
@@ -67,15 +71,16 @@ def snapshot_baseline(
     shutil.copy2(stats_path, snapshot_dir / "stats.md")
     logger.info("Snapshotted %s -> %s", stats_path, snapshot_dir / "stats.md")
 
-    # Record file sizes
+    # Record file sizes and raw document counts
     sizes = {
         "train_bytes": train_path.stat().st_size if train_path.exists() else 0,
         "val_bytes": val_path.stat().st_size if val_path.exists() else 0,
+        "raw_counts": _aggregate_raw_by_category(raw_dir),
     }
     sizes_path = snapshot_dir / "file_sizes.json"
     with open(sizes_path, "w", encoding="utf-8") as f:
         json.dump(sizes, f, indent=2)
-    logger.info("Recorded file sizes to %s", sizes_path)
+    logger.info("Recorded file sizes and raw counts to %s", sizes_path)
 
     return True
 
@@ -207,8 +212,7 @@ def parse_stats(stats_path: Path) -> dict:
         rejection_summary, document_length.
     """
     if not stats_path.exists():
-        logger.error("Stats file not found: %s", stats_path)
-        sys.exit(1)
+        raise FileNotFoundError(f"Stats file not found: {stats_path}")
 
     text = stats_path.read_text(encoding="utf-8")
     result: dict = {}
@@ -318,9 +322,7 @@ def _get_size_advisory(total_mb: float) -> str:
     Returns:
         Advisory label string.
     """
-    if 80 <= total_mb <= 150:
-        return "Target met"
-    elif total_mb > 150:
+    if total_mb >= 80:
         return "Target met"
     elif total_mb > 32:
         return "Minimum met"
@@ -415,8 +417,10 @@ def generate_comparison_report(
     train_path: Path,
     val_path: Path,
     output_path: Path,
+    baseline_version: str = "v1.0.0",
+    current_version: str = "v1.2.0",
 ) -> None:
-    """Generate the v1.0.0 vs v1.2.0 corpus comparison report.
+    """Generate a corpus comparison report between two versions.
 
     Parses both baseline and current statistics, computes deltas, and
     writes a Markdown comparison report with tables for corpus size,
@@ -424,23 +428,26 @@ def generate_comparison_report(
     sizes, and per-source regression warnings.
 
     Args:
-        baseline_dir: Path to v1.0.0 snapshot directory.
+        baseline_dir: Path to baseline snapshot directory.
         stats_path: Path to current data/stats.md.
         raw_dir: Path to data/raw/ for raw doc count scanning.
         train_path: Path to current data/processed/train.txt.
         val_path: Path to current data/processed/val.txt.
         output_path: Path to write the comparison report.
+        baseline_version: Label for the baseline version (e.g. "v1.0.0").
+        current_version: Label for the current version (e.g. "v1.2.0").
+
+    Raises:
+        FileNotFoundError: If baseline or current stats files are missing.
     """
     baseline_stats_path = baseline_dir / "stats.md"
     baseline_sizes_path = baseline_dir / "file_sizes.json"
 
     if not baseline_stats_path.exists():
-        logger.error("Baseline stats not found: %s", baseline_stats_path)
-        sys.exit(1)
+        raise FileNotFoundError(f"Baseline stats not found: {baseline_stats_path}")
 
     if not stats_path.exists():
-        logger.error("Current stats not found: %s", stats_path)
-        sys.exit(1)
+        raise FileNotFoundError(f"Current stats not found: {stats_path}")
 
     logger.info("Parsing baseline stats from %s", baseline_stats_path)
     baseline = parse_stats(baseline_stats_path)
@@ -460,12 +467,14 @@ def generate_comparison_report(
 
     sections: list[str] = []
 
+    bv = baseline_version
+    cv = current_version
+
     # --- Title ---
-    sections.append("# Corpus comparison: v1.0.0 vs v1.2.0")
+    sections.append(f"# Corpus comparison: {bv} vs {cv}")
     sections.append("")
     sections.append(
-        "Side-by-side comparison of corpus metrics before and after "
-        "Phase 35 normalization fixes and Phase 36 source expansion."
+        f"Side-by-side comparison of corpus metrics between {bv} and {cv}."
     )
 
     # --- Corpus size table ---
@@ -473,8 +482,8 @@ def generate_comparison_report(
     sections.append("## Corpus size")
     sections.append("")
     sections.append(
-        "High-level corpus metrics comparing the v1.0.0 baseline to "
-        "the current v1.2.0 pipeline output."
+        f"High-level corpus metrics comparing the {bv} baseline to "
+        f"the current {cv} pipeline output."
     )
     sections.append("")
 
@@ -536,8 +545,8 @@ def generate_comparison_report(
     )
 
     # Build table
-    header = "| Metric               | v1.0.0         | v1.2.0         | Change              | Advisory    |"
-    sep =    "|----------------------|----------------|----------------|---------------------|-------------|"
+    header = f"| Metric               | {bv:<14} | {cv:<14} | Change              | Advisory    |"
+    sep =     "|----------------------|----------------|----------------|---------------------|-------------|"
     sections.append(header)
     sections.append(sep)
 
@@ -559,8 +568,8 @@ def generate_comparison_report(
     c_sources = current.get("source_distribution", {})
     all_categories = sorted(set(list(b_sources.keys()) + list(c_sources.keys())))
 
-    header = "| Source category       | v1.0.0 docs | v1.2.0 docs | Change       | v1.0.0 words  | v1.2.0 words  | Change       |"
-    sep =    "|-----------------------|-------------|-------------|--------------|---------------|---------------|--------------|"
+    header = f"| Source category       | {bv} docs   | {cv} docs   | Change       | {bv} words    | {cv} words    | Change       |"
+    sep =     "|-----------------------|-------------|-------------|--------------|---------------|---------------|--------------|"
     sections.append(header)
     sections.append(sep)
 
@@ -638,8 +647,8 @@ def generate_comparison_report(
     b_dedup_rate = 100 * b_near_dup / b_raw_total if b_raw_total > 0 else 0
     c_dedup_rate = 100 * c_near_dup / c_raw_total if c_raw_total > 0 else 0
 
-    header = "| Scope                 | v1.0.0 rate | v1.2.0 rate | Change       |"
-    sep =    "|-----------------------|-------------|-------------|--------------|"
+    header = f"| Scope                 | {bv} rate   | {cv} rate   | Change       |"
+    sep =     "|-----------------------|-------------|-------------|--------------|"
     sections.append(header)
     sections.append(sep)
     sections.append(
@@ -648,19 +657,23 @@ def generate_comparison_report(
     )
 
     # Per-category loss rates
-    raw_by_category = _aggregate_raw_by_category(raw_dir)
+    current_raw_by_category = _aggregate_raw_by_category(raw_dir)
+    baseline_raw_by_category = baseline_sizes.get("raw_counts", {})
+    if not baseline_raw_by_category:
+        logger.warning(
+            "Baseline snapshot has no raw_counts — using current raw counts "
+            "for baseline loss rates (may be inaccurate if raw data changed)"
+        )
+        baseline_raw_by_category = current_raw_by_category
 
     for cat in all_categories:
-        raw_count = raw_by_category.get(cat, 0)
+        c_raw = current_raw_by_category.get(cat, 0)
+        b_raw = baseline_raw_by_category.get(cat, 0)
         c_final = c_sources.get(cat, {}).get("documents", 0)
         b_final = b_sources.get(cat, {}).get("documents", 0)
 
-        # Current loss rate uses current raw count
-        c_loss_rate = 100 * (raw_count - c_final) / raw_count if raw_count > 0 else 0
-
-        # Baseline loss rate: use baseline raw count if available (same raw dirs)
-        # For v1.0.0 we use the same raw counts since raw data hasn't changed
-        b_loss_rate = 100 * (raw_count - b_final) / raw_count if raw_count > 0 else 0
+        c_loss_rate = 100 * (c_raw - c_final) / c_raw if c_raw > 0 else 0
+        b_loss_rate = 100 * (b_raw - b_final) / b_raw if b_raw > 0 else 0
 
         sections.append(
             f"| {cat:<21} | {b_loss_rate:>9.1f}%  | {c_loss_rate:>9.1f}%  "
@@ -679,8 +692,8 @@ def generate_comparison_report(
     b_lengths = baseline.get("document_length", {})
     c_lengths = current.get("document_length", {})
 
-    header = "| Metric  | v1.0.0    | v1.2.0    | Change              |"
-    sep =    "|---------|-----------|-----------|---------------------|"
+    header = f"| Metric  | {bv:<9} | {cv:<9} | Change              |"
+    sep =     "|---------|-----------|-----------|---------------------|"
     sections.append(header)
     sections.append(sep)
 
@@ -700,8 +713,8 @@ def generate_comparison_report(
     )
     sections.append("")
 
-    header = "| File      | v1.0.0      | v1.2.0      | Change              |"
-    sep =    "|-----------|-------------|-------------|---------------------|"
+    header = f"| File      | {bv:<11} | {cv:<11} | Change              |"
+    sep =     "|-----------|-------------|-------------|---------------------|"
     sections.append(header)
     sections.append(sep)
     sections.append(
@@ -734,7 +747,7 @@ def generate_comparison_report(
     if regressions:
         sections.append(
             "The following source categories show a document count "
-            "decrease greater than 10% compared to v1.0.0."
+            f"decrease greater than 10% compared to {bv}."
         )
         sections.append("")
         for warning in regressions:
@@ -767,17 +780,27 @@ def generate_comparison_report(
 def main() -> None:
     """Run corpus comparison from the command line.
 
-    Provides CLI arguments for configuring paths and a snapshot-only
-    mode for capturing baseline statistics without generating the
-    comparison report.
+    Provides CLI arguments for configuring paths, version labels, and
+    a snapshot-only mode for capturing baseline statistics without
+    generating the comparison report.
     """
     parser = argparse.ArgumentParser(
-        description="Generate v1.0.0 vs v1.2.0 corpus comparison report",
+        description="Generate a corpus comparison report between two versions",
     )
     parser.add_argument(
         "--snapshot-only",
         action="store_true",
-        help="Only snapshot v1.0.0 baseline, do not generate report",
+        help="Only snapshot baseline, do not generate report",
+    )
+    parser.add_argument(
+        "--baseline-version",
+        default="v1.0.0",
+        help="Label for the baseline version (default: v1.0.0)",
+    )
+    parser.add_argument(
+        "--current-version",
+        default="v1.2.0",
+        help="Label for the current version (default: v1.2.0)",
     )
     parser.add_argument(
         "--raw-dir",
@@ -795,7 +818,7 @@ def main() -> None:
         "--baseline-dir",
         type=Path,
         default=Path("data/processed/v1.0.0"),
-        help="Path to v1.0.0 baseline directory (default: data/processed/v1.0.0)",
+        help="Path to baseline directory (default: data/processed/v1.0.0)",
     )
     parser.add_argument(
         "--output",
@@ -821,26 +844,34 @@ def main() -> None:
     train_path = Path("data/processed/train.txt")
     val_path = Path("data/processed/val.txt")
 
-    # Step 1: Snapshot baseline (idempotent)
-    logger.info("Step 1: Checking v1.0.0 baseline snapshot...")
-    snapshot_baseline(args.stats_path, train_path, val_path, args.baseline_dir)
+    try:
+        # Step 1: Snapshot baseline (idempotent)
+        logger.info("Step 1: Checking %s baseline snapshot...", args.baseline_version)
+        snapshot_baseline(
+            args.stats_path, train_path, val_path, args.raw_dir, args.baseline_dir,
+        )
 
-    if args.snapshot_only:
-        logger.info("Snapshot-only mode — exiting without generating report")
-        return
+        if args.snapshot_only:
+            logger.info("Snapshot-only mode — exiting without generating report")
+            return
 
-    # Step 2: Generate comparison report
-    logger.info("Step 2: Generating comparison report...")
-    generate_comparison_report(
-        baseline_dir=args.baseline_dir,
-        stats_path=args.stats_path,
-        raw_dir=args.raw_dir,
-        train_path=train_path,
-        val_path=val_path,
-        output_path=args.output,
-    )
+        # Step 2: Generate comparison report
+        logger.info("Step 2: Generating comparison report...")
+        generate_comparison_report(
+            baseline_dir=args.baseline_dir,
+            stats_path=args.stats_path,
+            raw_dir=args.raw_dir,
+            train_path=train_path,
+            val_path=val_path,
+            output_path=args.output,
+            baseline_version=args.baseline_version,
+            current_version=args.current_version,
+        )
 
-    logger.info("Done")
+        logger.info("Done")
+    except FileNotFoundError as e:
+        logger.error("%s", e)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
