@@ -677,8 +677,8 @@ def step6_validation_report(
             "num_terms": len(terms),
         },
         "tokenizers": {
-            "old_v01": {
-                "name": "ALS v0.1",
+            "v1_0": {
+                "name": "v1.0 ALS-LM",
                 "path": str(old_tok_path) if old_tok else None,
                 "vocab_size": old_tok.get_vocab_size() if old_tok else 0,
                 "total_corpus_tokens": old_full_tokens,
@@ -687,8 +687,8 @@ def step6_validation_report(
                 "encoding_speed_tps": round(old_speed),
                 "pct_docs_within_1024": old_pct_1024,
             },
-            "new_production": {
-                "name": "ALS Production",
+            "v1_2": {
+                "name": "v1.2 ALS-LM",
                 "path": str(new_tok_path),
                 "vocab_size": new_tok.get_vocab_size(),
                 "total_corpus_tokens": new_full_tokens,
@@ -748,8 +748,8 @@ def _generate_validation_md(
     toks = report["tokenizers"]
     term_results = report["term_results"]
 
-    old = toks["old_v01"]
-    new = toks["new_production"]
+    old = toks.get("v1_0") or toks.get("old_v01")
+    new = toks.get("v1_2") or toks.get("new_production")
     gpt2 = toks["gpt2"]
 
     lines.append("# Tokenizer validation report")
