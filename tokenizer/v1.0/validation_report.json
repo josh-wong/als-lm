@@ -1,42 +1,42 @@
 {
   "metadata": {
-    "date": "2026-03-15T08:04:40.976225+00:00",
+    "date": "2026-02-23T14:31:49.359212+00:00",
     "corpus_file": "data/processed/train.txt",
-    "corpus_size_mb": 673.27,
-    "corpus_words": 101274013,
-    "corpus_chars": 705973314,
-    "num_documents": 35063,
+    "corpus_size_mb": 673.48,
+    "corpus_words": 101303590,
+    "corpus_chars": 706191475,
+    "num_documents": 35088,
     "num_terms": 100
   },
   "tokenizers": {
     "old_v01": {
       "name": "ALS v0.1",
-      "path": "tokenizer/v1.0/als_tokenizer.json",
-      "vocab_size": 50257,
-      "total_corpus_tokens": 141734249,
-      "fertility": 1.3995,
-      "compression_ratio": 4.981,
-      "encoding_speed_tps": 425681,
+      "path": "tokenizer/v0.2.1/als_tokenizer.json",
+      "vocab_size": 32768,
+      "total_corpus_tokens": 153485846,
+      "fertility": 1.5151,
+      "compression_ratio": 4.601,
+      "encoding_speed_tps": 598759,
       "pct_docs_within_1024": 54.5
     },
     "new_production": {
       "name": "ALS Production",
       "path": "tokenizer/als_tokenizer.json",
       "vocab_size": 50257,
-      "total_corpus_tokens": 141734249,
-      "fertility": 1.3995,
-      "compression_ratio": 4.981,
-      "encoding_speed_tps": 462044,
-      "pct_docs_within_1024": 54.5
+      "total_corpus_tokens": 142833967,
+      "fertility": 1.41,
+      "compression_ratio": 4.9441,
+      "encoding_speed_tps": 549938,
+      "pct_docs_within_1024": 54.6
     },
     "gpt2": {
       "name": "GPT-2",
       "vocab_size": 50257,
-      "total_corpus_tokens": 160804284,
-      "fertility": 1.5878,
-      "compression_ratio": 4.3903,
-      "encoding_speed_tps": 3475465,
-      "pct_docs_within_1024": 54.1
+      "total_corpus_tokens": 162592689,
+      "fertility": 1.605,
+      "compression_ratio": 4.3433,
+      "encoding_speed_tps": 3503665,
+      "pct_docs_within_1024": 54.2
     }
   },
   "term_results": [
@@ -419,8 +419,8 @@
       "category": "abbreviation",
       "old_subtokens": 2,
       "old_tokens": [
-        "CE",
-        "NTAUR"
+        "C",
+        "ENTAUR"
       ],
       "new_subtokens": 2,
       "new_tokens": [
@@ -505,10 +505,9 @@
     {
       "term": "BiPAP",
       "category": "abbreviation",
-      "old_subtokens": 2,
+      "old_subtokens": 1,
       "old_tokens": [
-        "BiP",
-        "AP"
+        "BiPAP"
       ],
       "new_subtokens": 2,
       "new_tokens": [
@@ -713,10 +712,9 @@
     {
       "term": "SNIP",
       "category": "abbreviation",
-      "old_subtokens": 2,
+      "old_subtokens": 1,
       "old_tokens": [
-        "SN",
-        "IP"
+        "SNIP"
       ],
       "new_subtokens": 2,
       "new_tokens": [
@@ -785,10 +783,9 @@
     {
       "term": "criteria",
       "category": "clinical",
-      "old_subtokens": 2,
+      "old_subtokens": 1,
       "old_tokens": [
-        "cri",
-        "teria"
+        "criteria"
       ],
       "new_subtokens": 2,
       "new_tokens": [
@@ -804,9 +801,10 @@
     {
       "term": "dysfunction",
       "category": "clinical",
-      "old_subtokens": 1,
+      "old_subtokens": 2,
       "old_tokens": [
-        "dysfunction"
+        "dys",
+        "function"
       ],
       "new_subtokens": 1,
       "new_tokens": [
@@ -914,8 +912,8 @@
       "category": "clinical",
       "old_subtokens": 2,
       "old_tokens": [
-        "ex",
-        "citotoxicity"
+        "excit",
+        "otoxicity"
       ],
       "new_subtokens": 2,
       "new_tokens": [
@@ -955,8 +953,8 @@
       "category": "clinical",
       "old_subtokens": 2,
       "old_tokens": [
-        "com",
-        "bination"
+        "comb",
+        "ination"
       ],
       "new_subtokens": 2,
       "new_tokens": [
@@ -1011,9 +1009,10 @@
     {
       "term": "capacity",
       "category": "clinical",
-      "old_subtokens": 1,
+      "old_subtokens": 2,
       "old_tokens": [
-        "capacity"
+        "c",
+        "apacity"
       ],
       "new_subtokens": 1,
       "new_tokens": [
@@ -1043,10 +1042,9 @@
     {
       "term": "ventilation",
       "category": "clinical",
-      "old_subtokens": 2,
+      "old_subtokens": 1,
       "old_tokens": [
-        "v",
-        "entilation"
+        "ventilation"
       ],
       "new_subtokens": 2,
       "new_tokens": [
@@ -1062,9 +1060,10 @@
     {
       "term": "neuroinflammation",
       "category": "clinical",
-      "old_subtokens": 1,
+      "old_subtokens": 2,
       "old_tokens": [
-        "neuroinflammation"
+        "neuro",
+        "inflammation"
       ],
       "new_subtokens": 1,
       "new_tokens": [
@@ -1081,11 +1080,10 @@
     {
       "term": "prognosis",
       "category": "clinical",
-      "old_subtokens": 3,
+      "old_subtokens": 2,
       "old_tokens": [
         "pro",
-        "gn",
-        "osis"
+        "gnosis"
       ],
       "new_subtokens": 3,
       "new_tokens": [
@@ -1103,9 +1101,10 @@
     {
       "term": "atrophy",
       "category": "clinical",
-      "old_subtokens": 1,
+      "old_subtokens": 2,
       "old_tokens": [
-        "atrophy"
+        "at",
+        "rophy"
       ],
       "new_subtokens": 1,
       "new_tokens": [
@@ -1213,11 +1212,10 @@
     {
       "term": "Awaji criteria",
       "category": "clinical",
-      "old_subtokens": 4,
+      "old_subtokens": 3,
       "old_tokens": [
         "A",
-        "wa",
-        "ji",
+        "waji",
         "Ġcriteria"
       ],
       "new_subtokens": 4,
@@ -1239,8 +1237,8 @@
       "category": "clinical",
       "old_subtokens": 2,
       "old_tokens": [
-        "con",
-        "duction"
+        "cond",
+        "uction"
       ],
       "new_subtokens": 2,
       "new_tokens": [
@@ -1256,10 +1254,9 @@
     {
       "term": "gastrostomy",
       "category": "clinical",
-      "old_subtokens": 2,
+      "old_subtokens": 1,
       "old_tokens": [
-        "gastro",
-        "stomy"
+        "gastrostomy"
       ],
       "new_subtokens": 2,
       "new_tokens": [
@@ -1326,8 +1323,8 @@
       "category": "clinical",
       "old_subtokens": 3,
       "old_tokens": [
-        "fas",
-        "cic",
+        "f",
+        "ascic",
         "ulation"
       ],
       "new_subtokens": 3,
@@ -1382,10 +1379,9 @@
     {
       "term": "spasticity",
       "category": "clinical",
-      "old_subtokens": 2,
+      "old_subtokens": 1,
       "old_tokens": [
-        "sp",
-        "asticity"
+        "spasticity"
       ],
       "new_subtokens": 2,
       "new_tokens": [
@@ -1436,9 +1432,10 @@
     {
       "term": "examination",
       "category": "clinical",
-      "old_subtokens": 1,
+      "old_subtokens": 2,
       "old_tokens": [
-        "examination"
+        "ex",
+        "amination"
       ],
       "new_subtokens": 1,
       "new_tokens": [
@@ -1524,10 +1521,9 @@
     {
       "term": "tolerability",
       "category": "clinical",
-      "old_subtokens": 2,
+      "old_subtokens": 1,
       "old_tokens": [
-        "toler",
-        "ability"
+        "tolerability"
       ],
       "new_subtokens": 2,
       "new_tokens": [
@@ -1563,8 +1559,8 @@
       "category": "clinical",
       "old_subtokens": 2,
       "old_tokens": [
-        "tom",
-        "ography"
+        "t",
+        "omography"
       ],
       "new_subtokens": 2,
       "new_tokens": [
@@ -1580,10 +1576,9 @@
     {
       "term": "dysphagia",
       "category": "clinical",
-      "old_subtokens": 2,
+      "old_subtokens": 1,
       "old_tokens": [
-        "dys",
-        "phagia"
+        "dysphagia"
       ],
       "new_subtokens": 2,
       "new_tokens": [
@@ -1643,10 +1638,9 @@
     {
       "term": "sialorrhea",
       "category": "clinical",
-      "old_subtokens": 2,
+      "old_subtokens": 1,
       "old_tokens": [
-        "sial",
-        "orrhea"
+        "sialorrhea"
       ],
       "new_subtokens": 2,
       "new_tokens": [
@@ -1691,8 +1685,8 @@
       "category": "clinical",
       "old_subtokens": 3,
       "old_tokens": [
-        "dia",
-        "phragmatic",
+        "d",
+        "iaphragmatic",
         "Ġpacing"
       ],
       "new_subtokens": 3,
@@ -1795,9 +1789,10 @@
     {
       "term": "distribution",
       "category": "clinical",
-      "old_subtokens": 1,
+      "old_subtokens": 2,
       "old_tokens": [
-        "distribution"
+        "dis",
+        "tribution"
       ],
       "new_subtokens": 1,
       "new_tokens": [
@@ -1812,9 +1807,10 @@
     {
       "term": "modification",
       "category": "clinical",
-      "old_subtokens": 1,
+      "old_subtokens": 2,
       "old_tokens": [
-        "modification"
+        "mod",
+        "ification"
       ],
       "new_subtokens": 1,
       "new_tokens": [
