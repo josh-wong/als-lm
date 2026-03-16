@@ -1,15 +1,21 @@
 #!/usr/bin/env python3
-"""500M readiness gate benchmark for ALS-LM.
+"""Readiness gate benchmark for ALS-LM (500M and 1B modes).
 
-A standalone benchmark script that validates whether a 500M+ parameter GPT-2
-model can train on the RTX 3060 12GB GPU with DeepSpeed ZeRO Stage 2. Produces
-a data-driven go/no-go recommendation before committing GPU-weeks to full
-training in v0.4.0.
+A standalone benchmark script that validates whether a GPT-2 model can train
+on the RTX 3060 12GB GPU with DeepSpeed ZeRO Stage 2. Produces a data-driven
+go/no-go recommendation before committing GPU-weeks to full training.
 
-The benchmark runs a 4-configuration matrix (CPU offload on/off x gradient
-checkpointing on/off) for the primary model size, tests an auto-fallback chain
-(1B -> 750M -> 500M -> 350M), verifies checkpoint resume with loss continuity,
-and generates a readiness report with projected training durations.
+**500M mode (default):** Runs a 4-configuration matrix (CPU offload on/off x
+gradient checkpointing on/off) for the primary model size, tests an
+auto-fallback chain (1B -> 750M -> 500M -> 350M), verifies checkpoint resume
+with loss continuity, and generates a readiness report.
+
+**1B pre-flight mode (--primary-size 1B):** Runs environment checks (WSL2
+memory, disk space), a single production config benchmark (offload=ON,
+grad_ckpt=ON, batch_size=4) for 500 steps, forced checkpoint resume with LR
+verification, applies VRAM/throughput thresholds (10 GB hard-fail), calculates
+max_steps from token count, updates configs/1b.json, and generates
+readiness_report_1b.md.
 
 This script is launched directly with ``python``, NOT via the DeepSpeed
 launcher. It handles DeepSpeed distributed initialization internally for each
@@ -26,8 +32,8 @@ Usage::
     # Skip fallback chain (only test primary size)
     python benchmark/readiness_gate.py --skip-fallback
 
-    # Custom primary size
-    python benchmark/readiness_gate.py --primary-size 1B
+    # 1B pre-flight mode (auto-enables --preflight)
+    python benchmark/readiness_gate.py --primary-size 1B --data-dir data/tokenized/v1.2.0
 """
 
 import argparse
@@ -438,23 +444,30 @@ def verify_checkpoint_resume(
     data_dir: str,
     vocab_size: int,
     block_size: int = 1024,
+    save_step: int = 50,
+    warmup_steps: int = 10,
+    lr: float = 3e-4,
 ) -> dict:
-    """Save at step 50, destroy model, rebuild from scratch, verify loss continuity.
+    """Save at save_step, destroy model, rebuild from scratch, verify loss and LR continuity.
 
-    Phase 1: Build model+engine with seed=42, train 50 steps, record loss,
+    Phase 1: Build model+engine with seed=42, train save_step steps, record loss,
              save checkpoint with client_state.
     Phase 2: Destroy engine and model, clear GPU, garbage collect.
     Phase 3: Reset seeds to 999, rebuild model+engine from scratch, load checkpoint.
-    Phase 4: Run one forward pass on a new batch, record loss.
+    Phase 4: Run one forward pass on a new batch, record loss. Check LR state.
 
-    Returns dict with loss_at_save, loss_at_resume, ratio, passed (bool).
+    The save_step parameter defaults to 50 for backward compatibility (500M gate)
+    but should be set to 500 for the 1B pre-flight gate.
+
+    Returns dict with loss_at_save, loss_at_resume, ratio, passed (bool),
+    lr_at_save, lr_at_resume.
     """
     ckpt_dir = tempfile.mkdtemp(prefix="als_benchmark_ckpt_")
     engine = None
     model = None
 
     try:
-        # Phase 1: Train 50 steps with seed=42
+        # Phase 1: Train save_step steps with seed=42
         torch.manual_seed(42)
         torch.cuda.manual_seed(42)
         np.random.seed(42)
@@ -479,18 +492,29 @@ def verify_checkpoint_resume(
         batch_size = ds_config["train_micro_batch_size_per_gpu"]
 
         loss_at_save = None
-        for step in range(50):
+        lr_at_save = None
+        for step in range(save_step):
             x, y = get_batch("train", batch_size, block_size, device, data_dir)
             logits, loss = engine(x, targets=y)
             engine.backward(loss)
             engine.step()
 
-            if step == 49:
+            if step == save_step - 1:
                 loss_at_save = loss.item()
+                # Capture LR at save point
+                try:
+                    lr_at_save = engine.lr_scheduler.get_lr()[0]
+                except Exception:
+                    lr_at_save = None
+                tag = f"step_{save_step}"
                 engine.save_checkpoint(
                     ckpt_dir,
-                    tag="step_50",
-                    client_state={"step": 49, "loss": loss_at_save},
+                    tag=tag,
+                    client_state={
+                        "step": step,
+                        "loss": loss_at_save,
+                        "lr": lr_at_save,
+                    },
                 )
 
         # Phase 2: Destroy everything
@@ -525,6 +549,13 @@ def verify_checkpoint_resume(
         resume_step = client_state["step"] if client_state else -1
         saved_loss = client_state.get("loss", None) if client_state else None
 
+        # Capture LR after resume
+        lr_at_resume = None
+        try:
+            lr_at_resume = engine.lr_scheduler.get_lr()[0]
+        except Exception:
+            pass
+
         # Phase 4: Run one forward pass on a new batch
         x, y = get_batch("train", batch_size, block_size, device, data_dir)
         with torch.no_grad():
@@ -534,12 +565,19 @@ def verify_checkpoint_resume(
         ratio = loss_at_resume / loss_at_save if loss_at_save and loss_at_save > 0 else float("inf")
         passed = loss_at_resume <= 2.0 * loss_at_save
 
+        # Expected LR at save_step during linear warmup phase:
+        # lr * min(save_step, warmup_steps) / warmup_steps
+        expected_lr = lr * min(save_step, warmup_steps) / warmup_steps
+
         return {
             "loss_at_save": loss_at_save,
             "loss_at_resume": loss_at_resume,
             "ratio": ratio,
             "passed": passed,
             "resume_step": resume_step,
+            "lr_at_save": lr_at_save,
+            "lr_at_resume": lr_at_resume,
+            "expected_lr": expected_lr,
         }
 
     except Exception as e:
@@ -564,7 +602,6 @@ def verify_checkpoint_resume(
             pass
 
         # Clean up temp directory
-        import shutil
         try:
             shutil.rmtree(ckpt_dir, ignore_errors=True)
         except Exception:
@@ -1174,13 +1211,14 @@ def save_chosen_config(
 def parse_args():
     """Parse benchmark command-line arguments."""
     parser = argparse.ArgumentParser(
-        description="500M Readiness Gate Benchmark for ALS-LM",
+        description="Readiness Gate Benchmark for ALS-LM (500M default, 1B pre-flight mode)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Examples:\n"
             "  python benchmark/readiness_gate.py\n"
             "  python benchmark/readiness_gate.py --steps 10\n"
             "  python benchmark/readiness_gate.py --primary-size 1B\n"
+            "  python benchmark/readiness_gate.py --primary-size 1B --preflight\n"
             "  python benchmark/readiness_gate.py --skip-fallback\n"
         ),
     )
@@ -1199,8 +1237,8 @@ def parse_args():
     parser.add_argument(
         "--steps",
         type=int,
-        default=100,
-        help="Number of training steps per benchmark config (default: 100)",
+        default=None,
+        help="Number of training steps per benchmark config (default: 100 for 500M, 500 for 1B)",
     )
     parser.add_argument(
         "--output-dir",
@@ -1220,7 +1258,293 @@ def parse_args():
         action="store_true",
         help="Skip fallback chain testing (only test primary size)",
     )
-    return parser.parse_args()
+    parser.add_argument(
+        "--preflight",
+        action="store_true",
+        help="Run 1B pre-flight mode (auto-enabled when --primary-size 1B). "
+             "Runs environment checks, single production config, 500 steps, "
+             "VRAM hard-fail threshold, readiness report.",
+    )
+    parser.add_argument(
+        "--vram-limit-gb",
+        type=float,
+        default=10.0,
+        help="VRAM hard-fail threshold in GB for 1B pre-flight (default: 10.0)",
+    )
+
+    args = parser.parse_args()
+
+    # Auto-enable preflight when --primary-size 1B
+    if args.primary_size == "1B":
+        args.preflight = True
+
+    # Default steps: 500 for 1B pre-flight, 100 for 500M
+    if args.steps is None:
+        args.steps = 500 if args.preflight else 100
+
+    return args
+
+
+# ---------------------------------------------------------------------------
+# 1B pre-flight benchmark mode
+# ---------------------------------------------------------------------------
+def run_1b_preflight(args, vocab_size, hardware):
+    """Run the 1B pre-flight benchmark mode.
+
+    This mode runs environment checks, a single production config benchmark
+    (offload=True, grad_ckpt=True, batch_size=4), forced checkpoint resume
+    at the configured step count with LR verification, applies pass/fail
+    thresholds (10 GB VRAM hard-fail), calculates max_steps from token count,
+    updates configs/1b.json, generates readiness_report_1b.md, and prints
+    a console summary.
+    """
+    block_size = 1024
+    model_config = MODEL_CONFIGS["1B"]
+    bench_lr = 3e-4
+    bench_warmup = 1000
+
+    print("\n" + "=" * 70)
+    print("  1B PRE-FLIGHT READINESS GATE")
+    print("=" * 70)
+
+    # --- Step A: Environment checks (advisory, no auto-fail) ---
+    print("\n  --- Environment Checks ---")
+
+    mem_gb, mem_warnings = check_wsl2_memory()
+    print(f"  WSL2 memory: {mem_gb:.1f} GB")
+    for w in mem_warnings:
+        print(f"  WARNING: {w}")
+
+    disk_gb, disk_warnings = check_disk_space(args.output_dir)
+    print(f"  Free disk space: {disk_gb:.1f} GB")
+    for w in disk_warnings:
+        print(f"  WARNING: {w}")
+
+    print("\n  --- Pre-flight Checklist ---")
+    for i, item in enumerate(PREFLIGHT_CHECKLIST, 1):
+        print(f"  {i}. {item}")
+
+    env_checks = {
+        "wsl2_memory_gb": mem_gb,
+        "wsl2_memory_warnings": mem_warnings,
+        "disk_free_gb": disk_gb,
+        "disk_warnings": disk_warnings,
+    }
+
+    # --- Step B: Run production config benchmark ---
+    print(f"\n{'=' * 60}")
+    print(f"  Running 1B production config: offload=ON, grad_ckpt=ON, batch_size=4")
+    print(f"  Steps: {args.steps}")
+    print(f"{'=' * 60}")
+
+    bench_model_config = {**model_config, "use_gradient_checkpointing": True}
+
+    ds_config = make_ds_config(
+        base_config_path=args.base_config,
+        batch_size=4,
+        grad_accum=8,
+        lr=bench_lr,
+        warmup_steps=bench_warmup,
+        total_steps=args.steps,
+        cpu_offload=True,
+    )
+
+    result = run_benchmark_config(
+        model_config=bench_model_config,
+        ds_config=ds_config,
+        steps=args.steps,
+        data_dir=args.data_dir,
+        vocab_size=vocab_size,
+        block_size=block_size,
+    )
+
+    status = result.get("status", "error")
+    print(f"\n  Benchmark status: {status.upper()}")
+
+    if status != "pass":
+        error_msg = result.get("error", "OOM or unknown error")
+        print(f"  HARD FAIL: Benchmark did not complete - {error_msg}")
+        print(f"{'=' * 70}\n")
+        return
+
+    peak_gpu_gb = result["peak_gpu_gb"]
+    tokens_per_sec = result["tokens_per_sec"]
+    cpu_ram_gb = result["cpu_ram_gb"]
+    ckpt_save_time = result.get("checkpoint_save_time_sec", 0)
+
+    print(f"  Peak VRAM: {peak_gpu_gb:.2f} GB")
+    print(f"  Throughput: {tokens_per_sec:,.0f} tokens/sec")
+    print(f"  CPU RAM: {cpu_ram_gb:.1f} GB")
+    print(f"  Checkpoint save: {ckpt_save_time:.1f}s")
+
+    # --- Step C: Forced checkpoint resume at save_step with LR verification ---
+    print(f"\n  --- Checkpoint Resume Verification (save at step {args.steps}) ---")
+
+    resume_ds_config = make_ds_config(
+        base_config_path=args.base_config,
+        batch_size=4,
+        grad_accum=8,
+        lr=bench_lr,
+        warmup_steps=bench_warmup,
+        total_steps=args.steps * 2,  # total_steps must exceed save_step
+        cpu_offload=True,
+    )
+
+    checkpoint_resume_result = verify_checkpoint_resume(
+        model_config=bench_model_config,
+        ds_config=resume_ds_config,
+        data_dir=args.data_dir,
+        vocab_size=vocab_size,
+        block_size=block_size,
+        save_step=args.steps,
+        warmup_steps=bench_warmup,
+        lr=bench_lr,
+    )
+
+    if checkpoint_resume_result.get("passed"):
+        print(f"  PASSED: loss_save={checkpoint_resume_result['loss_at_save']:.4f}, "
+              f"loss_resume={checkpoint_resume_result['loss_at_resume']:.4f}, "
+              f"ratio={checkpoint_resume_result['ratio']:.4f}")
+        if checkpoint_resume_result.get("lr_at_save") is not None:
+            print(f"  LR at save: {checkpoint_resume_result['lr_at_save']:.6f}")
+        if checkpoint_resume_result.get("lr_at_resume") is not None:
+            print(f"  LR at resume: {checkpoint_resume_result['lr_at_resume']:.6f}")
+    elif checkpoint_resume_result.get("error"):
+        print(f"  FAILED: {checkpoint_resume_result['error']}")
+    else:
+        print(f"  FAILED: ratio={checkpoint_resume_result.get('ratio', 'N/A')}")
+
+    # --- Step D: Apply pass/fail thresholds ---
+    vram_pass = peak_gpu_gb <= args.vram_limit_gb
+    throughput_warning = tokens_per_sec < 2000
+    cpu_ram_warning = cpu_ram_gb > 55
+
+    if not vram_pass:
+        overall = "FAIL"
+    elif not checkpoint_resume_result.get("passed", False):
+        overall = "FAIL"
+    else:
+        overall = "PASS"
+
+    pass_fail = {
+        "vram_pass": vram_pass,
+        "vram_gb": peak_gpu_gb,
+        "vram_limit_gb": args.vram_limit_gb,
+        "throughput_warning": throughput_warning,
+        "cpu_ram_warning": cpu_ram_warning,
+        "overall": overall,
+    }
+
+    print(f"\n  --- Threshold Checks ---")
+    print(f"  Peak VRAM: {peak_gpu_gb:.2f} GB (limit: {args.vram_limit_gb:.0f} GB) "
+          f"{'PASS' if vram_pass else 'HARD FAIL'}")
+    if cpu_ram_warning:
+        print(f"  CPU RAM: {cpu_ram_gb:.1f} GB > 55 GB - SOFT WARNING")
+    if throughput_warning:
+        print(f"  Throughput: {tokens_per_sec:,.0f} tok/s < 2000 - SOFT WARNING")
+
+    # GPU temperature - log only
+    hw_gpu_temp = hardware.get("gpu_temperature", None)
+    if hw_gpu_temp is not None:
+        print(f"  GPU temperature: {hw_gpu_temp} C (log only)")
+
+    # --- Step E: Calculate max_steps from token count ---
+    print(f"\n  --- Max Steps Calculation ---")
+    max_steps, total_tokens = calculate_max_steps(args.data_dir)
+    print(f"  Total tokens: {total_tokens:,}")
+    print(f"  Max steps (3 epochs): {max_steps:,}")
+
+    # --- Step F: Calculate projected training time ---
+    # Use measured throughput directly (no scaling needed, benchmarked at production batch_size=4)
+    if tokens_per_sec > 0:
+        projected_seconds = (total_tokens * 3) / tokens_per_sec
+        projected_hours = projected_seconds / 3600
+    else:
+        projected_hours = float("inf")
+    print(f"  Projected training time: {projected_hours:.1f} hours")
+
+    projections = {
+        "max_steps": max_steps,
+        "total_tokens": total_tokens,
+        "tokens_per_sec": tokens_per_sec,
+        "projected_hours": projected_hours,
+    }
+
+    # --- Step G: Update configs/1b.json ---
+    config_1b_path = os.path.join(_project_root, "configs", "1b.json")
+    if os.path.isfile(config_1b_path):
+        benchmark_data = {
+            "peak_gpu_gb": peak_gpu_gb,
+            "tokens_per_sec": tokens_per_sec,
+            "cpu_ram_gb": cpu_ram_gb,
+            "checkpoint_save_time_sec": ckpt_save_time,
+            "steps_run": args.steps,
+            "max_steps": max_steps,
+        }
+        update_1b_config(config_1b_path, benchmark_data)
+        print(f"\n  Updated: {config_1b_path}")
+    else:
+        print(f"\n  WARNING: {config_1b_path} not found, skipping config update")
+
+    # --- Step H: Generate readiness report ---
+    benchmark_report_data = {
+        "peak_gpu_gb": peak_gpu_gb,
+        "tokens_per_sec": tokens_per_sec,
+        "cpu_ram_gb": cpu_ram_gb,
+        "loss_at_1": result.get("loss_at_1", 0),
+        "loss_at_final": result.get("loss_at_final", 0),
+        "checkpoint_save_time_sec": ckpt_save_time,
+        "checkpoint_resume": checkpoint_resume_result,
+    }
+
+    report_text = generate_1b_readiness_report(
+        env_checks=env_checks,
+        benchmark_results=benchmark_report_data,
+        projections=projections,
+        pass_fail=pass_fail,
+    )
+
+    os.makedirs(args.output_dir, exist_ok=True)
+    report_path = os.path.join(args.output_dir, "readiness_report_1b.md")
+    with open(report_path, "w") as f:
+        f.write(report_text)
+    print(f"  Readiness report: {report_path}")
+
+    # Save raw results JSON
+    raw_results = {
+        "mode": "1b_preflight",
+        "env_checks": env_checks,
+        "benchmark_result": result,
+        "checkpoint_resume": checkpoint_resume_result,
+        "projections": projections,
+        "pass_fail": pass_fail,
+        "hardware": hardware,
+        "settings": {
+            "steps": args.steps,
+            "vram_limit_gb": args.vram_limit_gb,
+            "block_size": block_size,
+            "vocab_size": vocab_size,
+        },
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+    results_path = save_results_json(raw_results, args.output_dir)
+    print(f"  Results JSON: {results_path}")
+
+    # --- Step I: Print console summary ---
+    print(f"\n{'=' * 70}")
+    print(f"  1B PRE-FLIGHT RESULT: {overall}")
+    print(f"{'=' * 70}")
+    print(f"  Peak VRAM: {peak_gpu_gb:.2f} GB / {args.vram_limit_gb:.0f} GB limit")
+    print(f"  Throughput: {tokens_per_sec:,.0f} tokens/sec")
+    print(f"  Checkpoint resume: {'PASS' if checkpoint_resume_result.get('passed') else 'FAIL'}")
+    print(f"  Max steps: {max_steps:,}")
+    print(f"  Projected training time: {projected_hours:.1f} hours")
+    if overall == "PASS":
+        print(f"\n  Ready for production training run.")
+    else:
+        print(f"\n  Pre-flight FAILED. Review thresholds and benchmark results.")
+    print(f"\n  Reports saved to: {args.output_dir}/")
+    print(f"{'=' * 70}\n")
 
 
 # ---------------------------------------------------------------------------
@@ -1228,10 +1552,6 @@ def parse_args():
 # ---------------------------------------------------------------------------
 def main():
     args = parse_args()
-
-    print("\n" + "=" * 70)
-    print("  500M READINESS GATE BENCHMARK")
-    print("=" * 70)
 
     # Validate data files
     meta_path = os.path.join(args.data_dir, "meta.pkl")
@@ -1248,18 +1568,33 @@ def main():
     with open(meta_path, "rb") as f:
         meta = pickle.load(f)
     vocab_size = meta["vocab_size"]
-    print(f"\n  Vocab size: {vocab_size:,}")
-    print(f"  Data dir: {args.data_dir}")
-    print(f"  Base config: {args.base_config}")
-    print(f"  Steps per config: {args.steps}")
-    print(f"  Primary size: {args.primary_size}")
-    print(f"  Skip fallback: {args.skip_fallback}")
 
     # Collect hardware info
     hardware = get_hardware_info()
     gpu_name = hardware.get("gpu_name", "Unknown")
     if isinstance(gpu_name, bytes):
         gpu_name = gpu_name.decode("utf-8", errors="replace")
+
+    # Branch: 1B pre-flight mode vs 500M standard mode
+    if args.preflight:
+        print(f"\n  Vocab size: {vocab_size:,}")
+        print(f"  Data dir: {args.data_dir}")
+        print(f"  GPU: {gpu_name} ({hardware.get('gpu_memory_gb', 0):.1f} GB)")
+        print(f"  RAM: {hardware.get('total_ram_gb', 0):.1f} GB")
+        run_1b_preflight(args, vocab_size, hardware)
+        return
+
+    # --- 500M standard flow (unchanged) ---
+    print("\n" + "=" * 70)
+    print("  500M READINESS GATE BENCHMARK")
+    print("=" * 70)
+
+    print(f"\n  Vocab size: {vocab_size:,}")
+    print(f"  Data dir: {args.data_dir}")
+    print(f"  Base config: {args.base_config}")
+    print(f"  Steps per config: {args.steps}")
+    print(f"  Primary size: {args.primary_size}")
+    print(f"  Skip fallback: {args.skip_fallback}")
     print(f"  GPU: {gpu_name} ({hardware.get('gpu_memory_gb', 0):.1f} GB)")
     print(f"  RAM: {hardware.get('total_ram_gb', 0):.1f} GB")
 
