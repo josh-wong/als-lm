@@ -3,6 +3,9 @@
 Tests environment checks (WSL2 memory, disk space), max_steps calculation
 from token count, configs/1b.json update logic, readiness report generation,
 and the PREFLIGHT_CHECKLIST constant.
+
+These tests mock heavy GPU dependencies (torch, deepspeed, pynvml, psutil)
+so they can run in environments without CUDA hardware.
 """
 
 import json
@@ -10,12 +13,31 @@ import os
 import struct
 import sys
 import tempfile
+import types
 from unittest import mock
 
 import pytest
 
 # Ensure project root is on the path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+# Mock heavy GPU dependencies that readiness_gate.py imports at module level.
+# This allows testing the pure-Python helper functions without torch/deepspeed.
+_MOCK_MODULES = {}
+for _mod_name in ["torch", "torch.cuda", "deepspeed", "pynvml", "psutil"]:
+    if _mod_name not in sys.modules:
+        _MOCK_MODULES[_mod_name] = mock.MagicMock()
+        sys.modules[_mod_name] = _MOCK_MODULES[_mod_name]
+
+# Also need model.model to be importable (it imports torch)
+for _mod_name in ["model", "model.model"]:
+    if _mod_name not in sys.modules:
+        _mod = types.ModuleType(_mod_name)
+        if _mod_name == "model.model":
+            _mod.GPT = mock.MagicMock()
+            _mod.GPTConfig = mock.MagicMock()
+        _MOCK_MODULES[_mod_name] = _mod
+        sys.modules[_mod_name] = _mod
 
 
 # ---------------------------------------------------------------------------

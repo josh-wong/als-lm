@@ -36,6 +36,7 @@ import gc
 import json
 import os
 import pickle
+import shutil
 import sys
 import tempfile
 import threading
@@ -594,6 +595,217 @@ def get_hardware_info() -> dict:
             pass
 
     return info
+
+
+# ---------------------------------------------------------------------------
+# Pre-flight checklist (manual prep items for long training runs)
+# ---------------------------------------------------------------------------
+PREFLIGHT_CHECKLIST = [
+    "Disable Windows sleep/hibernate (Settings > Power & Sleep)",
+    "Pause Windows Update (Settings > Windows Update > Pause for 7 days)",
+    "Close heavy applications (browsers, IDEs, Docker Desktop if unused)",
+    "Verify .wslconfig memory allocation >= 58 GB",
+    "Ensure stable power supply / UPS if available",
+    "Consider running 'wsl --shutdown' and restarting WSL2 for clean memory state",
+]
+
+
+# ---------------------------------------------------------------------------
+# WSL2 environment checks
+# ---------------------------------------------------------------------------
+def check_wsl2_memory() -> tuple[float, list[str]]:
+    """Check WSL2 memory allocation by parsing /proc/meminfo.
+
+    Returns a (total_gb, warnings) tuple. Warns when total memory is below
+    58 GB with a .wslconfig snippet showing the recommended setting.
+    Handles missing /proc/meminfo gracefully (non-Linux environments).
+    """
+    warnings: list[str] = []
+    total_gb = 0.0
+    try:
+        with open("/proc/meminfo") as f:
+            for line in f:
+                if line.startswith("MemTotal:"):
+                    kb = int(line.split()[1])
+                    total_gb = kb / (1024 * 1024)
+                    break
+    except FileNotFoundError:
+        warnings.append("Cannot read /proc/meminfo (not running on Linux/WSL2?)")
+        return total_gb, warnings
+
+    if total_gb < 58:
+        warnings.append(
+            f"WSL2 memory is {total_gb:.1f} GB, below recommended 58 GB. "
+            f"Add to ~/.wslconfig:\n"
+            f"  [wsl2]\n"
+            f"  memory=58GB"
+        )
+    return total_gb, warnings
+
+
+def check_disk_space(path: str, min_gb: float = 50.0) -> tuple[float, list[str]]:
+    """Check free disk space at the given path.
+
+    Returns a (free_gb, warnings) tuple. Warns when free space is below
+    the specified threshold (default 50 GB). Handles invalid paths gracefully.
+    """
+    warnings: list[str] = []
+    try:
+        usage = shutil.disk_usage(path)
+        free_gb = usage.free / (1024 ** 3)
+    except OSError as e:
+        warnings.append(f"Cannot check disk space at {path}: {e}")
+        return 0.0, warnings
+
+    if free_gb < min_gb:
+        warnings.append(
+            f"Free disk space at {path} is {free_gb:.1f} GB, "
+            f"below recommended {min_gb:.0f} GB"
+        )
+    return free_gb, warnings
+
+
+# ---------------------------------------------------------------------------
+# Max steps calculation from token count
+# ---------------------------------------------------------------------------
+def calculate_max_steps(data_dir: str) -> tuple[int, int]:
+    """Calculate production max_steps from train.bin file size.
+
+    Uses the locked formula: max_steps = int((total_tokens * 3) / (32 * 1024))
+    where 3 = epochs, 32 = effective batch (batch_size=4 * grad_accum=8),
+    1024 = block_size.
+
+    Returns (max_steps, total_tokens).
+    """
+    train_bin = os.path.join(data_dir, "train.bin")
+    file_size = os.path.getsize(train_bin)
+    total_tokens = file_size // 2  # uint16 = 2 bytes per token
+    max_steps = int((total_tokens * 3) / (32 * 1024))
+    return max_steps, total_tokens
+
+
+# ---------------------------------------------------------------------------
+# configs/1b.json update
+# ---------------------------------------------------------------------------
+def update_1b_config(config_path: str, benchmark_data: dict) -> None:
+    """Update configs/1b.json with benchmark results and computed max_steps.
+
+    Populates the benchmark_results section and updates training.max_steps
+    without overwriting other fields (model, deepspeed sections preserved).
+    """
+    with open(config_path) as f:
+        config = json.load(f)
+
+    config["benchmark_results"] = {
+        "peak_vram_gb": benchmark_data["peak_gpu_gb"],
+        "tokens_per_sec": benchmark_data["tokens_per_sec"],
+        "cpu_ram_gb": benchmark_data["cpu_ram_gb"],
+        "checkpoint_save_time_sec": benchmark_data["checkpoint_save_time_sec"],
+        "steps_run": benchmark_data["steps_run"],
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+    config["training"]["max_steps"] = benchmark_data["max_steps"]
+
+    with open(config_path, "w") as f:
+        json.dump(config, f, indent=2)
+        f.write("\n")
+
+
+# ---------------------------------------------------------------------------
+# 1B readiness report generation
+# ---------------------------------------------------------------------------
+def generate_1b_readiness_report(
+    env_checks: dict,
+    benchmark_results: dict,
+    projections: dict,
+    pass_fail: dict,
+) -> str:
+    """Generate a structured markdown readiness report for the 1B model.
+
+    Produces a report with sections: Summary, Environment Checks,
+    Benchmark Results, Projected Training Time, and Pre-flight Checklist.
+
+    Returns the report as a string (caller is responsible for writing to file).
+    """
+    now = datetime.now(timezone.utc).isoformat()
+    lines = []
+
+    # Summary
+    overall = pass_fail.get("overall", "UNKNOWN")
+    lines.append("# 1B pre-flight readiness report\n")
+    lines.append(f"**Generated:** {now}\n")
+    lines.append(f"**Overall status:** {overall}\n")
+    lines.append(
+        "This report validates whether the 1B ALS-LM model can train on the "
+        "available hardware with DeepSpeed ZeRO Stage 2 and CPU offloading.\n"
+    )
+
+    # Environment checks
+    lines.append("## Environment checks\n")
+    wsl_gb = env_checks.get("wsl2_memory_gb", 0)
+    disk_gb = env_checks.get("disk_free_gb", 0)
+    lines.append(f"- **WSL2 memory:** {wsl_gb:.1f} GB")
+    lines.append(f"- **Free disk space:** {disk_gb:.1f} GB\n")
+
+    wsl_warnings = env_checks.get("wsl2_memory_warnings", [])
+    disk_warnings = env_checks.get("disk_warnings", [])
+    all_warnings = wsl_warnings + disk_warnings
+    if all_warnings:
+        lines.append("**Warnings:**\n")
+        for w in all_warnings:
+            lines.append(f"- {w}")
+        lines.append("")
+    else:
+        lines.append("No environment warnings.\n")
+
+    # Benchmark results
+    lines.append("## Benchmark results\n")
+    peak = benchmark_results.get("peak_gpu_gb", 0)
+    tps = benchmark_results.get("tokens_per_sec", 0)
+    cpu_ram = benchmark_results.get("cpu_ram_gb", 0)
+    loss_start = benchmark_results.get("loss_at_1", 0)
+    loss_final = benchmark_results.get("loss_at_final", 0)
+    ckpt_time = benchmark_results.get("checkpoint_save_time_sec", 0)
+
+    lines.append(f"- **Peak VRAM:** {peak:.2f} GB (limit: {pass_fail.get('vram_limit_gb', 10):.0f} GB)")
+    lines.append(f"- **VRAM status:** {'PASS' if pass_fail.get('vram_pass') else 'FAIL'}")
+    lines.append(f"- **Throughput:** {tps:,.0f} tokens/sec")
+    lines.append(f"- **CPU RAM:** {cpu_ram:.1f} GB")
+    lines.append(f"- **Loss:** {loss_start:.4f} -> {loss_final:.4f}")
+    lines.append(f"- **Checkpoint save time:** {ckpt_time:.1f}s\n")
+
+    # Checkpoint resume
+    resume = benchmark_results.get("checkpoint_resume", {})
+    if resume:
+        resume_status = "PASS" if resume.get("passed") else "FAIL"
+        lines.append(f"**Checkpoint resume:** {resume_status}")
+        if resume.get("loss_at_save") is not None:
+            lines.append(f"- Loss at save: {resume['loss_at_save']:.4f}")
+            lines.append(f"- Loss at resume: {resume['loss_at_resume']:.4f}")
+            lines.append(f"- Ratio: {resume['ratio']:.4f}")
+        lines.append("")
+
+    # Projected training time
+    lines.append("## Projected training time\n")
+    max_steps = projections.get("max_steps", 0)
+    total_tokens = projections.get("total_tokens", 0)
+    proj_hours = projections.get("projected_hours", 0)
+    lines.append(f"- **Total tokens:** {total_tokens:,}")
+    lines.append(f"- **Max steps (3 epochs):** {max_steps:,}")
+    lines.append(f"- **Measured throughput:** {projections.get('tokens_per_sec', 0):,.0f} tokens/sec")
+    lines.append(f"- **Projected training time:** {proj_hours:.1f} hours\n")
+
+    # Pre-flight checklist
+    lines.append("## Pre-flight checklist\n")
+    lines.append("Complete these steps before starting the production training run.\n")
+    for i, item in enumerate(PREFLIGHT_CHECKLIST, 1):
+        lines.append(f"{i}. [ ] {item}")
+    lines.append("")
+
+    lines.append("---\n")
+    lines.append(f"*Generated by benchmark/readiness_gate.py on {now}*\n")
+
+    return "\n".join(lines)
 
 
 # ---------------------------------------------------------------------------
