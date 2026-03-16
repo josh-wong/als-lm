@@ -72,6 +72,8 @@ from collections import deque
 from dataclasses import fields as dataclass_fields
 from datetime import datetime, timezone
 
+import psutil
+
 # Ensure the project root is on sys.path so that `from model.model import ...`
 # resolves correctly when DeepSpeed launches this script via
 # `python model/train.py --local_rank=0 ...`.
@@ -629,6 +631,53 @@ def get_gpu_total_memory_mb(handle):
         return 0
 
 
+def get_gpu_utilization(handle):
+    """Return GPU utilization percentage, or 0 if unavailable."""
+    if handle is None:
+        return 0
+    try:
+        util = pynvml.nvmlDeviceGetUtilizationRates(handle)
+        return util.gpu
+    except Exception:
+        return 0
+
+
+def get_gpu_temperature(handle):
+    """Return GPU temperature in Celsius, or 0 if unavailable."""
+    if handle is None:
+        return 0
+    try:
+        return pynvml.nvmlDeviceGetTemperature(handle, pynvml.NVML_TEMPERATURE_GPU)
+    except Exception:
+        return 0
+
+
+def get_cpu_ram_mb():
+    """Return system-wide used RAM in MB.
+
+    Uses system-wide measurement (not process-specific) for consistency
+    with readiness_gate.py and to capture DeepSpeed CPU offload memory
+    that may not appear under the training process RSS.
+    """
+    try:
+        return psutil.virtual_memory().used // (1024 * 1024)
+    except Exception:
+        return 0
+
+
+def get_gpu_peak_mem_mb():
+    """Return peak GPU memory allocated since training start, in MB.
+
+    Tracks cumulative peak (no reset between intervals) because the
+    all-time peak is what matters for VRAM fit analysis and the 3B
+    go/no-go decision.
+    """
+    try:
+        return torch.cuda.max_memory_allocated() // (1024 * 1024)
+    except Exception:
+        return 0
+
+
 # ---------------------------------------------------------------------------
 # Checkpoint saving (atomic pattern: temp-dir-then-rename)
 # ---------------------------------------------------------------------------
@@ -1009,7 +1058,8 @@ def write_config_header(log_file, args, model_config_dict, ds_config, vocab_size
 
 
 def log_step(log_file, step, loss, lr, tokens_per_sec, gpu_mem_mb, dt_sec,
-             epoch, epoch_progress, total_tokens, loss_scale, grad_norm):
+             epoch, epoch_progress, total_tokens, loss_scale, grad_norm,
+             cpu_ram_mb=0, gpu_util_pct=0, gpu_temp_c=0, gpu_peak_mem_mb=0):
     """Write a training step entry to the JSONL log file."""
     try:
         perplexity = min(math.exp(loss), 1e5)
@@ -1030,6 +1080,10 @@ def log_step(log_file, step, loss, lr, tokens_per_sec, gpu_mem_mb, dt_sec,
         "total_tokens": total_tokens,
         "loss_scale": loss_scale,
         "grad_norm": round(grad_norm, 4) if grad_norm is not None else 0.0,
+        "cpu_ram_mb": cpu_ram_mb,
+        "gpu_util_pct": gpu_util_pct,
+        "gpu_temp_c": gpu_temp_c,
+        "gpu_peak_mem_mb": gpu_peak_mem_mb,
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     log_file.write(json.dumps(entry) + "\n")
@@ -1694,6 +1748,10 @@ def main():
                 current_lr = optimizer.param_groups[0]["lr"]
                 tokens_per_sec = tokens_per_step / dt if dt > 0 else 0
                 gpu_mem = get_gpu_memory_mb(gpu_handle)
+                gpu_util = get_gpu_utilization(gpu_handle)
+                gpu_temp = get_gpu_temperature(gpu_handle)
+                cpu_ram = get_cpu_ram_mb()
+                gpu_peak = get_gpu_peak_mem_mb()
 
                 # Anomaly detection
                 loss_warning = False
@@ -1747,6 +1805,10 @@ def main():
                     gpu_mem, dt, epoch_tracker.epoch,
                     epoch_tracker.epoch_progress(step), total_tokens_processed,
                     loss_scale, grad_norm,
+                    cpu_ram_mb=cpu_ram,
+                    gpu_util_pct=gpu_util,
+                    gpu_temp_c=gpu_temp,
+                    gpu_peak_mem_mb=gpu_peak,
                 )
 
                 # TensorBoard custom metrics (step-aligned with JSONL log)
@@ -1760,6 +1822,10 @@ def main():
                 tb_writer.add_scalar("Schedule/learning_rate", current_lr, step)
                 tb_writer.add_scalar("Schedule/epoch", epoch_tracker.epoch, step)
                 tb_writer.add_scalar("Progress/tokens_per_sec", tokens_per_sec, step)
+                tb_writer.add_scalar("Resources/cpu_ram_mb", cpu_ram, step)
+                tb_writer.add_scalar("Resources/gpu_utilization_pct", gpu_util, step)
+                tb_writer.add_scalar("Resources/gpu_temperature_c", gpu_temp, step)
+                tb_writer.add_scalar("Resources/gpu_peak_mem_mb", gpu_peak, step)
 
             # --- Conditional 1: Validation (every eval_interval steps, and at final step) ---
             if step > 0 and (step % eval_interval == 0 or step == max_steps - 1):
