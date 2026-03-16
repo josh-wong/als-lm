@@ -118,6 +118,7 @@ CONFIG_DEFAULTS = {
     "tiny": {"lr": 6e-4, "batch_size": 16, "grad_accum": 2, "warmup": 100, "max_steps": 2000},
     "medium": {"lr": 3e-4, "batch_size": 8, "grad_accum": 4, "warmup": 200, "max_steps": 10000},
     "500M": {"lr": 3e-4, "batch_size": 4, "grad_accum": 8, "warmup": 500, "max_steps": 50000},
+    "1B": {"lr": 3e-4, "batch_size": 4, "grad_accum": 8, "warmup": 1000, "max_steps": 50000},
     # Note: The fine-tuning experiment (v0.8.0) used the shared ds_zero2.json
     # optimizer defaults (betas=[0.9, 0.95], weight_decay=0.1) rather than
     # standard fine-tuning values (betas=[0.9, 0.999], weight_decay=0.01).

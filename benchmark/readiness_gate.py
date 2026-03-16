@@ -78,7 +78,7 @@ except ImportError:
 # ---------------------------------------------------------------------------
 MODEL_CONFIGS = {
     "1B": {
-        "n_layer": 32,
+        "n_layer": 30,
         "n_head": 20,
         "n_embd": 1600,
         "block_size": 1024,
