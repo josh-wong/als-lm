@@ -1710,6 +1710,8 @@ def main():
     GRAD_NORM_WARN_THRESHOLD = 10.0
     LOSS_SPIKE_FACTOR = 2.0
     GPU_TEMP_WARN_THRESHOLD = 80  # Celsius - warn on throttle risk
+    GPU_TEMP_PAUSE_THRESHOLD = 85  # Celsius - pause training to cool down
+    GPU_TEMP_RESUME_THRESHOLD = 75  # Celsius - resume after cooldown
 
     # Tracking variables
     initial_loss = None
@@ -1853,6 +1855,23 @@ def main():
                 # GPU temperature warning
                 if gpu_temp >= GPU_TEMP_WARN_THRESHOLD:
                     print(f"  {YELLOW}WARNING: GPU temperature {gpu_temp}C >= {GPU_TEMP_WARN_THRESHOLD}C threshold{RESET}")
+
+                # GPU thermal cooldown pause
+                if gpu_temp >= GPU_TEMP_PAUSE_THRESHOLD:
+                    print(f"  {YELLOW}THERMAL PAUSE: GPU at {gpu_temp}C >= {GPU_TEMP_PAUSE_THRESHOLD}C — pausing until {GPU_TEMP_RESUME_THRESHOLD}C{RESET}")
+                    if log_file:
+                        log_file.write(f"[THERMAL PAUSE] step={step} gpu_temp={gpu_temp}C\n")
+                        log_file.flush()
+                    while True:
+                        time.sleep(30)
+                        current_temp = get_gpu_temperature(gpu_handle)
+                        print(f"  {YELLOW}  Cooling... {current_temp}C (target: {GPU_TEMP_RESUME_THRESHOLD}C){RESET}")
+                        if current_temp <= GPU_TEMP_RESUME_THRESHOLD:
+                            print(f"  {GREEN}THERMAL RESUME: GPU cooled to {current_temp}C — resuming training{RESET}")
+                            if log_file:
+                                log_file.write(f"[THERMAL RESUME] step={step} gpu_temp={current_temp}C\n")
+                                log_file.flush()
+                            break
 
                 # Anomaly detection
                 loss_warning = False

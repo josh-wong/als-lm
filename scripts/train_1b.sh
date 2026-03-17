@@ -6,6 +6,16 @@ set -euo pipefail
 #
 # Pre-flight checks, resume detection, tmux guidance, and deepspeed launch.
 # Projected training time: ~45 hours for 3 epochs (11,679 steps).
+#
+# Environment variables:
+#   ALS_CHECKPOINT_BASE  Directory for checkpoint storage (default: checkpoints/)
+#                        Example: export ALS_CHECKPOINT_BASE="/mnt/e/als-lm-data/checkpoints"
+#
+# GPU thermal management:
+#   The training loop auto-pauses at 85C and resumes at 75C. To further reduce
+#   heat, cap GPU power from Windows PowerShell (Admin):
+#     nvidia-smi -pl 130    # cap RTX 3060 at 130W (default 170W)
+#     nvidia-smi -pl 170    # reset to default after training
 # =============================================================================
 
 # ---- Constants --------------------------------------------------------------
