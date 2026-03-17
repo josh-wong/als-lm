@@ -243,6 +243,6 @@ class TestWriteTrainingSummaryFile:
             assert "2.8" in content  # final_train_loss
             assert "3.1" in content  # final_val_loss
             assert "3.0" in content  # best_val_loss
-            assert "6080" in content or "6.08" in content  # peak VRAM
+            assert "6080" in content or "6,080" in content or "6.08" in content  # peak VRAM
         finally:
             os.unlink(tmp)
