@@ -17,8 +17,24 @@ CONFIG="1B"
 DATA_DIR="data/tokenized/v1.2.0"
 DS_CONFIG="config/ds_zero2.json"
 CHECKPOINT_INTERVAL=500
+CHECKPOINT_BASE="${ALS_CHECKPOINT_BASE:-checkpoints}"
 LOG_DIR="logs"
 PREFLIGHT_LOG_DIR="logs/preflight"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+VENV_DIR="${PROJECT_DIR}/.venv"
+
+# ---- Activate virtual environment ------------------------------------------
+
+if [[ -f "${VENV_DIR}/bin/activate" ]]; then
+    source "${VENV_DIR}/bin/activate"
+elif [[ -n "${VIRTUAL_ENV:-}" ]]; then
+    echo "Using active virtual environment: ${VIRTUAL_ENV}"
+else
+    echo -e "\033[0;31mERROR: No .venv found at ${VENV_DIR} and no active virtual environment.\033[0m"
+    echo "Create one with: python3 -m venv .venv && pip install -r requirements.txt"
+    exit 1
+fi
 
 # ---- Color codes ------------------------------------------------------------
 
@@ -43,7 +59,8 @@ log_preflight() {
 check_disk_space() {
     echo -e "${BOLD}Checking disk space...${RESET}"
     local avail_kb
-    avail_kb=$(df --output=avail . | tail -1 | tr -d ' ')
+    mkdir -p "${CHECKPOINT_BASE}"
+    avail_kb=$(df --output=avail "${CHECKPOINT_BASE}" | tail -1 | tr -d ' ')
     local avail_gb=$((avail_kb / 1024 / 1024))
 
     if [ "$avail_gb" -lt "$MIN_DISK_GB" ]; then
@@ -115,7 +132,7 @@ RESUME_DIR=""
 detect_existing_run() {
     echo -e "\n${BOLD}Checking for existing 1B runs...${RESET}"
     local latest_run
-    latest_run=$(ls -td checkpoints/1B_* 2>/dev/null | head -1 || true)
+    latest_run=$(ls -td "${CHECKPOINT_BASE}"/1B_* 2>/dev/null | head -1 || true)
 
     if [ -n "$latest_run" ] && [ -f "$latest_run/latest" ]; then
         local latest_step
@@ -166,6 +183,7 @@ assemble_and_run() {
     cmd+=" --data-dir ${DATA_DIR}"
     cmd+=" --deepspeed_config ${DS_CONFIG}"
     cmd+=" --checkpoint-interval ${CHECKPOINT_INTERVAL}"
+    cmd+=" --checkpoint-base ${CHECKPOINT_BASE}"
     cmd+=" --max-epochs 3"
 
     if [ -n "$RESUME_DIR" ]; then
