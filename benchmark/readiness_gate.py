@@ -43,6 +43,7 @@ import json
 import os
 import pickle
 import shutil
+import subprocess
 import sys
 import tempfile
 import threading
@@ -269,12 +270,18 @@ def run_benchmark_config(
     data_dir: str,
     vocab_size: int,
     block_size: int = 1024,
+    save_final_checkpoint: str | None = None,
 ) -> dict:
     """Run a single benchmark configuration and return results.
 
     Wraps the entire training loop in try/except to catch OOM and other errors
     without crashing the overall benchmark. Always cleans up GPU state in a
     finally block.
+
+    If ``save_final_checkpoint`` is a directory path, saves a DeepSpeed
+    checkpoint at the final step with client_state containing the step index,
+    final loss, and learning rate. This is used by the subprocess-based resume
+    verification for the 1B pre-flight gate.
 
     Returns a dict with: status, peak_gpu_gb, tokens_per_sec, loss_at_1,
     loss_at_100, step_times, memory_timeline, cpu_ram_gb, disk_io_read_mb,
@@ -358,6 +365,24 @@ def run_benchmark_config(
                     torch.cuda.synchronize()
                     ckpt_t1 = time.perf_counter()
                     checkpoint_save_time = ckpt_t1 - ckpt_t0
+
+        # Save final checkpoint for subprocess resume verification
+        if save_final_checkpoint is not None:
+            os.makedirs(save_final_checkpoint, exist_ok=True)
+            lr_at_save = None
+            try:
+                lr_at_save = engine.lr_scheduler.get_lr()[0]
+            except Exception:
+                pass
+            engine.save_checkpoint(
+                save_final_checkpoint,
+                tag=f"step_{steps}",
+                client_state={
+                    "step": steps - 1,
+                    "loss": loss_at_final,
+                    "lr": lr_at_save,
+                },
+            )
 
         # Capture peak GPU memory
         peak_gpu_bytes = torch.cuda.max_memory_allocated()
@@ -606,6 +631,197 @@ def verify_checkpoint_resume(
             shutil.rmtree(ckpt_dir, ignore_errors=True)
         except Exception:
             pass
+
+
+# ---------------------------------------------------------------------------
+# Subprocess-based checkpoint resume verification (1B pre-flight)
+# ---------------------------------------------------------------------------
+def verify_checkpoint_resume_subprocess(
+    model_config: dict,
+    ds_config: dict,
+    data_dir: str,
+    vocab_size: int,
+    ckpt_dir: str,
+    save_step: int,
+    block_size: int = 1024,
+) -> dict:
+    """Verify checkpoint resume in a fresh subprocess to avoid hot-resume OOM.
+
+    Instead of loading a checkpoint in the same process that just trained
+    (which can OOM on 1B models due to residual GPU/CPU memory), this function
+    spawns a new Python process with a clean GPU state. The subprocess loads
+    the checkpoint, runs one forward pass, and writes results to a temp file.
+
+    This mirrors real production resume behavior (fresh process after crash).
+    """
+    result_file = os.path.join(ckpt_dir, "_resume_result.json")
+
+    # Serialize configs for the subprocess — use absolute paths so the
+    # subprocess doesn't depend on cwd.
+    config_file = os.path.join(ckpt_dir, "_resume_configs.json")
+    with open(config_file, "w") as f:
+        json.dump({
+            "model_config": model_config,
+            "ds_config": ds_config,
+            "data_dir": os.path.abspath(data_dir),
+            "vocab_size": vocab_size,
+            "ckpt_dir": ckpt_dir,
+            "save_step": save_step,
+            "block_size": block_size,
+            "result_file": result_file,
+        }, f)
+
+    # Subprocess script that loads checkpoint and verifies
+    script = f'''
+import gc
+import json
+import os
+import sys
+
+os.environ["MASTER_ADDR"] = "localhost"
+os.environ["MASTER_PORT"] = "29501"
+os.environ["RANK"] = "0"
+os.environ["WORLD_SIZE"] = "1"
+os.environ["LOCAL_RANK"] = "0"
+
+_project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+if _project_root not in sys.path:
+    sys.path.insert(0, "{_project_root}")
+
+import numpy as np
+import torch
+import deepspeed
+from model.model import GPT, GPTConfig
+
+config_file = "{config_file}"
+with open(config_file) as f:
+    cfg = json.load(f)
+
+model_config = cfg["model_config"]
+ds_config = cfg["ds_config"]
+data_dir = cfg["data_dir"]
+vocab_size = cfg["vocab_size"]
+ckpt_dir = cfg["ckpt_dir"]
+save_step = cfg["save_step"]
+block_size = cfg["block_size"]
+result_file = cfg["result_file"]
+
+try:
+    torch.manual_seed(999)
+    torch.cuda.manual_seed(999)
+    np.random.seed(999)
+    torch.cuda.reset_peak_memory_stats()
+    torch.cuda.empty_cache()
+    gc.collect()
+
+    config_with_vocab = {{**model_config, "vocab_size": vocab_size}}
+    gpt_config = GPTConfig(**config_with_vocab)
+    model = GPT(gpt_config)
+    if model_config.get("use_gradient_checkpointing", False):
+        model.enable_gradient_checkpointing()
+
+    engine, _, _, _ = deepspeed.initialize(
+        model=model,
+        model_parameters=model.parameters(),
+        config=ds_config,
+    )
+    device = engine.device
+
+    _, client_state = engine.load_checkpoint(ckpt_dir)
+    resume_step = client_state["step"] if client_state else -1
+    saved_loss = client_state.get("loss", None) if client_state else None
+    saved_lr = client_state.get("lr", None) if client_state else None
+
+    lr_at_resume = None
+    try:
+        lr_at_resume = engine.lr_scheduler.get_lr()[0]
+    except Exception:
+        pass
+
+    # Load a batch and run one forward pass
+    shard_path = os.path.join(data_dir, "train.bin")
+    data = np.memmap(shard_path, dtype=np.uint16, mode="r")
+    batch_size = ds_config["train_micro_batch_size_per_gpu"]
+    ix = torch.randint(len(data) - block_size, (batch_size,))
+    x = torch.stack([torch.from_numpy(data[i:i+block_size].astype(np.int64)) for i in ix]).to(device)
+    y = torch.stack([torch.from_numpy(data[i+1:i+1+block_size].astype(np.int64)) for i in ix]).to(device)
+
+    with torch.no_grad():
+        logits, loss = engine(x, targets=y)
+    loss_at_resume = loss.item()
+
+    ratio = loss_at_resume / saved_loss if saved_loss and saved_loss > 0 else float("inf")
+    passed = loss_at_resume <= 2.0 * saved_loss if saved_loss else False
+
+    result = {{
+        "loss_at_save": saved_loss,
+        "loss_at_resume": loss_at_resume,
+        "ratio": ratio,
+        "passed": passed,
+        "resume_step": resume_step,
+        "lr_at_save": saved_lr,
+        "lr_at_resume": lr_at_resume,
+    }}
+
+    del engine, model
+    torch.cuda.empty_cache()
+    gc.collect()
+
+except Exception as e:
+    result = {{
+        "loss_at_save": None,
+        "loss_at_resume": None,
+        "ratio": None,
+        "passed": False,
+        "error": str(e),
+    }}
+
+with open(result_file, "w") as f:
+    json.dump(result, f)
+'''
+
+    script_file = os.path.join(ckpt_dir, "_resume_verify.py")
+    with open(script_file, "w") as f:
+        f.write(script)
+
+    try:
+        proc = subprocess.run(
+            [sys.executable, script_file],
+            capture_output=True,
+            text=True,
+            timeout=300,
+            cwd=_project_root,
+        )
+
+        if os.path.exists(result_file):
+            with open(result_file) as f:
+                return json.load(f)
+
+        return {
+            "loss_at_save": None,
+            "loss_at_resume": None,
+            "ratio": None,
+            "passed": False,
+            "error": f"Subprocess exited {proc.returncode}: {proc.stderr[-500:] if proc.stderr else 'no stderr'}",
+        }
+
+    except subprocess.TimeoutExpired:
+        return {
+            "loss_at_save": None,
+            "loss_at_resume": None,
+            "ratio": None,
+            "passed": False,
+            "error": "Subprocess resume verification timed out (300s)",
+        }
+
+    except Exception as e:
+        return {
+            "loss_at_save": None,
+            "loss_at_resume": None,
+            "ratio": None,
+            "passed": False,
+            "error": f"Failed to spawn subprocess: {e}",
+        }
 
 
 # ---------------------------------------------------------------------------
@@ -1349,6 +1565,11 @@ def run_1b_preflight(args, vocab_size, hardware):
         cpu_offload=True,
     )
 
+    # Save a checkpoint at the final step for subprocess resume verification.
+    # This avoids the hot-resume OOM that occurs when trying to rebuild a 1B
+    # model in the same process that just finished training.
+    resume_ckpt_dir = tempfile.mkdtemp(prefix="als_1b_resume_ckpt_")
+
     result = run_benchmark_config(
         model_config=bench_model_config,
         ds_config=ds_config,
@@ -1356,6 +1577,7 @@ def run_1b_preflight(args, vocab_size, hardware):
         data_dir=args.data_dir,
         vocab_size=vocab_size,
         block_size=block_size,
+        save_final_checkpoint=resume_ckpt_dir,
     )
 
     status = result.get("status", "error")
@@ -1365,6 +1587,7 @@ def run_1b_preflight(args, vocab_size, hardware):
         error_msg = result.get("error", "OOM or unknown error")
         print(f"  HARD FAIL: Benchmark did not complete - {error_msg}")
         print(f"{'=' * 70}\n")
+        shutil.rmtree(resume_ckpt_dir, ignore_errors=True)
         return
 
     peak_gpu_gb = result["peak_gpu_gb"]
@@ -1377,8 +1600,11 @@ def run_1b_preflight(args, vocab_size, hardware):
     print(f"  CPU RAM: {cpu_ram_gb:.1f} GB")
     print(f"  Checkpoint save: {ckpt_save_time:.1f}s")
 
-    # --- Step C: Forced checkpoint resume at save_step with LR verification ---
-    print(f"\n  --- Checkpoint Resume Verification (save at step {args.steps}) ---")
+    # --- Step C: Checkpoint resume verification via subprocess ---
+    # Spawns a fresh Python process to load the checkpoint saved during Step B.
+    # This mirrors real production resume (cold start) and avoids the hot-resume
+    # OOM that occurred when rebuilding the 1B model in the same process.
+    print(f"\n  --- Checkpoint Resume Verification (subprocess, step {args.steps}) ---")
 
     resume_ds_config = make_ds_config(
         base_config_path=args.base_config,
@@ -1390,16 +1616,18 @@ def run_1b_preflight(args, vocab_size, hardware):
         cpu_offload=True,
     )
 
-    checkpoint_resume_result = verify_checkpoint_resume(
+    checkpoint_resume_result = verify_checkpoint_resume_subprocess(
         model_config=bench_model_config,
         ds_config=resume_ds_config,
         data_dir=args.data_dir,
         vocab_size=vocab_size,
-        block_size=block_size,
+        ckpt_dir=resume_ckpt_dir,
         save_step=args.steps,
-        warmup_steps=bench_warmup,
-        lr=bench_lr,
+        block_size=block_size,
     )
+
+    # Clean up resume checkpoint
+    shutil.rmtree(resume_ckpt_dir, ignore_errors=True)
 
     if checkpoint_resume_result.get("passed"):
         print(f"  PASSED: loss_save={checkpoint_resume_result['loss_at_save']:.4f}, "
