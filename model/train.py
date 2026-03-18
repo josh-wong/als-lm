@@ -72,6 +72,8 @@ from collections import deque
 from dataclasses import fields as dataclass_fields
 from datetime import datetime, timezone
 
+import psutil
+
 # Ensure the project root is on sys.path so that `from model.model import ...`
 # resolves correctly when DeepSpeed launches this script via
 # `python model/train.py --local_rank=0 ...`.
@@ -118,6 +120,7 @@ CONFIG_DEFAULTS = {
     "tiny": {"lr": 6e-4, "batch_size": 16, "grad_accum": 2, "warmup": 100, "max_steps": 2000},
     "medium": {"lr": 3e-4, "batch_size": 8, "grad_accum": 4, "warmup": 200, "max_steps": 10000},
     "500M": {"lr": 3e-4, "batch_size": 4, "grad_accum": 8, "warmup": 500, "max_steps": 50000},
+    "1B": {"lr": 3e-4, "batch_size": 4, "grad_accum": 8, "warmup": 1000, "max_steps": 50000},  # max_steps placeholder; overridden at runtime from token count (11,679 for v1.2.0 corpus, 3 epochs)
     # Note: The fine-tuning experiment (v0.8.0) used the shared ds_zero2.json
     # optimizer defaults (betas=[0.9, 0.95], weight_decay=0.1) rather than
     # standard fine-tuning values (betas=[0.9, 0.999], weight_decay=0.01).
@@ -628,6 +631,53 @@ def get_gpu_total_memory_mb(handle):
         return 0
 
 
+def get_gpu_utilization(handle):
+    """Return GPU utilization percentage, or 0 if unavailable."""
+    if handle is None:
+        return 0
+    try:
+        util = pynvml.nvmlDeviceGetUtilizationRates(handle)
+        return util.gpu
+    except Exception:
+        return 0
+
+
+def get_gpu_temperature(handle):
+    """Return GPU temperature in Celsius, or 0 if unavailable."""
+    if handle is None:
+        return 0
+    try:
+        return pynvml.nvmlDeviceGetTemperature(handle, pynvml.NVML_TEMPERATURE_GPU)
+    except Exception:
+        return 0
+
+
+def get_cpu_ram_mb():
+    """Return system-wide used RAM in MB.
+
+    Uses system-wide measurement (not process-specific) for consistency
+    with readiness_gate.py and to capture DeepSpeed CPU offload memory
+    that may not appear under the training process RSS.
+    """
+    try:
+        return psutil.virtual_memory().used // (1024 * 1024)
+    except Exception:
+        return 0
+
+
+def get_gpu_peak_mem_mb():
+    """Return peak GPU memory allocated since training start, in MB.
+
+    Tracks cumulative peak (no reset between intervals) because the
+    all-time peak is what matters for VRAM fit analysis and the 3B
+    go/no-go decision.
+    """
+    try:
+        return torch.cuda.max_memory_allocated() // (1024 * 1024)
+    except Exception:
+        return 0
+
+
 # ---------------------------------------------------------------------------
 # Checkpoint saving (atomic pattern: temp-dir-then-rename)
 # ---------------------------------------------------------------------------
@@ -1008,7 +1058,8 @@ def write_config_header(log_file, args, model_config_dict, ds_config, vocab_size
 
 
 def log_step(log_file, step, loss, lr, tokens_per_sec, gpu_mem_mb, dt_sec,
-             epoch, epoch_progress, total_tokens, loss_scale, grad_norm):
+             epoch, epoch_progress, total_tokens, loss_scale, grad_norm,
+             cpu_ram_mb=0, gpu_util_pct=0, gpu_temp_c=0, gpu_peak_mem_mb=0):
     """Write a training step entry to the JSONL log file."""
     try:
         perplexity = min(math.exp(loss), 1e5)
@@ -1029,6 +1080,10 @@ def log_step(log_file, step, loss, lr, tokens_per_sec, gpu_mem_mb, dt_sec,
         "total_tokens": total_tokens,
         "loss_scale": loss_scale,
         "grad_norm": round(grad_norm, 4) if grad_norm is not None else 0.0,
+        "cpu_ram_mb": cpu_ram_mb,
+        "gpu_util_pct": gpu_util_pct,
+        "gpu_temp_c": gpu_temp_c,
+        "gpu_peak_mem_mb": gpu_peak_mem_mb,
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     log_file.write(json.dumps(entry) + "\n")
@@ -1068,7 +1123,8 @@ def log_validation(log_file, step, train_loss, val_loss, samples,
     log_file.flush()
 
 
-def log_epoch(log_file, epoch, steps_in_epoch, avg_train_loss, total_tokens, elapsed_sec):
+def log_epoch(log_file, epoch, steps_in_epoch, avg_train_loss, total_tokens,
+              elapsed_sec, val_loss=None, peak_vram_mb=0, gpu_temp_c=0):
     """Write an epoch boundary entry to the JSONL log file."""
     try:
         avg_ppl = min(math.exp(avg_train_loss), 1e5)
@@ -1083,6 +1139,9 @@ def log_epoch(log_file, epoch, steps_in_epoch, avg_train_loss, total_tokens, ela
         "avg_perplexity": round(avg_ppl, 2),
         "total_tokens": total_tokens,
         "elapsed_sec": round(elapsed_sec, 1),
+        "val_loss": round(val_loss, 6) if val_loss is not None else None,
+        "peak_vram_mb": peak_vram_mb,
+        "gpu_temp_c": gpu_temp_c,
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     log_file.write(json.dumps(entry) + "\n")
@@ -1355,6 +1414,79 @@ def print_training_summary(
     print(f"{BOLD}{'=' * 64}{RESET}\n")
 
 
+def write_training_summary_file(
+    summary_path,
+    config_name,
+    total_steps,
+    elapsed_time,
+    final_train_loss,
+    final_val_loss,
+    best_val_loss,
+    best_val_step,
+    total_tokens_processed,
+    run_dir,
+    epoch_tracker=None,
+    total_checkpoints_saved=0,
+    total_best_updates=0,
+    total_bytes_written=0,
+    peak_vram_mb=0,
+    peak_cpu_ram_mb=0,
+    peak_gpu_temp_c=0,
+):
+    """Write a markdown training summary file with run results.
+
+    Called after print_training_summary() at the end of training.
+    Writes to logs/training_summary_{config}.md by default.
+    """
+    time_str = format_time(elapsed_time)
+    avg_throughput = total_tokens_processed / elapsed_time if elapsed_time > 0 else 0
+    epochs_completed = epoch_tracker.epoch if epoch_tracker else 0
+    best_ckpt_path = os.path.join(run_dir, "best")
+    disk_gb = total_bytes_written / 1024 / 1024 / 1024
+    timestamp = datetime.now(timezone.utc).isoformat()
+
+    content = f"""# {config_name} Training Summary
+
+**Completed:** {timestamp}
+**Config:** {config_name}
+**Run directory:** {run_dir}
+
+## Training metrics
+
+| Metric              | Value                                  |
+|---------------------|----------------------------------------|
+| Total steps         | {total_steps:,}                        |
+| Total time          | {time_str}                             |
+| Epochs completed    | {epochs_completed}                     |
+| Final train loss    | {final_train_loss:.4f}                 |
+| Final val loss      | {final_val_loss:.4f}                   |
+| Best val loss       | {best_val_loss:.4f} (step {best_val_step}) |
+| Total tokens        | {total_tokens_processed:,}             |
+| Avg throughput      | {avg_throughput:,.0f} tokens/sec       |
+
+## Resource peaks
+
+| Resource            | Peak value       |
+|---------------------|------------------|
+| GPU VRAM            | {peak_vram_mb:,} MB ({peak_vram_mb / 1024:.2f} GB) |
+| CPU RAM             | {peak_cpu_ram_mb:,} MB ({peak_cpu_ram_mb / 1024:.1f} GB) |
+| GPU temperature     | {peak_gpu_temp_c} C                    |
+
+## Checkpoints
+
+| Property            | Value                                  |
+|---------------------|----------------------------------------|
+| Best checkpoint     | {best_ckpt_path}                       |
+| Total saved         | {total_checkpoints_saved}              |
+| Best updates        | {total_best_updates}                   |
+| Total disk written  | {disk_gb:.2f} GB                       |
+"""
+
+    os.makedirs(os.path.dirname(summary_path) or ".", exist_ok=True)
+    with open(summary_path, "w") as f:
+        f.write(content)
+
+
 # ---------------------------------------------------------------------------
 # Main training function
 # ---------------------------------------------------------------------------
@@ -1577,6 +1709,9 @@ def main():
     loss_scale_history = deque(maxlen=100)   # For emergency diagnostics
     GRAD_NORM_WARN_THRESHOLD = 10.0
     LOSS_SPIKE_FACTOR = 2.0
+    GPU_TEMP_WARN_THRESHOLD = 80  # Celsius - warn on throttle risk
+    GPU_TEMP_PAUSE_THRESHOLD = 85  # Celsius - pause training to cool down
+    GPU_TEMP_RESUME_THRESHOLD = 75  # Celsius - resume after cooldown
 
     # Tracking variables
     initial_loss = None
@@ -1602,6 +1737,10 @@ def main():
     total_bytes_written = 0
 
     training_start_time = time.time()
+
+    # Peak resource tracking across the full run (for summary file)
+    peak_cpu_ram_mb = 0.0
+    peak_gpu_temp_c = 0
 
     # Print full config summary at startup
     print_config_summary(
@@ -1676,8 +1815,16 @@ def main():
             if epoch_crossed:
                 elapsed = time.time() - training_start_time
                 prev_epoch = epoch_tracker.epoch  # Already incremented
+                epoch_vram = get_gpu_peak_mem_mb()
+                epoch_temp = get_gpu_temperature(gpu_handle)
                 print(f"\n  {BOLD}{'=' * 50}{RESET}")
                 print(f"  {BOLD}  Epoch {prev_epoch}/{epoch_tracker.total_epochs}{RESET}")
+                print(f"  {BOLD}{'=' * 50}{RESET}")
+                print(f"    Avg train loss:  {epoch_tracker.completed_epoch_avg_loss:.4f}")
+                print(f"    Last val loss:   {last_val_loss:.4f}")
+                print(f"    Elapsed:         {format_time(elapsed)}")
+                print(f"    Peak VRAM:       {epoch_vram:,} MB")
+                print(f"    GPU temp:        {epoch_temp} C")
                 print(f"  {BOLD}{'=' * 50}{RESET}")
                 log_epoch(
                     log_file,
@@ -1686,6 +1833,9 @@ def main():
                     avg_train_loss=epoch_tracker.completed_epoch_avg_loss,
                     total_tokens=total_tokens_processed,
                     elapsed_sec=elapsed,
+                    val_loss=last_val_loss if last_val_loss != float("inf") else None,
+                    peak_vram_mb=epoch_vram,
+                    gpu_temp_c=epoch_temp,
                 )
 
             # Log every log_interval steps
@@ -1693,6 +1843,35 @@ def main():
                 current_lr = optimizer.param_groups[0]["lr"]
                 tokens_per_sec = tokens_per_step / dt if dt > 0 else 0
                 gpu_mem = get_gpu_memory_mb(gpu_handle)
+                gpu_util = get_gpu_utilization(gpu_handle)
+                gpu_temp = get_gpu_temperature(gpu_handle)
+                cpu_ram = get_cpu_ram_mb()
+                gpu_peak = get_gpu_peak_mem_mb()
+
+                # Update peak resource trackers
+                peak_cpu_ram_mb = max(peak_cpu_ram_mb, cpu_ram)
+                peak_gpu_temp_c = max(peak_gpu_temp_c, gpu_temp)
+
+                # GPU temperature warning
+                if gpu_temp >= GPU_TEMP_WARN_THRESHOLD:
+                    print(f"  {YELLOW}WARNING: GPU temperature {gpu_temp}C >= {GPU_TEMP_WARN_THRESHOLD}C threshold{RESET}")
+
+                # GPU thermal cooldown pause
+                if gpu_temp >= GPU_TEMP_PAUSE_THRESHOLD:
+                    print(f"  {YELLOW}THERMAL PAUSE: GPU at {gpu_temp}C >= {GPU_TEMP_PAUSE_THRESHOLD}C — pausing until {GPU_TEMP_RESUME_THRESHOLD}C{RESET}")
+                    if log_file:
+                        log_file.write(f"[THERMAL PAUSE] step={step} gpu_temp={gpu_temp}C\n")
+                        log_file.flush()
+                    while True:
+                        time.sleep(30)
+                        current_temp = get_gpu_temperature(gpu_handle)
+                        print(f"  {YELLOW}  Cooling... {current_temp}C (target: {GPU_TEMP_RESUME_THRESHOLD}C){RESET}")
+                        if current_temp <= GPU_TEMP_RESUME_THRESHOLD:
+                            print(f"  {GREEN}THERMAL RESUME: GPU cooled to {current_temp}C — resuming training{RESET}")
+                            if log_file:
+                                log_file.write(f"[THERMAL RESUME] step={step} gpu_temp={current_temp}C\n")
+                                log_file.flush()
+                            break
 
                 # Anomaly detection
                 loss_warning = False
@@ -1746,6 +1925,10 @@ def main():
                     gpu_mem, dt, epoch_tracker.epoch,
                     epoch_tracker.epoch_progress(step), total_tokens_processed,
                     loss_scale, grad_norm,
+                    cpu_ram_mb=cpu_ram,
+                    gpu_util_pct=gpu_util,
+                    gpu_temp_c=gpu_temp,
+                    gpu_peak_mem_mb=gpu_peak,
                 )
 
                 # TensorBoard custom metrics (step-aligned with JSONL log)
@@ -1759,6 +1942,10 @@ def main():
                 tb_writer.add_scalar("Schedule/learning_rate", current_lr, step)
                 tb_writer.add_scalar("Schedule/epoch", epoch_tracker.epoch, step)
                 tb_writer.add_scalar("Progress/tokens_per_sec", tokens_per_sec, step)
+                tb_writer.add_scalar("Resources/cpu_ram_mb", cpu_ram, step)
+                tb_writer.add_scalar("Resources/gpu_utilization_pct", gpu_util, step)
+                tb_writer.add_scalar("Resources/gpu_temperature_c", gpu_temp, step)
+                tb_writer.add_scalar("Resources/gpu_peak_mem_mb", gpu_peak, step)
 
             # --- Conditional 1: Validation (every eval_interval steps, and at final step) ---
             if step > 0 and (step % eval_interval == 0 or step == max_steps - 1):
@@ -1954,6 +2141,32 @@ def main():
         total_bytes_written=total_bytes_written,
         initial_val_loss=initial_val_loss,
     )
+
+    # Write training summary markdown file
+    try:
+        summary_path = os.path.join("logs", f"training_summary_{config_label}.md")
+        write_training_summary_file(
+            summary_path=summary_path,
+            config_name=config_label,
+            total_steps=max_steps - start_step,
+            elapsed_time=elapsed,
+            final_train_loss=final_train_loss,
+            final_val_loss=final_val_loss,
+            best_val_loss=best_val_loss,
+            best_val_step=best_val_step,
+            total_tokens_processed=total_tokens_processed,
+            run_dir=run_dir,
+            epoch_tracker=epoch_tracker,
+            total_checkpoints_saved=total_checkpoints_saved,
+            total_best_updates=total_best_updates,
+            total_bytes_written=total_bytes_written,
+            peak_vram_mb=get_gpu_peak_mem_mb(),
+            peak_cpu_ram_mb=peak_cpu_ram_mb,
+            peak_gpu_temp_c=peak_gpu_temp_c,
+        )
+        print(f"  Training summary written to: {summary_path}")
+    except Exception as e:
+        print(f"  {YELLOW}WARNING: Failed to write training summary file: {e}{RESET}")
 
 
 if __name__ == "__main__":

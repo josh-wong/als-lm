@@ -1,0 +1,87 @@
+{
+  "model": {
+    "n_layer": 30,
+    "n_head": 20,
+    "n_embd": 1600,
+    "block_size": 1024,
+    "dropout": 0.1,
+    "bias": true,
+    "vocab_size": null,
+    "use_gradient_checkpointing": true
+  },
+  "deepspeed": {
+    "train_batch_size": "auto",
+    "train_micro_batch_size_per_gpu": "auto",
+    "gradient_accumulation_steps": "auto",
+    "gradient_clipping": 1.0,
+    "fp16": {
+      "enabled": true,
+      "loss_scale": 0,
+      "initial_scale_power": 16,
+      "loss_scale_window": 1000,
+      "hysteresis": 2,
+      "min_loss_scale": 1
+    },
+    "zero_optimization": {
+      "stage": 2,
+      "offload_optimizer": {
+        "device": "cpu",
+        "pin_memory": true
+      },
+      "contiguous_gradients": true,
+      "overlap_comm": true,
+      "reduce_scatter": true,
+      "reduce_bucket_size": 500000000.0,
+      "allgather_bucket_size": 500000000.0
+    },
+    "optimizer": {
+      "type": "Adam",
+      "params": {
+        "lr": "auto",
+        "betas": [
+          0.9,
+          0.95
+        ],
+        "eps": 1e-08,
+        "weight_decay": 0.1
+      }
+    },
+    "scheduler": {
+      "type": "WarmupCosineLR",
+      "params": {
+        "warmup_min_ratio": 0.0,
+        "warmup_num_steps": "auto",
+        "total_num_steps": "auto",
+        "cos_min_ratio": 0.0
+      }
+    },
+    "activation_checkpointing": {
+      "partition_activations": true,
+      "contiguous_memory_optimization": false,
+      "cpu_checkpointing": false
+    }
+  },
+  "training": {
+    "size_name": "1B",
+    "cpu_offload": true,
+    "gradient_checkpointing": true,
+    "batch_size": 4,
+    "grad_accum": 8,
+    "lr": 0.0003,
+    "warmup_steps": 1000,
+    "max_steps": 11679,
+    "block_size": 1024
+  },
+  "benchmark_results": {
+    "peak_vram_gb": 6.079693794250488,
+    "tokens_per_sec": 2352.91233185727,
+    "cpu_ram_gb": 22.399681091308594,
+    "checkpoint_save_time_sec": 11.29630638099843,
+    "steps_run": 500,
+    "timestamp": "2026-03-17T10:27:24.503297+00:00"
+  },
+  "design_doc": "docs/v2-design-doc.md#51-deepspeed-configuration-changes",
+  "generated_by": "docs/v2-design-doc.md",
+  "generated_at": null,
+  "reviewed_at": null
+}
