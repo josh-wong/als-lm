@@ -52,6 +52,13 @@ GRID_ALPHA = 0.3
 EPOCH_LINE_COLOR = "#888888"
 EPOCH_LINE_ALPHA = 0.5
 
+# Resource plot colors
+VRAM_COLOR = "#ff7f0e"        # Orange
+RAM_COLOR = "#9467bd"         # Purple
+GPU_UTIL_COLOR = "#8c564b"    # Brown
+TEMP_COLOR = "#e377c2"        # Pink
+THROUGHPUT_COLOR = "#17becf"  # Cyan
+
 
 # ---------------------------------------------------------------------------
 # JSONL parsing
@@ -365,6 +372,92 @@ def plot_lr_schedule(
     fig.tight_layout()
     fig.savefig(output_path, dpi=DPI, bbox_inches="tight")
     plt.close(fig)
+
+
+def plot_resource_metric(
+    steps: list[dict],
+    metric_key: str,
+    ylabel: str,
+    title: str,
+    output_path: str,
+    color: str = "#ff7f0e",
+) -> bool:
+    """Plot a single resource metric over training steps.
+
+    Filters steps to only those containing metric_key. Returns False and
+    creates no file if no steps have the metric.
+    """
+    filtered = [(s["step"], s[metric_key]) for s in steps if metric_key in s]
+    if not filtered:
+        return False
+
+    step_nums, values = zip(*filtered)
+
+    fig, ax = plt.subplots(figsize=FIGURE_SIZE)
+    ax.plot(step_nums, values, color=color, linewidth=1.2, alpha=0.8)
+
+    y_max = max(values) if values else 1.0
+    _add_epoch_markers(ax, [s for s in steps if metric_key in s], y_max)
+    _setup_axes(ax, title, "Training step", ylabel)
+
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=DPI, bbox_inches="tight")
+    plt.close(fig)
+    return True
+
+
+# Resource metric definitions: (key, label, unit)
+RESOURCE_METRICS = [
+    ("gpu_peak_mem_mb", "VRAM (peak)", "MB"),
+    ("cpu_ram_mb", "CPU RAM", "MB"),
+    ("gpu_util_pct", "GPU utilization", "%"),
+    ("gpu_temp_c", "GPU temperature", "C"),
+    ("tokens_per_sec", "Throughput", "tok/s"),
+]
+
+
+def generate_resource_report(steps: list[dict]) -> str:
+    """Generate a markdown resource usage report with peak/mean/min stats.
+
+    Returns a markdown string. Handles empty steps gracefully.
+    """
+    lines = ["# Resource usage report\n"]
+
+    if not steps:
+        lines.append("No step data available for resource analysis.\n")
+        return "\n".join(lines)
+
+    lines.append(
+        "Summary of hardware resource utilization during training.\n"
+    )
+    lines.append(
+        "| Metric              |    Peak |    Mean |     Min |"
+    )
+    lines.append(
+        "|---------------------|---------|---------|---------|"
+    )
+
+    metrics_found = 0
+    for key, label, unit in RESOURCE_METRICS:
+        values = [s[key] for s in steps if key in s]
+        if not values:
+            continue
+        metrics_found += 1
+        peak = max(values)
+        mean = sum(values) / len(values)
+        minimum = min(values)
+        lines.append(
+            f"| {label:<19} | {peak:>7.1f} | {mean:>7.1f} | {minimum:>7.1f} |"
+        )
+
+    if metrics_found == 0:
+        lines.append("| (no resource data)  |     N/A |     N/A |     N/A |")
+
+    lines.append("")
+    lines.append(
+        f"Statistics computed from {len(steps)} logged training steps.\n"
+    )
+    return "\n".join(lines)
 
 
 # ---------------------------------------------------------------------------
@@ -883,6 +976,32 @@ def main() -> None:
     lr_path = os.path.join(output_dir, "lr_schedule.png")
     plot_lr_schedule(parsed["steps"], lr_path)
     print("  Saved: lr_schedule.png")
+
+    # Generate resource plots
+    print("Generating resource plots...")
+    resource_configs = [
+        ("gpu_peak_mem_mb", "VRAM (MB)", "Peak VRAM usage", "vram_usage.png", VRAM_COLOR),
+        ("cpu_ram_mb", "CPU RAM (MB)", "CPU RAM usage", "cpu_ram_usage.png", RAM_COLOR),
+        ("gpu_util_pct", "GPU utilization (%)", "GPU utilization", "gpu_utilization.png", GPU_UTIL_COLOR),
+        ("gpu_temp_c", "Temperature (C)", "GPU temperature", "gpu_temperature.png", TEMP_COLOR),
+        ("tokens_per_sec", "Tokens/sec", "Training throughput", "throughput.png", THROUGHPUT_COLOR),
+    ]
+    for metric_key, ylabel, title, filename, color in resource_configs:
+        out = os.path.join(output_dir, filename)
+        created = plot_resource_metric(
+            parsed["steps"], metric_key, ylabel, title, out, color=color,
+        )
+        if created:
+            print(f"  Saved: {filename}")
+        else:
+            print(f"  Skipped: {filename} (no {metric_key} data)")
+
+    # Generate resource report
+    res_report = generate_resource_report(parsed["steps"])
+    res_report_path = os.path.join(output_dir, "resource_report.md")
+    with open(res_report_path, "w", encoding="utf-8") as f:
+        f.write(res_report)
+    print("  Saved: resource_report.md")
 
     # Generate report
     print("Writing report...")
