@@ -135,6 +135,14 @@ CONFIG_DEFAULTS = {
         "max_epochs": 2,
         "dropout": 0.1,
     },
+    "1B-sft": {
+        "lr": 2e-5,
+        "batch_size": 2,
+        "grad_accum": 4,
+        "warmup": 50,
+        "max_epochs": 3,
+        "dropout": 0.1,
+    },
 }
 
 # Fixed prompts for sample text generation at validation intervals
@@ -519,6 +527,66 @@ def get_batch(split, batch_size, block_size, device, data_dir):
     return x, y
 
 
+def get_sft_batch(split, batch_size, block_size, device, data_dir):
+    """Load a batch from paired input/labels binary files for SFT.
+
+    Uses padded fixed-length record indexing: each example occupies exactly
+    ``block_size`` tokens in both files, so example boundaries are implicit
+    at multiples of ``block_size``.
+
+    Returns:
+        Tuple ``(x, labels)`` where x is input token IDs of shape
+        ``(batch_size, block_size)`` and labels is masked labels of shape
+        ``(batch_size, block_size)`` with -100 for instruction prefix and
+        padding positions.
+    """
+    prefix = "train" if split == "train" else "val"
+    input_data = np.memmap(
+        os.path.join(data_dir, f"{prefix}.bin"), dtype=np.uint16, mode="r"
+    )
+    labels_data = np.memmap(
+        os.path.join(data_dir, f"labels_{prefix}.bin"), dtype=np.int32, mode="r"
+    )
+
+    num_examples = len(input_data) // block_size
+    ix = torch.randint(num_examples, (batch_size,)) * block_size
+
+    x = torch.stack(
+        [torch.from_numpy(input_data[i : i + block_size].astype(np.int64)) for i in ix]
+    )
+    labels = torch.stack(
+        [torch.from_numpy(labels_data[i : i + block_size].astype(np.int64)) for i in ix]
+    )
+
+    if device != "cpu":
+        x = x.pin_memory().to(device, non_blocking=True)
+        labels = labels.pin_memory().to(device, non_blocking=True)
+
+    return x, labels
+
+
+def discover_1b_checkpoint(checkpoint_base="checkpoints"):
+    """Find the most recent 1B training run's best.pt checkpoint.
+
+    Searches for directories matching the ``1B_*`` pattern (produced by
+    train.py's checkpoint naming convention ``{config_label}_{timestamp}``),
+    sorts by timestamp in the directory name, and returns the path to
+    ``best/best.pt`` inside the most recent one.
+
+    Args:
+        checkpoint_base: Base directory containing checkpoint run directories.
+
+    Returns:
+        Path to best.pt if found, or None if no 1B checkpoints exist.
+    """
+    import glob
+    pattern = os.path.join(checkpoint_base, "1B_*/best/best.pt")
+    candidates = sorted(glob.glob(pattern), reverse=True)
+    if candidates:
+        return candidates[0]
+    return None
+
+
 # ---------------------------------------------------------------------------
 # Validation loss estimation
 # ---------------------------------------------------------------------------
@@ -536,6 +604,44 @@ def estimate_loss(model_engine, eval_iters, batch_size, block_size, device, data
         for k in range(eval_iters):
             x, y = get_batch(split, batch_size, block_size, device, data_dir)
             logits, loss = model_engine.module(x, targets=y)
+            losses[k] = loss.item()
+        out[split] = losses.mean().item()
+    model_engine.module.train()
+    return out
+
+
+@torch.no_grad()
+def estimate_sft_loss(model_engine, eval_iters, batch_size, block_size, device, data_dir, num_examples=None):
+    """Estimate train and validation loss for SFT using paired data loading.
+
+    Mirrors ``estimate_loss()`` but uses ``get_sft_batch()`` and passes
+    labels (with -100 masking) instead of shifted targets. The
+    ``num_examples`` parameter caps ``eval_iters`` to avoid oversampling
+    when the SFT dataset is small.
+
+    Args:
+        model_engine: DeepSpeed model engine.
+        eval_iters: Maximum number of batches to average.
+        batch_size: Micro batch size.
+        block_size: Sequence length.
+        device: Target device.
+        data_dir: Path to SFT tokenized data directory.
+        num_examples: Optional dict ``{"train": N, "val": M}`` to cap
+            eval_iters per split. If None, uses eval_iters for both.
+    """
+    model_engine.module.eval()
+    out = {}
+    for split in ["train", "val"]:
+        # Cap eval_iters to number of available examples for this split
+        iters = eval_iters
+        if num_examples is not None and split in num_examples:
+            iters = min(eval_iters, num_examples[split])
+        iters = max(iters, 1)  # At least 1 iteration
+
+        losses = torch.zeros(iters)
+        for k in range(iters):
+            x, labels = get_sft_batch(split, batch_size, block_size, device, data_dir)
+            logits, loss = model_engine.module(x, labels=labels)
             losses[k] = loss.item()
         out[split] = losses.mean().item()
     model_engine.module.train()

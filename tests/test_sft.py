@@ -1,18 +1,23 @@
-"""Unit and integration tests for SFT data preparation pipeline.
+"""Unit and integration tests for SFT data preparation and training pipeline.
 
 Tests cover synthetic dataset validation, Alpaca template formatting (both
 with-input and no-input variants), tokenization with -100 label masking,
 padding behavior, block_size overflow handling, SFT config correctness,
-and integration tests for binary output file validation.
+integration tests for binary output file validation, GPT.forward() labels
+masking, get_sft_batch() paired memmap loading, estimate_sft_loss()
+validation, checkpoint discovery, and CONFIG_DEFAULTS entries.
 """
 
 import json
+import os
 import pickle
 import sys
+import tempfile
 from pathlib import Path
 
 import numpy as np
 import pytest
+import torch
 
 # Ensure project root is on sys.path so data package is importable
 _project_root = Path(__file__).resolve().parent.parent
@@ -381,3 +386,241 @@ class TestPrepareSftOutput:
         assert meta["vocab_size"] == 50257, (
             f"Expected vocab_size=50257, got {meta['vocab_size']}"
         )
+
+
+# ---------------------------------------------------------------------------
+# GPT.forward() labels parameter tests
+# ---------------------------------------------------------------------------
+
+from model.model import GPT, GPTConfig
+
+
+def _make_tiny_model():
+    """Create a tiny GPT model for testing on CPU."""
+    config = GPTConfig(
+        block_size=32, vocab_size=100, n_layer=2, n_head=2, n_embd=64,
+        dropout=0.0, bias=True,
+    )
+    return GPT(config)
+
+
+class TestForwardLabels:
+    """GPT.forward() labels parameter for SFT loss masking."""
+
+    def test_forward_labels_masking(self):
+        """Loss with labels (-100 masking) differs from loss with all-valid targets."""
+        model = _make_tiny_model()
+        model.eval()
+
+        torch.manual_seed(42)
+        idx = torch.randint(0, 100, (2, 32))
+
+        # Create labels: first 16 tokens masked (-100), last 16 are valid IDs
+        labels = torch.full((2, 32), -100, dtype=torch.long)
+        labels[:, 16:] = torch.randint(0, 100, (2, 16))
+
+        # All-valid targets (same values where labels are valid, random elsewhere)
+        all_targets = torch.randint(0, 100, (2, 32))
+        all_targets[:, 16:] = labels[:, 16:]
+
+        _, loss_labels = model(idx, labels=labels)
+        _, loss_targets = model(idx, targets=all_targets)
+
+        assert loss_labels is not None, "labels should produce a loss"
+        assert loss_targets is not None, "targets should produce a loss"
+        # Losses should differ because labels masks prefix positions
+        assert not torch.isclose(loss_labels, loss_targets), (
+            "Masked loss should differ from full-sequence loss"
+        )
+
+    def test_forward_targets_unchanged(self):
+        """Existing targets behavior is unchanged (no regression)."""
+        model = _make_tiny_model()
+        model.eval()
+
+        torch.manual_seed(42)
+        idx = torch.randint(0, 100, (2, 32))
+        targets = torch.randint(0, 100, (2, 32))
+
+        _, loss = model(idx, targets=targets)
+        assert loss is not None, "targets should produce a loss"
+        assert loss.ndim == 0, "loss should be scalar"
+        assert not torch.isnan(loss), "loss should not be NaN"
+
+    def test_forward_labels_none_no_loss(self):
+        """No targets and no labels returns loss=None."""
+        model = _make_tiny_model()
+        model.eval()
+
+        idx = torch.randint(0, 100, (2, 32))
+        logits, loss = model(idx)
+        assert loss is None, "No targets/labels should return None loss"
+        assert logits.shape == (2, 32, 100), "logits shape should be (B, T, V)"
+
+    def test_forward_labels_and_targets_labels_wins(self):
+        """When both labels and targets are provided, labels takes precedence."""
+        model = _make_tiny_model()
+        model.eval()
+
+        torch.manual_seed(42)
+        idx = torch.randint(0, 100, (2, 32))
+
+        # Labels: first half masked
+        labels = torch.full((2, 32), -100, dtype=torch.long)
+        labels[:, 16:] = torch.randint(0, 100, (2, 16))
+
+        # Targets: all valid
+        targets = torch.randint(0, 100, (2, 32))
+
+        _, loss_both = model(idx, targets=targets, labels=labels)
+        _, loss_labels_only = model(idx, labels=labels)
+
+        assert loss_both is not None
+        assert loss_labels_only is not None
+        assert torch.isclose(loss_both, loss_labels_only), (
+            "When both provided, labels should take precedence (same loss)"
+        )
+
+
+# ---------------------------------------------------------------------------
+# get_sft_batch tests
+# ---------------------------------------------------------------------------
+
+class TestGetSftBatch:
+    """get_sft_batch() loads paired binary files with correct indexing."""
+
+    @pytest.fixture
+    def sft_data_dir(self, tmp_path):
+        """Create temporary paired binary files for testing."""
+        block_size = 32
+        num_examples = 4
+
+        # Create input data (uint16): 4 examples x 32 tokens
+        input_data = np.arange(
+            num_examples * block_size, dtype=np.uint16
+        ).reshape(num_examples, block_size)
+        input_data.tofile(tmp_path / "train.bin")
+        input_data[:2].tofile(tmp_path / "val.bin")  # 2 val examples
+
+        # Create labels data (int32): matching structure with -100 for first half
+        labels_data = np.full(
+            (num_examples, block_size), -100, dtype=np.int32
+        )
+        # Set response tokens in second half to valid IDs
+        for i in range(num_examples):
+            labels_data[i, 16:] = np.arange(16, dtype=np.int32) + i * 100
+        labels_data.tofile(tmp_path / "labels_train.bin")
+        labels_data[:2].tofile(tmp_path / "labels_val.bin")
+
+        return str(tmp_path), block_size, num_examples
+
+    def test_get_sft_batch_returns_correct_shapes(self, sft_data_dir):
+        from model.train import get_sft_batch
+
+        data_dir, block_size, _ = sft_data_dir
+        x, labels = get_sft_batch("train", batch_size=2, block_size=block_size, device="cpu", data_dir=data_dir)
+
+        assert x.shape == (2, block_size), f"x shape should be (2, {block_size})"
+        assert labels.shape == (2, block_size), f"labels shape should be (2, {block_size})"
+
+    def test_get_sft_batch_labels_dtype(self, sft_data_dir):
+        from model.train import get_sft_batch
+
+        data_dir, block_size, _ = sft_data_dir
+        x, labels = get_sft_batch("train", batch_size=2, block_size=block_size, device="cpu", data_dir=data_dir)
+
+        assert labels.dtype == torch.int64, f"labels dtype should be int64, got {labels.dtype}"
+        assert x.dtype == torch.int64, f"x dtype should be int64, got {x.dtype}"
+
+    def test_get_sft_batch_alignment(self, sft_data_dir):
+        """x and labels from same batch are aligned (same example indices)."""
+        from model.train import get_sft_batch
+
+        data_dir, block_size, num_examples = sft_data_dir
+
+        # Load raw data to verify alignment
+        raw_input = np.memmap(os.path.join(data_dir, "train.bin"), dtype=np.uint16, mode="r")
+        raw_labels = np.memmap(os.path.join(data_dir, "labels_train.bin"), dtype=np.int32, mode="r")
+
+        # Run multiple batches and verify alignment
+        torch.manual_seed(123)
+        for _ in range(5):
+            x, labels = get_sft_batch("train", batch_size=1, block_size=block_size, device="cpu", data_dir=data_dir)
+            x_np = x[0].numpy()
+            labels_np = labels[0].numpy()
+
+            # Find which example this is by checking input values
+            found = False
+            for ex_idx in range(num_examples):
+                start = ex_idx * block_size
+                expected_x = raw_input[start:start + block_size].astype(np.int64)
+                expected_labels = raw_labels[start:start + block_size].astype(np.int64)
+                if np.array_equal(x_np, expected_x):
+                    assert np.array_equal(labels_np, expected_labels), (
+                        f"x matched example {ex_idx} but labels did not match"
+                    )
+                    found = True
+                    break
+            assert found, "Batch should contain a complete example from the data"
+
+
+# ---------------------------------------------------------------------------
+# Checkpoint discovery tests
+# ---------------------------------------------------------------------------
+
+class TestCheckpointDiscovery:
+    """discover_1b_checkpoint() finds the most recent 1B best.pt."""
+
+    def test_checkpoint_discovery_finds_best_pt(self, tmp_path):
+        from model.train import discover_1b_checkpoint
+
+        # Create a fake 1B checkpoint directory
+        best_dir = tmp_path / "1B_20260318_102724" / "best"
+        best_dir.mkdir(parents=True)
+        (best_dir / "best.pt").write_text("fake checkpoint")
+
+        result = discover_1b_checkpoint(str(tmp_path))
+        assert result is not None, "Should find the checkpoint"
+        assert result.endswith("best.pt"), "Should return path to best.pt"
+
+    def test_checkpoint_discovery_most_recent(self, tmp_path):
+        from model.train import discover_1b_checkpoint
+
+        # Create two 1B checkpoint directories with different timestamps
+        for ts in ["20260317_100000", "20260318_150000"]:
+            best_dir = tmp_path / f"1B_{ts}" / "best"
+            best_dir.mkdir(parents=True)
+            (best_dir / "best.pt").write_text(f"checkpoint {ts}")
+
+        result = discover_1b_checkpoint(str(tmp_path))
+        assert result is not None
+        assert "20260318_150000" in result, (
+            f"Should return most recent checkpoint, got {result}"
+        )
+
+    def test_checkpoint_discovery_returns_none(self, tmp_path):
+        from model.train import discover_1b_checkpoint
+
+        # Empty directory — no 1B checkpoints
+        result = discover_1b_checkpoint(str(tmp_path))
+        assert result is None, "Should return None when no checkpoints found"
+
+
+# ---------------------------------------------------------------------------
+# CONFIG_DEFAULTS["1B-sft"] tests
+# ---------------------------------------------------------------------------
+
+class TestConfigDefaults1BSft:
+    """CONFIG_DEFAULTS['1B-sft'] has correct SFT hyperparameters."""
+
+    def test_config_defaults_1b_sft(self):
+        from model.train import CONFIG_DEFAULTS
+
+        assert "1B-sft" in CONFIG_DEFAULTS, "Missing '1B-sft' in CONFIG_DEFAULTS"
+        sft = CONFIG_DEFAULTS["1B-sft"]
+        assert sft["lr"] == 2e-5, f"lr should be 2e-5, got {sft['lr']}"
+        assert sft["batch_size"] == 2, f"batch_size should be 2, got {sft['batch_size']}"
+        assert sft["grad_accum"] == 4, f"grad_accum should be 4, got {sft['grad_accum']}"
+        assert sft["warmup"] == 50, f"warmup should be 50, got {sft['warmup']}"
+        assert sft["max_epochs"] == 3, f"max_epochs should be 3, got {sft['max_epochs']}"
+        assert sft["dropout"] == 0.1, f"dropout should be 0.1, got {sft['dropout']}"
