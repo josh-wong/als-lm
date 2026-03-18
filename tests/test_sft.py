@@ -624,3 +624,48 @@ class TestConfigDefaults1BSft:
         assert sft["warmup"] == 50, f"warmup should be 50, got {sft['warmup']}"
         assert sft["max_epochs"] == 3, f"max_epochs should be 3, got {sft['max_epochs']}"
         assert sft["dropout"] == 0.1, f"dropout should be 0.1, got {sft['dropout']}"
+
+
+# ---------------------------------------------------------------------------
+# --sft argument parsing tests
+# ---------------------------------------------------------------------------
+
+class TestSftArgParsing:
+    """--sft flag is parsed correctly and enforces mutual exclusion."""
+
+    def test_sft_arg_parsing(self):
+        """--sft flag is parsed as True when provided."""
+        from model.train import parse_args
+
+        # Simulate --sft flag with minimal args (override sys.argv)
+        import sys
+        original_argv = sys.argv
+        try:
+            sys.argv = ["train.py", "--sft", "--config", "1B"]
+            args = parse_args()
+            assert args.sft is True, "--sft should be True"
+            assert args.lr == 2e-5, f"SFT lr should be 2e-5, got {args.lr}"
+            assert args.batch_size == 2, f"SFT batch_size should be 2, got {args.batch_size}"
+            assert args.warmup_steps == 50, f"SFT warmup should be 50, got {args.warmup_steps}"
+            assert args.max_epochs == 3, f"SFT max_epochs should be 3, got {args.max_epochs}"
+        finally:
+            sys.argv = original_argv
+
+    def test_sft_pretrained_mutual_exclusion(self):
+        """--sft and --pretrained-weights cannot both be set."""
+        from model.train import parse_args
+
+        import sys
+        original_argv = sys.argv
+        try:
+            sys.argv = [
+                "train.py", "--sft", "--pretrained-weights", "some/path.pt",
+                "--config", "1B",
+            ]
+            with pytest.raises(SystemExit) as exc_info:
+                parse_args()
+            assert exc_info.value.code == 1, (
+                "Should exit with code 1 for mutual exclusion"
+            )
+        finally:
+            sys.argv = original_argv

@@ -344,6 +344,17 @@ def parse_args():
         help="Path to pretrained checkpoint (e.g., checkpoints/gpt2large_init/init.pt) for fine-tuning mode",
     )
     parser.add_argument(
+        "--sft",
+        action="store_true",
+        help="SFT mode: fine-tune base model on instruction data with response-only loss masking",
+    )
+    parser.add_argument(
+        "--base-checkpoint",
+        type=str,
+        default=None,
+        help="Explicit path to base model checkpoint for SFT (default: auto-discover 1B best.pt)",
+    )
+    parser.add_argument(
         "--dropout",
         type=float,
         default=None,
@@ -372,9 +383,21 @@ def parse_args():
 
     args = parser.parse_args()
 
+    # Validate mutual exclusion: --sft and --pretrained-weights cannot both be set
+    if args.sft and args.pretrained_weights:
+        print(
+            "\nFATAL: --sft and --pretrained-weights are mutually exclusive.\n"
+            "  --sft: SFT mode loads the 1B base model and fine-tunes on instruction data.\n"
+            "  --pretrained-weights: Fine-tune mode loads a pretrained model (e.g., GPT-2 large).\n"
+            "  Use one or the other, not both."
+        )
+        sys.exit(1)
+
     # Determine which CONFIG_DEFAULTS entry to use
     config_defaults_key = args.config
-    if args.pretrained_weights and args.config == "gpt2-large":
+    if args.sft:
+        config_defaults_key = "1B-sft"
+    elif args.pretrained_weights and args.config == "gpt2-large":
         config_defaults_key = "gpt2-large-finetune"
     elif args.pretrained_weights:
         print(
@@ -1600,13 +1623,38 @@ def main():
     args = parse_args()
 
     global MODEL_TYPE
-    MODEL_TYPE = "gpt2-large-finetune" if args.pretrained_weights else "from-scratch"
+    if args.sft:
+        MODEL_TYPE = "sft"
+    elif args.pretrained_weights:
+        MODEL_TYPE = "gpt2-large-finetune"
+    else:
+        MODEL_TYPE = "from-scratch"
 
     # ---- Startup validation ------------------------------------------------
     print("\n=== ALS-LM Training Script ===\n")
 
+    # Auto-switch data directory for SFT mode
+    if args.sft:
+        args.data_dir = "data/instruction/tokenized"
+        print(f"  SFT mode: auto-switched data dir to {args.data_dir}")
+
+        # Validate SFT-specific data files
+        sft_required = ["train.bin", "labels_train.bin", "val.bin", "labels_val.bin", "meta.pkl"]
+        sft_missing = [f for f in sft_required if not os.path.isfile(os.path.join(args.data_dir, f))]
+        if sft_missing:
+            print(f"\nFATAL: Missing SFT data files in {args.data_dir}:")
+            for m in sft_missing:
+                print(f"  - {m}")
+            print(
+                f"\nPlease prepare the SFT data first:\n"
+                f"  python data/instruction/prepare_sft.py \\\n"
+                f"    --input data/instruction/synthetic_sft.json \\\n"
+                f"    --output-dir data/instruction/tokenized/\n"
+            )
+            sys.exit(1)
+
     # Auto-switch data directory for fine-tuning mode
-    if args.pretrained_weights and os.path.realpath(args.data_dir) == os.path.realpath("data/tokenized"):
+    elif args.pretrained_weights and os.path.realpath(args.data_dir) == os.path.realpath("data/tokenized"):
         args.data_dir = "data/tokenized_gpt2"
         print(f"  Fine-tuning mode: auto-switched data dir to {args.data_dir}")
 
@@ -1642,6 +1690,12 @@ def main():
         print(f"\n  --max-epochs {args.max_epochs}:")
         print(f"    steps_per_epoch = {train_tokens:,} // {tokens_per_step:,} = {steps_per_epoch:,}")
         print(f"    max_steps = {args.max_epochs} * {steps_per_epoch:,} = {args.max_steps:,}")
+
+        # Warn about very short epochs (common with small SFT datasets)
+        if args.sft and steps_per_epoch < 10:
+            print(f"\n  {YELLOW}WARNING: SFT dataset is small — only {steps_per_epoch} steps per epoch.{RESET}")
+            print(f"  {YELLOW}  Epoch boundaries will be very frequent. This is expected for{RESET}")
+            print(f"  {YELLOW}  synthetic validation data. Production datasets should be larger.{RESET}")
 
     if args.max_steps is None:
         print("FATAL: max_steps is not set. Provide --max-steps or --max-epochs.")
@@ -1703,10 +1757,58 @@ def main():
         print(f"  Loaded pretrained weights from {args.pretrained_weights}")
         print(f"  Pretrained config: n_layer={pretrained_config.n_layer}, n_head={pretrained_config.n_head}, n_embd={pretrained_config.n_embd}")
 
-    # Auto-enable gradient checkpointing for fine-tuning (774M params needs it on 12GB VRAM)
-    if args.pretrained_weights and not args.gradient_checkpointing:
+    # Load base checkpoint for SFT mode (MUST happen before DeepSpeed init)
+    if args.sft:
+        # Resolve checkpoint path: explicit --base-checkpoint or auto-discover
+        sft_ckpt_path = args.base_checkpoint
+        if sft_ckpt_path is None:
+            sft_ckpt_path = discover_1b_checkpoint(args.checkpoint_base)
+        if sft_ckpt_path is None:
+            print(
+                f"\nFATAL: No 1B checkpoint found for SFT.\n"
+                f"  Expected: {args.checkpoint_base}/1B_*/best/best.pt\n"
+                f"  Either train a 1B model first, or provide an explicit path:\n"
+                f"    --base-checkpoint /path/to/best.pt"
+            )
+            sys.exit(1)
+        if not os.path.isfile(sft_ckpt_path):
+            print(f"\nFATAL: SFT base checkpoint not found: {sft_ckpt_path}")
+            sys.exit(1)
+
+        print(f"  SFT mode: loading base model from {sft_ckpt_path}")
+        try:
+            ckpt = torch.load(sft_ckpt_path, map_location="cpu", weights_only=True)
+        except (TypeError, RuntimeError):
+            ckpt = torch.load(sft_ckpt_path, map_location="cpu")
+        raw_config = ckpt["config"]
+        if isinstance(raw_config, GPTConfig):
+            base_config = raw_config
+        elif isinstance(raw_config, dict):
+            base_config = GPTConfig(**raw_config)
+        else:
+            raise TypeError(
+                f"Checkpoint 'config' must be GPTConfig or dict, got {type(raw_config)}"
+            )
+        # Validate architecture compatibility
+        if base_config.n_layer != model_config.n_layer:
+            raise ValueError(
+                f"n_layer mismatch: checkpoint={base_config.n_layer}, model={model_config.n_layer}"
+            )
+        if base_config.n_head != model_config.n_head:
+            raise ValueError(
+                f"n_head mismatch: checkpoint={base_config.n_head}, model={model_config.n_head}"
+            )
+        if base_config.n_embd != model_config.n_embd:
+            raise ValueError(
+                f"n_embd mismatch: checkpoint={base_config.n_embd}, model={model_config.n_embd}"
+            )
+        model.load_state_dict(ckpt["model"], strict=True)
+        print(f"  Base model loaded: n_layer={base_config.n_layer}, n_head={base_config.n_head}, n_embd={base_config.n_embd}")
+
+    # Auto-enable gradient checkpointing for fine-tuning and SFT (large models need it on 12GB VRAM)
+    if (args.pretrained_weights or args.sft) and not args.gradient_checkpointing:
         args.gradient_checkpointing = True
-        print(f"  Gradient checkpointing auto-enabled for fine-tuning mode")
+        print(f"  Gradient checkpointing auto-enabled for {'SFT' if args.sft else 'fine-tuning'} mode")
 
     # Enable gradient checkpointing if requested (must happen before DeepSpeed wraps the model)
     if args.gradient_checkpointing:
@@ -1751,7 +1853,12 @@ def main():
 
     # ---- Checkpoint directory setup ----------------------------------------
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    config_label = "gpt2-large-finetune" if args.pretrained_weights else args.config
+    if args.sft:
+        config_label = "1B-sft"
+    elif args.pretrained_weights:
+        config_label = "gpt2-large-finetune"
+    else:
+        config_label = args.config
     run_dir = os.path.join(args.checkpoint_base, f"{config_label}_{timestamp}")
     os.makedirs(run_dir, exist_ok=True)
     print(f"  Checkpoint dir: {run_dir}")
@@ -1774,7 +1881,12 @@ def main():
         epoch_tracker.current_epoch = start_step // epoch_tracker.steps_per_epoch if epoch_tracker.steps_per_epoch > 0 else 0
 
     # ---- Logging setup -----------------------------------------------------
-    log_filename = "finetune_log.jsonl" if args.pretrained_weights else "training_log.jsonl"
+    if args.sft:
+        log_filename = "sft_log.jsonl"
+    elif args.pretrained_weights:
+        log_filename = "finetune_log.jsonl"
+    else:
+        log_filename = "training_log.jsonl"
     log_path, log_file = setup_logging(is_resuming=is_resuming, log_filename=log_filename)
     if is_resuming:
         log_resume(log_file, start_step)
@@ -1786,7 +1898,16 @@ def main():
 
     # ---- Load tokenizer for sample generation ------------------------------
     tokenizer = None
-    if args.pretrained_weights:
+    if args.sft:
+        # SFT uses the ALS tokenizer (same as from-scratch training)
+        als_tok_path = os.path.join(_project_root, "tokenizer", "als_tokenizer.json")
+        if os.path.isfile(als_tok_path):
+            try:
+                tokenizer = Tokenizer.from_file(als_tok_path)
+                print(f"  Tokenizer: ALS BPE (vocab={tokenizer.get_vocab_size()})")
+            except Exception as e:
+                print(f"  WARNING: Failed to load ALS tokenizer for sample generation: {e}")
+    elif args.pretrained_weights:
         try:
             local_gpt2_tok = os.path.join(_project_root, "tokenizer", "gpt2_tokenizer")
             tok_source = local_gpt2_tok if os.path.isdir(local_gpt2_tok) else "gpt2"
@@ -1832,6 +1953,26 @@ def main():
     last_val_step = -1
     checkpoint_interval = args.checkpoint_interval
 
+    # SFT-specific state
+    sft_num_examples = None
+    sft_early_stop = False
+    sft_best_epoch_val_loss = float("inf")
+    sft_epochs_without_improvement = 0
+    sft_early_stop_patience = 2  # Stop if no improvement for 2 consecutive epochs
+    if args.sft:
+        # Compute number of examples per split for capped eval_iters
+        sft_train_data = np.memmap(
+            os.path.join(args.data_dir, "train.bin"), dtype=np.uint16, mode="r"
+        )
+        sft_val_data = np.memmap(
+            os.path.join(args.data_dir, "val.bin"), dtype=np.uint16, mode="r"
+        )
+        sft_num_examples = {
+            "train": len(sft_train_data) // block_size,
+            "val": len(sft_val_data) // block_size,
+        }
+        print(f"  SFT examples: {sft_num_examples['train']} train, {sft_num_examples['val']} val")
+
     # Restore best tracker from checkpoint on resume (overrides defaults above)
     if is_resuming:
         best_val_loss = resume_info["best_val_loss"]
@@ -1857,11 +1998,21 @@ def main():
 
     try:
         for step in range(start_step, max_steps):
+            # SFT early stopping check at epoch boundaries
+            if args.sft and sft_early_stop:
+                print(f"\n  {BOLD}SFT early stopping triggered at step {step} "
+                      f"(no improvement for {sft_early_stop_patience} consecutive epochs){RESET}")
+                break
+
             t0 = time.time()
 
             # Forward pass through DeepSpeed engine
-            x, y = get_batch("train", batch_size, block_size, device, args.data_dir)
-            logits, loss = model_engine(x, targets=y)
+            if args.sft:
+                x, labels = get_sft_batch("train", batch_size, block_size, device, args.data_dir)
+                logits, loss = model_engine(x, labels=labels)
+            else:
+                x, y = get_batch("train", batch_size, block_size, device, args.data_dir)
+                logits, loss = model_engine(x, targets=y)
 
             # Read loss BEFORE backward to preserve clean optimizer state on NaN
             current_loss = loss.item()
@@ -1943,6 +2094,18 @@ def main():
                     peak_vram_mb=epoch_vram,
                     gpu_temp_c=epoch_temp,
                 )
+
+                # SFT early stopping: track validation loss improvement per epoch
+                if args.sft and last_val_loss != float("inf"):
+                    if last_val_loss < sft_best_epoch_val_loss:
+                        sft_best_epoch_val_loss = last_val_loss
+                        sft_epochs_without_improvement = 0
+                    else:
+                        sft_epochs_without_improvement += 1
+                        print(f"    {YELLOW}SFT: No val loss improvement for "
+                              f"{sft_epochs_without_improvement}/{sft_early_stop_patience} epochs{RESET}")
+                    if sft_epochs_without_improvement >= sft_early_stop_patience:
+                        sft_early_stop = True
 
             # Log every log_interval steps
             if step % log_interval == 0:
@@ -2055,9 +2218,15 @@ def main():
 
             # --- Conditional 1: Validation (every eval_interval steps, and at final step) ---
             if step > 0 and (step % eval_interval == 0 or step == max_steps - 1):
-                losses = estimate_loss(
-                    model_engine, args.eval_iters, batch_size, block_size, device, args.data_dir
-                )
+                if args.sft:
+                    losses = estimate_sft_loss(
+                        model_engine, args.eval_iters, batch_size, block_size,
+                        device, args.data_dir, num_examples=sft_num_examples
+                    )
+                else:
+                    losses = estimate_loss(
+                        model_engine, args.eval_iters, batch_size, block_size, device, args.data_dir
+                    )
                 val_loss = losses["val"]
                 final_train_loss = losses["train"]
                 final_val_loss = val_loss
