@@ -188,20 +188,22 @@ check_tmux() {
 assemble_and_run() {
     echo -e "\n${BOLD}Assembling training command...${RESET}"
 
-    local cmd="deepspeed model/train.py"
-    cmd+=" --config ${CONFIG}"
-    cmd+=" --data-dir ${DATA_DIR}"
-    cmd+=" --deepspeed_config ${DS_CONFIG}"
-    cmd+=" --checkpoint-interval ${CHECKPOINT_INTERVAL}"
-    cmd+=" --checkpoint-base ${CHECKPOINT_BASE}"
-    cmd+=" --max-epochs 3"
+    local cmd=(
+        deepspeed model/train.py
+        --config "${CONFIG}"
+        --data-dir "${DATA_DIR}"
+        --deepspeed_config "${DS_CONFIG}"
+        --checkpoint-interval "${CHECKPOINT_INTERVAL}"
+        --checkpoint-base "${CHECKPOINT_BASE}"
+        --max-epochs 3
+    )
 
     if [ -n "$RESUME_DIR" ]; then
-        cmd+=" --resume ${RESUME_DIR}"
+        cmd+=(--resume "${RESUME_DIR}")
     fi
 
     echo -e "\n${BOLD}Command:${RESET}"
-    echo -e "  ${cmd}"
+    echo -e "  ${cmd[*]}"
     echo ""
 
     echo -e "${BOLD}========================================${RESET}"
@@ -209,7 +211,7 @@ assemble_and_run() {
     echo -e "${BOLD}========================================${RESET}\n"
 
     # Replace this script's process with the training process
-    exec $cmd
+    exec "${cmd[@]}"
 }
 
 # ---- Main flow --------------------------------------------------------------

@@ -28,7 +28,7 @@ The 1B training run produced detailed resource telemetry across 11,679 steps log
 
 **CPU RAM:** System-wide RAM peaked at 26,322 MB (25.7 GB) out of 64 GB available. DeepSpeed ZeRO Stage 2 CPU offloading places optimizer states in system RAM, which accounts for the majority of this usage. The 500M model used 30.3 GB by comparison, and the lower 1B figure likely reflects more efficient memory management in the updated training pipeline.
 
-**GPU temperature:** Peak temperature reached 83 C, which is 3 C below the RTX 3060 thermal throttle point. The thermal cooldown mechanism (pause training when GPU exceeds 80 C warning threshold) activated during training but did not significantly impact throughput.
+**GPU temperature:** Peak temperature reached 83 C, which is 3 C below the RTX 3060 thermal throttle point. The 80 C warning threshold was reached during training, causing console warnings to print. The 85 C training pause threshold was never exceeded, so no cooldown pauses occurred and throughput was unaffected.
 
 **Throughput:** Average throughput was 10,485 tokens/sec across the full run, substantially exceeding the 3,000–3,500 tok/sec projection from the design document. This 3x throughput overperformance explains why training completed in 10 hours versus the projected 45+ hours.
 

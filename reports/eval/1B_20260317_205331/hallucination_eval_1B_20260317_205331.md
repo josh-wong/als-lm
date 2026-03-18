@@ -5,7 +5,7 @@ This report presents the results of the ALS-LM hallucination evaluation framewor
 ## Metadata
 
 - **Report generated:** 2026-03-18 03:37:53 UTC
-- **Checkpoint:** `/mnt/e/joshu/als-lm-data/checkpoints/1B_20260317_205331/best/best.pt`
+- **Checkpoint:** `$ALS_CHECKPOINT_BASE/1B_20260317_205331/best/best.pt`
 - **Model config:** n_layer=30, n_embd=1600, n_head=20, vocab_size=50257
 - **Generation:** max_tokens=512, temperature=0.0
 - **Benchmark questions:** 160

@@ -671,8 +671,11 @@ def verify_checkpoint_resume_subprocess(
             "result_file": result_file,
         }, f)
 
-    # Subprocess script that loads checkpoint and verifies
-    script = f'''
+    # Subprocess script that loads checkpoint and verifies.
+    # Paths are passed via environment variables (RESUME_PROJECT_ROOT,
+    # RESUME_CONFIG_FILE) to avoid f-string interpolation of paths that
+    # could contain quotes or special characters.
+    script = '''
 import gc
 import json
 import os
@@ -684,16 +687,16 @@ os.environ["RANK"] = "0"
 os.environ["WORLD_SIZE"] = "1"
 os.environ["LOCAL_RANK"] = "0"
 
-_project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+_project_root = os.environ["RESUME_PROJECT_ROOT"]
 if _project_root not in sys.path:
-    sys.path.insert(0, "{_project_root}")
+    sys.path.insert(0, _project_root)
 
 import numpy as np
 import torch
 import deepspeed
 from model.model import GPT, GPTConfig
 
-config_file = "{config_file}"
+config_file = os.environ["RESUME_CONFIG_FILE"]
 with open(config_file) as f:
     cfg = json.load(f)
 
@@ -791,6 +794,7 @@ with open(result_file, "w") as f:
             text=True,
             timeout=300,
             cwd=_project_root,
+            env={**os.environ, "RESUME_PROJECT_ROOT": _project_root, "RESUME_CONFIG_FILE": config_file},
         )
 
         if os.path.exists(result_file):
