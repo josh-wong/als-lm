@@ -1,11 +1,13 @@
-"""Unit tests for SFT data preparation pipeline, loss masking, and config.
+"""Unit and integration tests for SFT data preparation pipeline.
 
 Tests cover synthetic dataset validation, Alpaca template formatting (both
 with-input and no-input variants), tokenization with -100 label masking,
-padding behavior, block_size overflow handling, and SFT config correctness.
+padding behavior, block_size overflow handling, SFT config correctness,
+and integration tests for binary output file validation.
 """
 
 import json
+import pickle
 import sys
 from pathlib import Path
 
@@ -271,3 +273,111 @@ class TestSftConfig:
         # DeepSpeed section must exist
         assert "deepspeed" in config
         assert "zero_optimization" in config["deepspeed"]
+
+
+# ---------------------------------------------------------------------------
+# Integration tests for binary output files
+# ---------------------------------------------------------------------------
+
+_TOKENIZED_DIR = _project_root / "data" / "instruction" / "tokenized"
+_BLOCK_SIZE = 1024
+
+# Skip integration tests if binary files have not been generated
+_has_binary_files = (
+    (_TOKENIZED_DIR / "train.bin").exists()
+    and (_TOKENIZED_DIR / "labels_train.bin").exists()
+    and (_TOKENIZED_DIR / "val.bin").exists()
+    and (_TOKENIZED_DIR / "labels_val.bin").exists()
+    and (_TOKENIZED_DIR / "meta.pkl").exists()
+)
+
+
+@pytest.mark.skipif(not _has_binary_files, reason="Binary files not yet generated")
+class TestPrepareSftOutput:
+    """Integration tests validating the actual binary output files."""
+
+    def test_prepare_sft_output_files_exist(self):
+        """All 5 output files exist in data/instruction/tokenized/."""
+        expected = ["train.bin", "labels_train.bin", "val.bin", "labels_val.bin", "meta.pkl"]
+        for fname in expected:
+            fpath = _TOKENIZED_DIR / fname
+            assert fpath.exists(), f"Missing output file: {fname}"
+            assert fpath.stat().st_size > 0, f"Output file is empty: {fname}"
+
+    def test_prepare_sft_binary_format(self):
+        """train.bin is uint16, labels_train.bin is int32, sizes are consistent."""
+        train = np.memmap(
+            _TOKENIZED_DIR / "train.bin", dtype=np.uint16, mode="r"
+        )
+        labels = np.memmap(
+            _TOKENIZED_DIR / "labels_train.bin", dtype=np.int32, mode="r"
+        )
+
+        # Both must have the same number of elements
+        assert len(train) == len(labels), (
+            f"Size mismatch: train.bin has {len(train)} tokens, "
+            f"labels_train.bin has {len(labels)} tokens"
+        )
+
+        # Length must be a multiple of block_size (padded fixed-length records)
+        assert len(train) % _BLOCK_SIZE == 0, (
+            f"train.bin length {len(train)} is not a multiple of {_BLOCK_SIZE}"
+        )
+
+        # Verify val files have same consistency
+        val = np.memmap(_TOKENIZED_DIR / "val.bin", dtype=np.uint16, mode="r")
+        val_labels = np.memmap(
+            _TOKENIZED_DIR / "labels_val.bin", dtype=np.int32, mode="r"
+        )
+        assert len(val) == len(val_labels)
+        assert len(val) % _BLOCK_SIZE == 0
+
+    def test_prepare_sft_labels_masking_real(self):
+        """First record has -100 prefix, valid token IDs, then -100 padding."""
+        labels = np.memmap(
+            _TOKENIZED_DIR / "labels_train.bin", dtype=np.int32, mode="r"
+        )
+        first_record = labels[:_BLOCK_SIZE]
+
+        # Find transition from -100 to non-negative (prefix -> response)
+        first_valid = None
+        for i, lbl in enumerate(first_record):
+            if lbl != -100:
+                first_valid = i
+                break
+
+        assert first_valid is not None, "First record has no response tokens"
+        assert first_valid > 0, "First record should have masked prefix"
+
+        # Check prefix is all -100
+        assert all(first_record[:first_valid] == -100), (
+            "Prefix should be entirely -100"
+        )
+
+        # Check response tokens are valid (non-negative), then followed by -100 padding
+        response_started = False
+        padding_started = False
+        for i in range(first_valid, _BLOCK_SIZE):
+            if first_record[i] != -100:
+                assert not padding_started, (
+                    f"Found non-padding token at {i} after padding started"
+                )
+                assert first_record[i] >= 0, (
+                    f"Response token at {i} is invalid: {first_record[i]}"
+                )
+                response_started = True
+            else:
+                if response_started:
+                    padding_started = True
+
+        assert response_started, "Should have found response tokens"
+
+    def test_prepare_sft_meta_pkl(self):
+        """meta.pkl contains vocab_size=50257."""
+        with open(_TOKENIZED_DIR / "meta.pkl", "rb") as f:
+            meta = pickle.load(f)
+
+        assert "vocab_size" in meta, "meta.pkl missing vocab_size"
+        assert meta["vocab_size"] == 50257, (
+            f"Expected vocab_size=50257, got {meta['vocab_size']}"
+        )
