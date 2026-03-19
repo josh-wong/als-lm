@@ -89,31 +89,64 @@ def parse_sft_log(log_path: str) -> dict:
             "val_losses": [],
         }
 
-    # Total steps
-    total_steps = entries[-1].get("step", 0)
+    # Total steps: find the highest step value across all entries
+    total_steps = max((e.get("step", 0) for e in entries), default=0)
 
-    # Final train loss
-    final_train_loss = entries[-1].get("train_loss")
+    # Final train loss: look in validation entries or step entries
+    final_train_loss = None
+    for e in reversed(entries):
+        if e.get("train_loss") is not None:
+            final_train_loss = e["train_loss"]
+            break
+        if e.get("type") == "step" and e.get("loss") is not None:
+            final_train_loss = e["loss"]
+            break
 
-    # Epoch boundaries and val losses
+    # Extract actual warmup from config entry if available
+    config_warmup = None
+    for e in entries:
+        if e.get("type") == "config":
+            args_dict = e.get("training_args", {})
+            config_warmup = args_dict.get("warmup_steps")
+            break
+
+    # Epoch boundaries: entries with type=="epoch" (logged by train.py --sft)
     epoch_boundaries = [
-        e for e in entries if e.get("sft_epoch_boundary")
+        e for e in entries
+        if e.get("type") == "epoch" or e.get("sft_epoch_boundary")
     ]
     epochs_completed = len(epoch_boundaries)
 
+    # Collect per-epoch val losses from epoch boundary entries
     val_losses = []
     for eb in epoch_boundaries:
         vl = eb.get("val_loss")
         if vl is not None:
             val_losses.append(vl)
 
-    # Best val loss (from sft_best_val_loss field)
+    # Also collect val losses from validation entries (train.py logs these
+    # separately when eval_interval triggers or at max_steps)
+    for e in entries:
+        if e.get("type") == "validation" and e.get("val_loss") is not None:
+            vl = e["val_loss"]
+            # Avoid duplicates
+            if not any(abs(vl - existing) < 1e-8 for existing in val_losses):
+                val_losses.append(vl)
+
+    # Best val loss: check best_update entries first, then sft_best_val_loss
     best_val_loss = None
     best_epoch = None
     for e in reversed(entries):
+        if e.get("type") == "best_update" and e.get("val_loss") is not None:
+            best_val_loss = e["val_loss"]
+            break
         if "sft_best_val_loss" in e and e["sft_best_val_loss"] is not None:
             best_val_loss = e["sft_best_val_loss"]
             break
+
+    # Fallback: use the minimum val loss from collected losses
+    if best_val_loss is None and val_losses:
+        best_val_loss = min(val_losses)
 
     # Find which epoch had the best val loss
     if best_val_loss is not None and val_losses:
@@ -125,7 +158,12 @@ def parse_sft_log(log_path: str) -> dict:
             # Fallback: use the epoch with the lowest val loss
             best_epoch = val_losses.index(min(val_losses)) + 1
 
-    # Early stopping
+    # If no val_losses but we have best_val_loss, assign best_epoch=1
+    if best_val_loss is not None and best_epoch is None:
+        best_epoch = epochs_completed if epochs_completed > 0 else 1
+
+    # Early stopping: check for sft_early_stop field or complete entry
+    # with fewer epochs than max_epochs
     early_stopped = any(e.get("sft_early_stop") for e in entries)
     stopped_epoch = None
     if early_stopped:
@@ -159,6 +197,7 @@ def parse_sft_log(log_path: str) -> dict:
         "peak_gpu_mem_mb": peak_gpu_mem_mb,
         "final_train_loss": final_train_loss,
         "val_losses": val_losses,
+        "config_warmup": config_warmup,
     }
 
 
@@ -258,8 +297,13 @@ def generate_summary(
     lines.append(f"| Base model           | {base_model_path}                          |")
     lines.append(f"| Training examples    | {dataset_counts['train_examples']}         |")
     lines.append(f"| Validation examples  | {dataset_counts['val_examples']}           |")
+    warmup_display = (
+        f"{parsed_log['config_warmup']} steps"
+        if parsed_log.get("config_warmup") is not None
+        else _SFT_CONFIG["warmup"]
+    )
     lines.append(f"| Learning rate        | {_SFT_CONFIG['lr']}                        |")
-    lines.append(f"| Warmup               | {_SFT_CONFIG['warmup']}                    |")
+    lines.append(f"| Warmup               | {warmup_display}                           |")
     lines.append(f"| Max epochs           | {_SFT_CONFIG['max_epochs']}                |")
     lines.append(f"| Batch size           | {_SFT_CONFIG['batch_size']}                |")
     lines.append(f"| Gradient accumulation| {_SFT_CONFIG['grad_accum']}                |")
