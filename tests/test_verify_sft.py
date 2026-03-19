@@ -26,6 +26,10 @@ from verify_sft import (
     select_spot_check_questions,
     wrap_alpaca,
 )
+from generate_sft_summary import (
+    generate_summary,
+    parse_sft_log,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -259,3 +263,285 @@ class TestFormatResults:
         ]
         formatted = format_results(results)
         assert formatted[0]["response_preview"] == "Short answer."
+
+
+# ===========================================================================
+# Tests for generate_sft_summary.py
+# ===========================================================================
+
+
+def _make_sft_log_lines(
+    num_steps=750,
+    eval_interval=250,
+    epochs=3,
+    early_stop_epoch=None,
+):
+    """Create synthetic SFT JSONL lines mimicking train.py output.
+
+    Generates step entries with train_loss decreasing over time and
+    val_loss entries at eval boundaries. Epoch boundaries are marked.
+
+    Args:
+        num_steps: Total training steps.
+        eval_interval: Steps between validation evaluations.
+        epochs: Number of epochs.
+        early_stop_epoch: If set, insert early stopping at this epoch.
+
+    Returns:
+        List of JSON-serializable dicts (one per JSONL line).
+    """
+    lines = []
+    steps_per_epoch = num_steps // epochs
+    base_train_loss = 5.2
+    base_val_loss = 5.5
+
+    for step in range(1, num_steps + 1):
+        epoch = (step - 1) // steps_per_epoch
+        progress = step / num_steps
+
+        entry = {
+            "step": step,
+            "train_loss": round(base_train_loss - 2.0 * progress + 0.1 * (step % 7), 4),
+            "val_loss": None,
+            "lr": 2e-5 * min(1.0, step / 50),
+            "epoch": epoch,
+            "tokens_per_sec": 1200 + step % 100,
+            "gpu_mem_mb": 5800 + step % 200,
+        }
+
+        # Mark epoch boundaries
+        if step > 1 and step % steps_per_epoch == 0:
+            entry["sft_epoch_boundary"] = True
+            entry["val_loss"] = round(base_val_loss - 1.5 * progress, 4)
+            entry["sft_best_val_loss"] = round(
+                min(base_val_loss - 1.5 * (e / epochs)
+                    for e in range(1, epoch + 2)),
+                4,
+            )
+
+            if early_stop_epoch is not None and epoch + 1 >= early_stop_epoch:
+                entry["sft_early_stop"] = True
+
+        # Val loss at eval intervals too
+        if step % eval_interval == 0 and entry["val_loss"] is None:
+            entry["val_loss"] = round(base_val_loss - 1.5 * progress, 4)
+
+        lines.append(entry)
+
+    return lines
+
+
+def _write_jsonl(lines, path):
+    """Write a list of dicts as JSONL to a file."""
+    with open(path, "w") as f:
+        for line in lines:
+            f.write(json.dumps(line) + "\n")
+
+
+# ---------------------------------------------------------------------------
+# parse_sft_log tests
+# ---------------------------------------------------------------------------
+
+class TestParseSftLog:
+    """Tests for JSONL log parsing and metric extraction."""
+
+    def test_extracts_epoch_boundaries(self):
+        """parse_sft_log finds epoch boundary markers in the log."""
+        lines = _make_sft_log_lines(num_steps=750, epochs=3)
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".jsonl", delete=False,
+        ) as f:
+            _write_jsonl(lines, f.name)
+            tmp_path = f.name
+
+        try:
+            result = parse_sft_log(tmp_path)
+            assert result["epochs_completed"] == 3
+        finally:
+            os.unlink(tmp_path)
+
+    def test_extracts_best_val_loss(self):
+        """parse_sft_log returns the best validation loss from sft_best_val_loss."""
+        lines = _make_sft_log_lines(num_steps=750, epochs=3)
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".jsonl", delete=False,
+        ) as f:
+            _write_jsonl(lines, f.name)
+            tmp_path = f.name
+
+        try:
+            result = parse_sft_log(tmp_path)
+            assert result["best_val_loss"] is not None
+            assert isinstance(result["best_val_loss"], float)
+        finally:
+            os.unlink(tmp_path)
+
+    def test_extracts_final_step(self):
+        """parse_sft_log returns the total steps from the log."""
+        lines = _make_sft_log_lines(num_steps=750, epochs=3)
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".jsonl", delete=False,
+        ) as f:
+            _write_jsonl(lines, f.name)
+            tmp_path = f.name
+
+        try:
+            result = parse_sft_log(tmp_path)
+            assert result["total_steps"] == 750
+        finally:
+            os.unlink(tmp_path)
+
+    def test_early_stopped_log(self):
+        """parse_sft_log detects early stopping in the log."""
+        lines = _make_sft_log_lines(
+            num_steps=750, epochs=3, early_stop_epoch=2,
+        )
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".jsonl", delete=False,
+        ) as f:
+            _write_jsonl(lines, f.name)
+            tmp_path = f.name
+
+        try:
+            result = parse_sft_log(tmp_path)
+            assert result["early_stopped"] is True
+        finally:
+            os.unlink(tmp_path)
+
+    def test_full_3_epochs_no_early_stop(self):
+        """parse_sft_log returns early_stopped=False for full 3-epoch run."""
+        lines = _make_sft_log_lines(num_steps=750, epochs=3)
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".jsonl", delete=False,
+        ) as f:
+            _write_jsonl(lines, f.name)
+            tmp_path = f.name
+
+        try:
+            result = parse_sft_log(tmp_path)
+            assert result["early_stopped"] is False
+        finally:
+            os.unlink(tmp_path)
+
+    def test_extracts_tokens_per_sec(self):
+        """parse_sft_log computes average tokens/sec."""
+        lines = _make_sft_log_lines(num_steps=100, epochs=1)
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".jsonl", delete=False,
+        ) as f:
+            _write_jsonl(lines, f.name)
+            tmp_path = f.name
+
+        try:
+            result = parse_sft_log(tmp_path)
+            assert result["avg_tokens_per_sec"] > 0
+        finally:
+            os.unlink(tmp_path)
+
+    def test_extracts_peak_gpu_memory(self):
+        """parse_sft_log returns peak GPU memory in MB."""
+        lines = _make_sft_log_lines(num_steps=100, epochs=1)
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".jsonl", delete=False,
+        ) as f:
+            _write_jsonl(lines, f.name)
+            tmp_path = f.name
+
+        try:
+            result = parse_sft_log(tmp_path)
+            assert result["peak_gpu_mem_mb"] > 0
+        finally:
+            os.unlink(tmp_path)
+
+
+# ---------------------------------------------------------------------------
+# generate_summary tests
+# ---------------------------------------------------------------------------
+
+class TestGenerateSummary:
+    """Tests for SFT summary Markdown report generation."""
+
+    def _make_parsed_log(self, early_stopped=False):
+        """Create a minimal parsed log result for testing."""
+        return {
+            "total_steps": 750,
+            "epochs_completed": 3 if not early_stopped else 2,
+            "best_val_loss": 4.1234,
+            "best_epoch": 2,
+            "early_stopped": early_stopped,
+            "stopped_epoch": 2 if early_stopped else None,
+            "avg_tokens_per_sec": 1250.5,
+            "peak_gpu_mem_mb": 5998,
+            "final_train_loss": 3.2,
+            "val_losses": [5.0, 4.5, 4.1234],
+        }
+
+    def _make_verify_results(self):
+        """Create a minimal verify_results.json content."""
+        return {
+            "summary": {
+                "coherent_count": 7,
+                "total_count": 8,
+                "verdict": "PASS",
+            },
+        }
+
+    def test_produces_valid_markdown(self):
+        """generate_summary returns a string containing Markdown headings."""
+        parsed = self._make_parsed_log()
+        md = generate_summary(parsed, verify_results=None)
+        assert "# SFT training summary" in md
+        assert "## Training configuration" in md
+        assert "## Early stopping" in md
+        assert "## Base model comparison" in md
+        assert "## Training performance" in md
+
+    def test_includes_training_config_table(self):
+        """Summary contains a Markdown table for training configuration."""
+        parsed = self._make_parsed_log()
+        md = generate_summary(parsed, verify_results=None)
+        # Check table structure markers
+        assert "| Parameter" in md
+        assert "| Value" in md or "| Value |" in md
+        assert "lr" in md.lower() or "learning rate" in md.lower()
+
+    def test_includes_early_stopping_section(self):
+        """Summary documents early stopping behavior."""
+        parsed = self._make_parsed_log(early_stopped=True)
+        md = generate_summary(parsed, verify_results=None)
+        assert "early stop" in md.lower() or "Early stopping" in md
+
+    def test_full_training_no_early_stop(self):
+        """Summary indicates all 3 epochs completed when no early stop."""
+        parsed = self._make_parsed_log(early_stopped=False)
+        md = generate_summary(parsed, verify_results=None)
+        assert "3" in md  # Should mention completing all 3 epochs
+
+    def test_includes_base_model_comparison(self):
+        """Summary compares SFT val loss with base model val loss (5.6424)."""
+        parsed = self._make_parsed_log()
+        md = generate_summary(parsed, verify_results=None)
+        assert "5.6424" in md
+        assert "not" in md.lower() and "comparable" in md.lower()
+
+    def test_includes_verify_results_when_present(self):
+        """Summary includes qualitative verification when results exist."""
+        parsed = self._make_parsed_log()
+        verify = self._make_verify_results()
+        md = generate_summary(parsed, verify_results=verify)
+        assert "## Qualitative verification" in md
+        assert "7/8" in md or "7 / 8" in md
+        assert "PASS" in md
+
+    def test_shows_not_run_when_no_verify_results(self):
+        """Summary shows 'Not yet run' when verify results are absent."""
+        parsed = self._make_parsed_log()
+        md = generate_summary(parsed, verify_results=None)
+        assert "Not yet run" in md or "N/A" in md
+
+    def test_includes_training_performance(self):
+        """Summary includes tokens/sec and peak GPU memory."""
+        parsed = self._make_parsed_log()
+        md = generate_summary(parsed, verify_results=None)
+        assert "1250" in md or "1,250" in md  # tokens/sec
+        assert "5998" in md or "5,998" in md  # peak GPU MB
