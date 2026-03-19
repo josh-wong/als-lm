@@ -13,12 +13,13 @@ from pathlib import Path
 
 import pytest
 
-# Ensure project root is on sys.path
+# Ensure project root and scripts/ are on sys.path
 _project_root = Path(__file__).resolve().parent.parent
 if str(_project_root) not in sys.path:
     sys.path.insert(0, str(_project_root))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "scripts"))
 
-from scripts.verify_sft import (
+from verify_sft import (
     check_coherence,
     format_results,
     format_verdict,
@@ -176,9 +177,14 @@ class TestFormatVerdict:
         verdict = format_verdict(8, 8)
         assert verdict == "PASS"
 
-    def test_6_of_8_fails(self):
-        """6/8 coherent is below threshold and returns FAIL."""
+    def test_6_of_8_passes(self):
+        """6/8 = 75% coherent, above 70% threshold, returns PASS."""
         verdict = format_verdict(6, 8)
+        assert verdict == "PASS"
+
+    def test_5_of_8_fails(self):
+        """5/8 = 62.5% coherent, below 70% threshold, returns FAIL."""
+        verdict = format_verdict(5, 8)
         assert verdict == "FAIL"
 
     def test_0_of_8_fails(self):
