@@ -1,0 +1,11 @@
+{
+  "pairs_checked": 970,
+  "benchmark_questions": 160,
+  "max_similarity": 74.22680412371135,
+  "mean_similarity": 47.42,
+  "flagged_pairs": 0,
+  "flagged_details": [],
+  "threshold": 75,
+  "verdict": "PASS",
+  "generated_at": "2026-03-20T09:09:05.877779+00:00"
+}
