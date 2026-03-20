@@ -189,6 +189,15 @@ def parse_args():
         default=None,
         help="Path to entity registry JSON (auto-discovered if omitted)",
     )
+    parser.add_argument(
+        "--instruction-format",
+        action="store_true",
+        help=(
+            "Wrap benchmark prompts in Alpaca instruction format and set "
+            "raw:true in the Ollama payload. Use when evaluating "
+            "instruction-tuned (SFT) models."
+        ),
+    )
 
     args = parser.parse_args()
 
@@ -287,7 +296,7 @@ def format_duration(seconds):
 def build_stage_args(stage, results_dir, reports_dir, checkpoint_id,
                      benchmark, registry, checkpoint=None,
                      ollama_model=None, ollama_url=None, temperature=0.0,
-                     repeat_penalty=1.0, top_p=1.0):
+                     repeat_penalty=1.0, top_p=1.0, instruction_format=False):
     """Build the subprocess arguments for a given stage.
 
     Args:
@@ -303,6 +312,8 @@ def build_stage_args(stage, results_dir, reports_dir, checkpoint_id,
         temperature: Generation temperature.
         repeat_penalty: Repetition penalty for Ollama (1.0 = neutral).
         top_p: Top-p sampling for Ollama (1.0 = neutral).
+        instruction_format: If True and stage is "generate", append
+            ``--instruction-format`` to the command.
 
     Returns:
         A list of command-line arguments for subprocess.run.
@@ -331,6 +342,8 @@ def build_stage_args(stage, results_dir, reports_dir, checkpoint_id,
             "--benchmark", benchmark,
             "--output", os.path.join(results_dir, "responses.json"),
         ]
+        if instruction_format:
+            cmd += ["--instruction-format"]
         return cmd
     elif name == "score":
         return [
@@ -438,7 +451,8 @@ def check_model_mismatch(responses_path, checkpoint=None, ollama_model=None):
 def run_stage(stage, stage_num, total_stages, results_dir,
               reports_dir, checkpoint_id, force, benchmark, registry,
               checkpoint=None, ollama_model=None, ollama_url=None,
-              temperature=0.0, repeat_penalty=1.0, top_p=1.0):
+              temperature=0.0, repeat_penalty=1.0, top_p=1.0,
+              instruction_format=False):
     """Execute a single pipeline stage.
 
     Handles caching (skip if output exists and not --force), subprocess
@@ -460,6 +474,8 @@ def run_stage(stage, stage_num, total_stages, results_dir,
         temperature: Generation temperature.
         repeat_penalty: Repetition penalty for Ollama (1.0 = neutral).
         top_p: Top-p sampling for Ollama (1.0 = neutral).
+        instruction_format: If True, pass ``--instruction-format`` to the
+            generate stage.
 
     Returns:
         True if the stage succeeded, False otherwise.
@@ -489,6 +505,7 @@ def run_stage(stage, stage_num, total_stages, results_dir,
         ollama_model=ollama_model, ollama_url=ollama_url,
         temperature=temperature,
         repeat_penalty=repeat_penalty, top_p=top_p,
+        instruction_format=instruction_format,
     )
 
     result = subprocess.run(
@@ -641,6 +658,7 @@ def main():
             ollama_model=ollama_model, ollama_url=ollama_url,
             temperature=args.temperature,
             repeat_penalty=args.repeat_penalty, top_p=args.top_p,
+            instruction_format=args.instruction_format,
         )
         if not success:
             print(f"\n  Pipeline FAILED at stage '{stage['name']}'. "

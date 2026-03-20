@@ -179,6 +179,16 @@ def parse_args():
         default=None,
         help="Device for inference: cuda or cpu (default: auto-detect)",
     )
+    parser.add_argument(
+        "--instruction-format",
+        action="store_true",
+        help=(
+            "Wrap benchmark prompts in Alpaca instruction format "
+            "(### Instruction: / ### Response:) and set raw:true in the "
+            "Ollama payload to bypass the Modelfile TEMPLATE directive. "
+            "Use this when evaluating instruction-tuned (SFT) models."
+        ),
+    )
 
     args = parser.parse_args()
 
@@ -448,13 +458,38 @@ def is_coherent(text):
     return True
 
 
+def wrap_instruction_format(prompt_text: str) -> str:
+    """Wrap a prompt in Alpaca instruction format for SFT models.
+
+    This produces the same format as ``scripts/verify_sft.py::wrap_alpaca()``:
+    ``### Instruction:\\n{prompt}\\n\\n### Response:\\n``
+
+    Used when ``--instruction-format`` is set to prepare benchmark prompts
+    for the instruction-tuned model during evaluation.
+
+    Args:
+        prompt_text: The raw prompt text to wrap.
+
+    Returns:
+        The prompt wrapped in Alpaca instruction format.
+    """
+    return f"### Instruction:\n{prompt_text}\n\n### Response:\n"
+
+
 def generate_ollama_response(ollama_url, model_name, prompt, max_tokens,
-                             temperature, repeat_penalty=1.0, top_p=1.0):
+                             temperature, repeat_penalty=1.0, top_p=1.0,
+                             instruction_format=False):
     """Generate a single response via the Ollama HTTP API.
 
     Posts to ``/api/generate`` with streaming disabled. Retries up to 3 times
     on connection errors, timeouts, or server errors (HTTP 5xx) with a
     5-second delay between attempts. Client errors (4xx) fail immediately.
+
+    When *instruction_format* is True, the prompt is wrapped in Alpaca format
+    via ``wrap_instruction_format()`` and ``"raw": True`` is added to the
+    payload to bypass the Modelfile TEMPLATE directive. This prevents
+    double-wrapping when evaluating instruction-tuned models that have an
+    Alpaca TEMPLATE in their Modelfile.
 
     Args:
         ollama_url: Base URL of the Ollama server (e.g. ``http://localhost:11434``).
@@ -464,15 +499,22 @@ def generate_ollama_response(ollama_url, model_name, prompt, max_tokens,
         temperature: Sampling temperature (0.0 for greedy).
         repeat_penalty: Repetition penalty override (1.0 = neutral).
         top_p: Top-p sampling override (1.0 = neutral).
+        instruction_format: If True, wrap the prompt in Alpaca format and
+            set ``raw: True`` in the Ollama payload.
 
     Returns:
         ``(response_text, tokens_generated)`` on success, or
         ``("[ollama error: <details>]", 0)`` on permanent failure.
     """
     url = f"{ollama_url.rstrip('/')}/api/generate"
+
+    # When instruction_format is set, wrap the prompt in Alpaca format
+    # and tell Ollama to send raw (bypassing the Modelfile TEMPLATE).
+    effective_prompt = wrap_instruction_format(prompt) if instruction_format else prompt
+
     payload = {
         "model": model_name,
-        "prompt": prompt,
+        "prompt": effective_prompt,
         "stream": False,
         "options": {
             "temperature": temperature,
@@ -481,6 +523,9 @@ def generate_ollama_response(ollama_url, model_name, prompt, max_tokens,
             "top_p": top_p,
         },
     }
+
+    if instruction_format:
+        payload["raw"] = True
 
     max_retries = 3
     for attempt in range(1, max_retries + 1):
@@ -602,7 +647,8 @@ def generate_responses(model, tokenizer, questions, max_tokens, device):
 
 
 def generate_responses_ollama(ollama_url, model_name, questions, max_tokens,
-                              temperature, repeat_penalty=1.0, top_p=1.0):
+                              temperature, repeat_penalty=1.0, top_p=1.0,
+                              instruction_format=False):
     """Run inference on all benchmark questions via the Ollama API.
 
     For each question, sends the ``prompt_template`` to the Ollama server and
@@ -616,6 +662,8 @@ def generate_responses_ollama(ollama_url, model_name, questions, max_tokens,
         temperature: Sampling temperature.
         repeat_penalty: Repetition penalty override (1.0 = neutral).
         top_p: Top-p sampling override (1.0 = neutral).
+        instruction_format: If True, wrap prompts in Alpaca format and
+            set raw:true in the Ollama payload.
 
     Returns:
         List of response dicts with question metadata and generated text.
@@ -632,6 +680,7 @@ def generate_responses_ollama(ollama_url, model_name, questions, max_tokens,
         response_text, tokens_generated = generate_ollama_response(
             ollama_url, model_name, prompt_text, max_tokens, temperature,
             repeat_penalty=repeat_penalty, top_p=top_p,
+            instruction_format=instruction_format,
         )
 
         responses.append({
@@ -643,6 +692,7 @@ def generate_responses_ollama(ollama_url, model_name, questions, max_tokens,
             "response": response_text,
             "tokens_generated": tokens_generated,
             "is_coherent": is_coherent(response_text),
+            "instruction_format": instruction_format,
         })
 
     return responses
@@ -778,6 +828,7 @@ def main():
             args.ollama_url, args.ollama_model, questions_to_run,
             args.max_tokens, args.temperature,
             repeat_penalty=args.repeat_penalty, top_p=args.top_p,
+            instruction_format=args.instruction_format,
         )
         elapsed = time.time() - t0
 
@@ -786,6 +837,7 @@ def main():
             "inference_mode": "ollama",
             "ollama_model": args.ollama_model,
             "ollama_url": args.ollama_url,
+            "instruction_format": args.instruction_format,
             "generation_params": {
                 "max_tokens": args.max_tokens,
                 "temperature": args.temperature,
