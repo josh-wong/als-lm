@@ -1,18 +1,20 @@
 # Training Analysis Report
 
 **Log:** sft_log.jsonl
-**Generated:** 2026-03-19 18:47 UTC
+**Generated:** 2026-03-20 01:42 UTC
 **Model:** 30L, 20H, 1600D, ctx=1024, dropout=0.1
+
+> **Note:** Only 1 training step(s) were logged. Most trend analyses and plots require multiple data points and will show limited information.
 
 ## Training overview
 
-The training ran for 0 steps across 1 epoch(s), taking approximately N/A of wall-clock time. The final training loss was 9.4855 and the final validation loss was 9.2643.
+The training ran for 1 logged step(s) across 1 epoch(s), taking approximately N/A of wall-clock time. The final training loss was 9.4855 and the final validation loss was 9.2643.
 
 ## Loss curves
 
 ![Loss Curves](train_val_loss.png)
 
-Training loss decreased from 9.2578 to 9.2578 over 0 steps, a 0.0% reduction.
+Only one training step was logged (loss = 9.2578). This is insufficient data to analyze loss curve trends.
 
 ## Per-epoch breakdown
 
@@ -26,7 +28,7 @@ Metrics at each validation checkpoint, grouped by epoch.
 
 ![Perplexity Gap](perplexity_gap.png)
 
-Train perplexity decreased from 13168.03 to 13168.03. Validation perplexity moved from 10554.67 to 10554.67. The gap between train and validation perplexity remained relatively stable throughout training.
+Only one validation checkpoint was recorded. Train perplexity: 13168.03, validation perplexity: 10554.67. Multiple checkpoints are needed to analyze perplexity trends.
 
 ## Learning rate schedule
 
