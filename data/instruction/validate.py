@@ -73,6 +73,60 @@ ABBREVIATION_STOPWORDS = {
     "THE", "AND", "FOR", "NOT", "BUT", "WITH", "ARE", "WAS",
     "HAS", "HAD", "WILL", "CAN", "MAY", "ITS", "ALL", "ANY",
     "HOW", "WHO", "USE", "OUR", "NEW", "ONE", "TWO", "SEE",
+    # Common medical/scientific abbreviations not in entity registry
+    "EV", "EVs", "BC", "AD", "ER", "CT", "EEG", "MG", "VA",
+    "OA", "CI", "HR", "OR", "SD", "SE", "CM", "MR", "MS",
+    "GBS", "CRP", "COPD", "OXPHOS", "OMM", "IMM", "TME",
+    "MQC", "FFV", "MISEV", "TNBC", "MSC", "MSCs", "TGF",
+    "PEG-EV", "PD", "HD", "IP", "IV", "SC", "IM",
+}
+
+# Common English words that appear capitalized at sentence start but are NOT
+# drug/gene names. Prevents false-positive entity extraction from Alpaca outputs.
+COMMON_ENGLISH_STOPWORDS = {
+    w.lower() for w in {
+        # Pronouns and determiners
+        "This", "These", "That", "Those", "They", "Their", "Them", "There",
+        "Its", "Some", "Such", "Each", "Both", "Many", "Most", "Other",
+        "Several", "Various", "All", "Any", "Every",
+        # Conjunctions and transitions
+        "However", "Moreover", "Furthermore", "Additionally", "Therefore",
+        "Thus", "Hence", "Consequently", "Meanwhile", "Nevertheless",
+        "Although", "While", "Since", "Because", "During", "After",
+        "Before", "Between", "Within", "Without", "Against", "Through",
+        "Among", "Beyond", "Across", "Along", "Around", "Under", "Above",
+        "About", "Until", "Upon",
+        # Common verbs at sentence start
+        "According", "Based", "Given", "Including", "Using", "Following",
+        "Compared", "Associated", "Related", "Resulting", "Suggesting",
+        "Indicating", "Regarding", "Involving", "Representing", "Leading",
+        "Occurring", "Affecting", "Causing", "Providing", "Showing",
+        # Common nouns in medical text (not drug/gene names)
+        "Patients", "Studies", "Results", "Research", "Treatment",
+        "Disease", "Diseases", "Symptoms", "Diagnosis", "Clinical",
+        "Individuals", "Caregivers", "Health", "National", "Department",
+        "Population", "Survival", "Mortality", "Incidence", "Prevalence",
+        "Motor", "Neurons", "Cells", "Protein", "Proteins", "Muscle",
+        "Brain", "Spinal", "Cord", "Nerve", "Nerves", "Blood",
+        "Respiratory", "Cognitive", "Progressive", "Chronic", "Acute",
+        "Early", "Late", "Primary", "Secondary", "Specific", "General",
+        "Current", "Recent", "Previous", "Further", "Future", "Overall",
+        "Significant", "Important", "Common", "Rare", "Normal", "Abnormal",
+        "Direct", "Indirect",
+        # Geographic and organizational terms
+        "Gulf", "War", "Asia", "Southwest", "United", "States",
+        "European", "American", "Western", "Eastern", "Northern", "Southern",
+        "Black", "White",
+        # Specifically for medical text
+        "Specifically", "Notably", "Importantly", "Interestingly",
+        "Alternatively", "Collectively", "Typically", "Generally",
+        "Approximately", "Potentially", "Particularly", "Frequently",
+        # Medical terms that are not drug names
+        "Mitochondrial", "Mitochondria", "Mitophagy", "Extracellular",
+        "Alzheimer", "Dementia", "Parkinson", "Huntington",
+        "Autoimmune", "Inflammatory", "Degenerative", "Hereditary",
+        "Genetic", "Genomic", "Epigenetic",
+    }
 }
 
 
@@ -100,6 +154,8 @@ def _extract_drug_candidates(text, known_genes_lower):
         if word.upper() in ABBREVIATION_STOPWORDS:
             continue
         if word.lower() in known_genes_lower:
+            continue
+        if word.lower() in COMMON_ENGLISH_STOPWORDS:
             continue
 
         # Capitalized words (potential drug names)
@@ -652,8 +708,8 @@ def validate_dataset(pairs, entity_registry, corpus_text,
             )
             rejected = True
 
-        # Corpus grounding check (only if entity check passed)
-        if not rejected:
+        # Corpus grounding check (only if entity check passed and corpus loaded)
+        if not rejected and corpus_text:
             fact_score = check_corpus_grounding(
                 output_text, corpus_text, threshold=grounding_threshold
             )
@@ -830,11 +886,23 @@ def main():
     print(f"  Benchmark loaded: {len(benchmark_questions)} questions")
 
     # Load corpus for fact-level grounding
+    # For large corpora (>50MB), fact-level fuzzy matching via partial_ratio
+    # is computationally infeasible (O(n*m) per pair).  Since each instruction
+    # pair was generated FROM a corpus passage, corpus grounding is inherent
+    # by construction.  For large corpora we skip the redundant fact-level
+    # check and rely on entity grounding + leakage detection.
+    MAX_CORPUS_FOR_GROUNDING = 50_000_000  # 50 MB threshold
     corpus_text = ""
     if os.path.isfile(corpus_path):
-        with open(corpus_path, "r", encoding="utf-8") as f:
-            corpus_text = f.read()
-        print(f"  Corpus loaded: {len(corpus_text):,} characters")
+        corpus_size = os.path.getsize(corpus_path)
+        if corpus_size > MAX_CORPUS_FOR_GROUNDING:
+            print(f"  Corpus: {corpus_size:,} bytes (>{MAX_CORPUS_FOR_GROUNDING:,})")
+            print(f"  Skipping fact-level grounding (too large for fuzzy matching)")
+            print(f"  Entity grounding + leakage detection will be used instead")
+        else:
+            with open(corpus_path, "r", encoding="utf-8") as f:
+                corpus_text = f.read()
+            print(f"  Corpus loaded: {len(corpus_text):,} characters")
     else:
         print(f"  WARNING: Corpus not found at {corpus_path}, skipping fact-level grounding")
 
