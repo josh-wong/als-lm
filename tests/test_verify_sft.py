@@ -123,7 +123,7 @@ class TestCheckCoherence:
 
     def test_21_chars_coherent(self):
         """String of 21 chars is coherent (above threshold)."""
-        assert check_coherence("A" * 21) is True
+        assert check_coherence("ALS affects neurons." + "x") is True
 
     def test_valid_als_response_coherent(self):
         """A real medical response is coherent."""
@@ -154,6 +154,14 @@ class TestCheckCoherence:
         """Comma-separated repetition is caught."""
         text = "TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, TDP-43, is a protein."
         assert check_coherence(text) is False
+
+    def test_concatenated_token_repetition_incoherent(self):
+        """Concatenated repeated tokens without spaces are incoherent."""
+        assert check_coherence("TheTheTheTheTheTheTheThe") is False
+
+    def test_single_char_repetition_incoherent(self):
+        """Single character repeated many times is incoherent."""
+        assert check_coherence("A" * 21) is False
 
     def test_whitespace_only_incoherent(self):
         """Whitespace-only string is incoherent."""

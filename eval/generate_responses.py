@@ -393,6 +393,7 @@ def is_coherent(text):
     - Contains a word repeated 6 or more times consecutively
     - Contains punctuation-separated token repetition (e.g. "tau, tau, tau")
     - Contains any 3-gram repeated 4+ times
+    - Contains concatenated substring repeated 5+ times (e.g. "TheTheThe")
     - More than 80% non-alphanumeric characters (token salad)
 
     Args:
@@ -433,6 +434,11 @@ def is_coherent(text):
             trigram_counts[trigram] = trigram_counts.get(trigram, 0) + 1
             if trigram_counts[trigram] >= 4:
                 return False
+
+    # Check for concatenated token repetition (e.g. "TheTheTheThe..." without spaces)
+    # Detects short non-whitespace substrings (2-10 chars) repeated 5+ times
+    if re.search(r"(\S{2,10})\1{4,}", stripped):
+        return False
 
     # Check for token salad (>80% non-alphanumeric)
     alnum_count = sum(1 for ch in stripped if ch.isalnum())
