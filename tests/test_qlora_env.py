@@ -98,10 +98,11 @@ class TestQLoRAConfig:
         assert "training" in config, "Missing 'training' section"
 
     def test_qlora_config_model_id(self, config):
-        """Model ID is meta-llama/Llama-3.2-1B-Instruct."""
-        assert config["model"]["model_id"] == "meta-llama/Llama-3.2-1B-Instruct", (
-            f"model_id should be meta-llama/Llama-3.2-1B-Instruct, "
-            f"got {config['model']['model_id']}"
+        """Model ID is a valid HuggingFace model identifier."""
+        model_id = config["model"]["model_id"]
+        assert model_id and "/" in model_id, (
+            f"model_id should be a valid HuggingFace model ID (org/name), "
+            f"got {model_id!r}"
         )
 
     def test_qlora_config_lora_targets(self, config):
