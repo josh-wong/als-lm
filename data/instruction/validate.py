@@ -62,27 +62,31 @@ GENE_PATTERN = re.compile(r"\b([A-Z][A-Z0-9][A-Za-z0-9\-]{0,8})\b")
 # NCT trial ID pattern: NCT followed by 8 digits
 NCT_PATTERN = re.compile(r"\b(NCT\d{8})\b")
 
-# Common abbreviations to exclude from entity extraction
+# Common abbreviations to exclude from entity extraction.
+# All entries are stored lowercase; comparisons use word.lower().
 ABBREVIATION_STOPWORDS = {
-    "ALS", "FDA", "MRI", "EMG", "NMJ", "CNS", "PNS", "CSF",
-    "DNA", "RNA", "ATP", "GTP", "WHO", "NIH", "EMA", "PBA",
-    "MND", "UMN", "LMN", "FTD", "PLS", "PMA", "SMA", "SCA",
-    "BMI", "ICU", "PEG", "NIV", "BiPAP", "CPAP", "ALSFRS",
-    "PCR", "ELISA", "GWAS", "SNP", "WGS", "NGS", "QOL",
-    "ROS", "NOS", "COX", "MAP", "JAK", "STAT", "NF",
-    "THE", "AND", "FOR", "NOT", "BUT", "WITH", "ARE", "WAS",
-    "HAS", "HAD", "WILL", "CAN", "MAY", "ITS", "ALL", "ANY",
-    "HOW", "WHO", "USE", "OUR", "NEW", "ONE", "TWO", "SEE",
-    # Common medical/scientific abbreviations not in entity registry
-    "EV", "EVs", "BC", "AD", "ER", "CT", "EEG", "MG", "VA",
-    "OA", "CI", "HR", "OR", "SD", "SE", "CM", "MR", "MS",
-    "GBS", "CRP", "COPD", "OXPHOS", "OMM", "IMM", "TME",
-    "MQC", "FFV", "MISEV", "TNBC", "MSC", "MSCs", "TGF",
-    "PEG-EV", "PD", "HD", "IP", "IV", "SC", "IM",
+    w.lower() for w in {
+        "ALS", "FDA", "MRI", "EMG", "NMJ", "CNS", "PNS", "CSF",
+        "DNA", "RNA", "ATP", "GTP", "WHO", "NIH", "EMA", "PBA",
+        "MND", "UMN", "LMN", "FTD", "PLS", "PMA", "SMA", "SCA",
+        "BMI", "ICU", "PEG", "NIV", "BiPAP", "CPAP", "ALSFRS",
+        "PCR", "ELISA", "GWAS", "SNP", "WGS", "NGS", "QOL",
+        "ROS", "NOS", "COX", "MAP", "JAK", "STAT", "NF",
+        "THE", "AND", "FOR", "NOT", "BUT", "WITH", "ARE", "WAS",
+        "HAS", "HAD", "WILL", "CAN", "MAY", "ITS", "ALL", "ANY",
+        "HOW", "WHO", "USE", "OUR", "NEW", "ONE", "TWO", "SEE",
+        # Common medical/scientific abbreviations not in entity registry
+        "EV", "EVs", "BC", "AD", "ER", "CT", "EEG", "MG", "VA",
+        "OA", "CI", "HR", "OR", "SD", "SE", "CM", "MR", "MS",
+        "GBS", "CRP", "COPD", "OXPHOS", "OMM", "IMM", "TME",
+        "MQC", "FFV", "MISEV", "TNBC", "MSC", "MSCs", "TGF",
+        "PEG-EV", "PD", "HD", "IP", "IV", "SC", "IM",
+    }
 }
 
 # Common English words that appear capitalized at sentence start but are NOT
 # drug/gene names. Prevents false-positive entity extraction from Alpaca outputs.
+# All entries stored lowercase; comparisons use word.lower().
 COMMON_ENGLISH_STOPWORDS = {
     w.lower() for w in {
         # Pronouns and determiners
@@ -151,11 +155,12 @@ def _extract_drug_candidates(text, known_genes_lower):
     for word in words:
         if len(word) < 3 or len(word) > 30:
             continue
-        if word.upper() in ABBREVIATION_STOPWORDS:
+        word_lower = word.lower()
+        if word_lower in ABBREVIATION_STOPWORDS:
             continue
-        if word.lower() in known_genes_lower:
+        if word_lower in known_genes_lower:
             continue
-        if word.lower() in COMMON_ENGLISH_STOPWORDS:
+        if word_lower in COMMON_ENGLISH_STOPWORDS:
             continue
 
         # Capitalized words (potential drug names)
@@ -163,7 +168,6 @@ def _extract_drug_candidates(text, known_genes_lower):
             candidates.add(word)
 
         # Known drug suffixes
-        word_lower = word.lower()
         for suffix in DRUG_SUFFIXES:
             if word_lower.endswith(suffix) and len(word_lower) > len(suffix):
                 candidates.add(word)
@@ -186,7 +190,7 @@ def _extract_gene_candidates(text, known_drugs_lower):
         clean = match.rstrip("-")
         if not clean or len(clean) < 2:
             continue
-        if clean.upper() in ABBREVIATION_STOPWORDS:
+        if clean.lower() in ABBREVIATION_STOPWORDS:
             continue
         if clean.lower() in known_drugs_lower:
             continue
@@ -409,7 +413,8 @@ def check_leakage(instruction_text, output_text, benchmark_questions,
 
     Compares the instruction text against each benchmark question and
     prompt_template, and the output text against each verified_answer,
-    using rapidfuzz partial_ratio.
+    using rapidfuzz token_set_ratio (more robust to word reordering and
+    rephrasing than partial_ratio).
 
     Args:
         instruction_text: The generated instruction/question text.
@@ -425,9 +430,9 @@ def check_leakage(instruction_text, output_text, benchmark_questions,
     out_lower = output_text.lower()
 
     for bq in benchmark_questions:
-        score_q = fuzz.partial_ratio(instr_lower, bq["question"].lower())
-        score_p = fuzz.partial_ratio(instr_lower, bq["prompt_template"].lower())
-        score_a = fuzz.partial_ratio(out_lower, bq["verified_answer"].lower())
+        score_q = fuzz.token_set_ratio(instr_lower, bq["question"].lower())
+        score_p = fuzz.token_set_ratio(instr_lower, bq["prompt_template"].lower())
+        score_a = fuzz.token_set_ratio(out_lower, bq["verified_answer"].lower())
 
         max_score = max(score_q, score_p, score_a)
         if max_score >= threshold:
@@ -625,9 +630,9 @@ def build_independence_report(pairs, benchmark_questions, threshold=75):
         pair_flagged_bq = None
 
         for bq in benchmark_questions:
-            score_q = fuzz.partial_ratio(instr.lower(), bq["question"].lower())
-            score_p = fuzz.partial_ratio(instr.lower(), bq["prompt_template"].lower())
-            score_a = fuzz.partial_ratio(output.lower(), bq["verified_answer"].lower())
+            score_q = fuzz.token_set_ratio(instr.lower(), bq["question"].lower())
+            score_p = fuzz.token_set_ratio(instr.lower(), bq["prompt_template"].lower())
+            score_a = fuzz.token_set_ratio(output.lower(), bq["verified_answer"].lower())
 
             best = max(score_q, score_p, score_a)
             total_score_sum += best

@@ -40,7 +40,9 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
-# Default result directory names (Q8_0 representative)
+# Default result directory names (Q8_0 representative).
+# The 1B base subdir contains a timestamp from the training run; override
+# with --model-dir scratch_1b_base=<new_subdir> if the base model is retrained.
 _DEFAULT_RESULTS_DIR = REPO_ROOT / "eval" / "results"
 _MODEL_SUBDIRS = {
     "scratch_500m": "als-lm-500m_q8_0",
@@ -869,7 +871,30 @@ def main() -> int:
         action="store_true",
         help="Print progress messages to stdout",
     )
+    parser.add_argument(
+        "--model-dir",
+        action="append",
+        default=[],
+        metavar="KEY=SUBDIR",
+        help=(
+            "Override a model result subdirectory, e.g. "
+            "--model-dir scratch_1b_base=1B_20260401_120000. "
+            f"Valid keys: {', '.join(sorted(_MODEL_SUBDIRS.keys()))}"
+        ),
+    )
     args = parser.parse_args()
+
+    # Apply model-dir overrides
+    for override in args.model_dir:
+        if "=" not in override:
+            parser.error(f"--model-dir must be KEY=SUBDIR, got: {override}")
+        key, subdir = override.split("=", 1)
+        if key not in _MODEL_SUBDIRS:
+            parser.error(
+                f"Unknown model key '{key}'. "
+                f"Valid keys: {', '.join(sorted(_MODEL_SUBDIRS.keys()))}"
+            )
+        _MODEL_SUBDIRS[key] = subdir
 
     model_configs = _build_model_configs(args.results_dir)
 
