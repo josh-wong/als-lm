@@ -137,6 +137,9 @@ DISCLAIMERS = {
 
 def _get_disclaimer(size: str) -> str:
     """Get the SYSTEM prompt (topic constraint + disclaimer) for a given model size."""
+    if size not in DISCLAIMERS:
+        print(f"  WARNING: No disclaimer defined for size '{size}', using '500m' default. "
+              f"Valid sizes: {', '.join(sorted(DISCLAIMERS.keys()))}")
     return DISCLAIMERS.get(size, DISCLAIMERS["500m"])
 
 
@@ -1441,7 +1444,11 @@ def main() -> None:
         "--size",
         type=str,
         default="500m",
-        help="Model size qualifier (default: 500m). Used for output paths and Ollama model name.",
+        help=(
+            "Model size qualifier (default: 500m). Used for output paths, "
+            "Ollama model name, and disclaimer selection. "
+            "Known sizes: 500m, gpt2-large, 1b-instruct."
+        ),
     )
     parser.add_argument(
         "--tokenizer-dir",

@@ -525,8 +525,13 @@ def compute_quality_stats(pairs, grounded_count, entity_match_count,
         output = pair.get("output", "")
         words = output.split()
         word_counts.append(len(words))
-        # Split on ". " for sentence counting
-        sentences = [s.strip() for s in re.split(r"\.\s+", output) if s.strip()]
+        # Split on sentence-ending periods, protecting common abbreviations
+        # (Dr., e.g., et al., vs., etc.) from being treated as boundaries
+        _protected = output
+        for _abbr in ("Dr.", "Mr.", "Ms.", "Mrs.", "Prof.", "Jr.", "Sr.",
+                       "vs.", "et al.", "e.g.", "i.e.", "Fig.", "No.", "Vol."):
+            _protected = _protected.replace(_abbr, _abbr.replace(".", "<DOT>"))
+        sentences = [s.strip() for s in re.split(r"\.\s+", _protected) if s.strip()]
         sentence_counts.append(max(len(sentences), 1))
 
     mean_words = sum(word_counts) / len(word_counts) if word_counts else 0

@@ -203,6 +203,11 @@ def parse_args():
         parser.error("Specify either --checkpoint or --ollama-model, not both.")
     if not args.checkpoint and not args.ollama_model:
         parser.error("One of --checkpoint or --ollama-model is required.")
+    if args.instruction_format and args.checkpoint:
+        parser.error(
+            "--instruction-format is only supported with --ollama-model "
+            "(Alpaca wrapping requires Ollama's raw mode)."
+        )
 
     return args
 

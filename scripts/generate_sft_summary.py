@@ -34,8 +34,8 @@ if str(_project_root) not in sys.path:
 _DEFAULT_OUTPUT_DIR = str(_project_root / "results" / "sft")
 _DEFAULT_VERIFY_RESULTS = str(_project_root / "results" / "sft" / "verify_results.json")
 
-# 1B base model val loss for comparison (from training_summary_1B.md)
-_BASE_MODEL_VAL_LOSS = 5.6424
+# 1B base model val loss for comparison (default from training_summary_1B.md)
+_DEFAULT_BASE_VAL_LOSS = 5.6424
 
 # SFT config defaults (from CONFIG_DEFAULTS["1B-sft"] in train.py)
 _SFT_CONFIG = {
@@ -258,6 +258,7 @@ def generate_summary(
     checkpoint_label: str = "unknown",
     dataset_counts: dict = None,
     base_model_path: str = "checkpoints/1B_*/best/best.pt",
+    base_val_loss: float = _DEFAULT_BASE_VAL_LOSS,
 ) -> str:
     """Generate SFT summary Markdown report.
 
@@ -361,7 +362,7 @@ def generate_summary(
         else "N/A"
     )
     lines.append(
-        f"| Val loss  | {_BASE_MODEL_VAL_LOSS:.4f} | {sft_val}  "
+        f"| Val loss  | {base_val_loss:.4f} | {sft_val}  "
         f"| Different data, not comparable     |"
     )
     lines.append("")
@@ -437,6 +438,12 @@ def parse_args():
         default=None,
         help="Checkpoint base directory to auto-discover SFT run label",
     )
+    parser.add_argument(
+        "--base-val-loss",
+        type=float,
+        default=_DEFAULT_BASE_VAL_LOSS,
+        help=f"1B base model val loss for comparison (default: {_DEFAULT_BASE_VAL_LOSS})",
+    )
     return parser.parse_args()
 
 
@@ -478,6 +485,7 @@ def main():
         verify_results=verify_results,
         checkpoint_label=checkpoint_label,
         dataset_counts=dataset_counts,
+        base_val_loss=args.base_val_loss,
     )
 
     # Write output
