@@ -189,6 +189,12 @@ def parse_args():
             "Use this when evaluating instruction-tuned (SFT) models."
         ),
     )
+    parser.add_argument(
+        "--ollama-timeout",
+        type=int,
+        default=120,
+        help="Timeout in seconds for Ollama API requests (default: 120)",
+    )
 
     args = parser.parse_args()
 
@@ -478,7 +484,7 @@ def wrap_instruction_format(prompt_text: str) -> str:
 
 def generate_ollama_response(ollama_url, model_name, prompt, max_tokens,
                              temperature, repeat_penalty=1.0, top_p=1.0,
-                             instruction_format=False):
+                             instruction_format=False, timeout=120):
     """Generate a single response via the Ollama HTTP API.
 
     Posts to ``/api/generate`` with streaming disabled. Retries up to 3 times
@@ -530,7 +536,7 @@ def generate_ollama_response(ollama_url, model_name, prompt, max_tokens,
     max_retries = 3
     for attempt in range(1, max_retries + 1):
         try:
-            resp = requests.post(url, json=payload, timeout=120)
+            resp = requests.post(url, json=payload, timeout=timeout)
             resp.raise_for_status()
             data = resp.json()
             response_text = data.get("response", "")
@@ -648,7 +654,7 @@ def generate_responses(model, tokenizer, questions, max_tokens, device):
 
 def generate_responses_ollama(ollama_url, model_name, questions, max_tokens,
                               temperature, repeat_penalty=1.0, top_p=1.0,
-                              instruction_format=False):
+                              instruction_format=False, timeout=120):
     """Run inference on all benchmark questions via the Ollama API.
 
     For each question, sends the ``prompt_template`` to the Ollama server and
@@ -680,7 +686,7 @@ def generate_responses_ollama(ollama_url, model_name, questions, max_tokens,
         response_text, tokens_generated = generate_ollama_response(
             ollama_url, model_name, prompt_text, max_tokens, temperature,
             repeat_penalty=repeat_penalty, top_p=top_p,
-            instruction_format=instruction_format,
+            instruction_format=instruction_format, timeout=timeout,
         )
 
         responses.append({
@@ -829,6 +835,7 @@ def main():
             args.max_tokens, args.temperature,
             repeat_penalty=args.repeat_penalty, top_p=args.top_p,
             instruction_format=args.instruction_format,
+            timeout=args.ollama_timeout,
         )
         elapsed = time.time() - t0
 

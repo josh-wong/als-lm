@@ -175,9 +175,10 @@ def tokenize_and_mask(
     # Create labels: -100 for prefix, actual token IDs for response
     labels = [-100] * prefix_len + full_ids[prefix_len:]
 
-    # Pad to block_size
+    # Pad to block_size (use tokenizer's padding token if available, else 0)
     pad_len = block_size - len(full_ids)
-    input_ids = full_ids + [0] * pad_len       # Pad with 0
+    pad_id = tokenizer.token_to_id("[PAD]") if tokenizer.token_to_id("[PAD]") is not None else 0
+    input_ids = full_ids + [pad_id] * pad_len
     labels = labels + [-100] * pad_len          # Padding positions are masked
 
     return input_ids, labels
@@ -304,8 +305,9 @@ def main():
     vocab_size = tokenizer.get_vocab_size()
     print(f"Tokenizer vocab size: {vocab_size}")
 
-    # Shuffle and split
+    # Shuffle and split (seed both for reproducibility)
     random.seed(42)
+    np.random.seed(42)
     random.shuffle(data)
     split_idx = int(len(data) * (1 - args.val_split))
     train_data = data[:split_idx]

@@ -355,6 +355,12 @@ def parse_args():
         help="Explicit path to base model checkpoint for SFT (default: auto-discover 1B best.pt)",
     )
     parser.add_argument(
+        "--sft-patience",
+        type=int,
+        default=2,
+        help="Early stopping patience for SFT: epochs without val loss improvement before stopping (default: 2)",
+    )
+    parser.add_argument(
         "--dropout",
         type=float,
         default=None,
@@ -1103,7 +1109,13 @@ def try_resume(model_engine, args, run_dir):
     Returns a dict with start_step, best_val_loss, and best_val_step
     (defaults for fresh start if no checkpoint found).
     """
-    fresh = {"start_step": 0, "best_val_loss": float("inf"), "best_val_step": 0}
+    fresh = {
+        "start_step": 0,
+        "best_val_loss": float("inf"),
+        "best_val_step": 0,
+        "sft_best_epoch_val_loss": float("inf"),
+        "sft_epochs_without_improvement": 0,
+    }
     ckpt_dir = args.resume if args.resume else run_dir
 
     if not os.path.isdir(ckpt_dir):
@@ -1133,6 +1145,8 @@ def try_resume(model_engine, args, run_dir):
                 "start_step": start_step,
                 "best_val_loss": client_state.get("best_val_loss", float("inf")),
                 "best_val_step": client_state.get("best_val_step", 0),
+                "sft_best_epoch_val_loss": client_state.get("sft_best_epoch_val_loss", float("inf")),
+                "sft_epochs_without_improvement": client_state.get("sft_epochs_without_improvement", 0),
             }
     except Exception as e:
         print(f"\n  WARNING: Failed to resume from {ckpt_dir}: {e}")
@@ -1640,6 +1654,9 @@ def main():
 
     # Auto-switch data directory for SFT mode
     if args.sft:
+        if args.config != "1B":
+            print(f"\n  {YELLOW}WARNING: SFT mode is designed for --config 1B, "
+                  f"but got --config {args.config}. Continuing anyway.{RESET}")
         args.data_dir = "data/instruction/tokenized"
         print(f"  SFT mode: auto-switched data dir to {args.data_dir}")
 
@@ -1963,7 +1980,11 @@ def main():
     sft_early_stop = False
     sft_best_epoch_val_loss = float("inf")
     sft_epochs_without_improvement = 0
-    sft_early_stop_patience = 2  # Stop if no improvement for 2 consecutive epochs
+    # Restore SFT early stopping state from checkpoint on resume
+    if args.sft and is_resuming:
+        sft_best_epoch_val_loss = resume_info["sft_best_epoch_val_loss"]
+        sft_epochs_without_improvement = resume_info["sft_epochs_without_improvement"]
+    sft_early_stop_patience = args.sft_patience
     if args.sft:
         # Compute number of examples per split for capped eval_iters
         sft_train_data = np.memmap(
@@ -2343,6 +2364,8 @@ def main():
                     "lr": current_lr,
                     "best_val_loss": best_val_loss,
                     "best_val_step": best_val_step,
+                    "sft_best_epoch_val_loss": sft_best_epoch_val_loss,
+                    "sft_epochs_without_improvement": sft_epochs_without_improvement,
                 }
                 checkpoint_meta = {
                     "step": step,
