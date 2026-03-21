@@ -69,7 +69,8 @@
     "grounded_count": 970,
     "total_count": 970,
     "grounding_rate": 1.0,
-    "entity_match_rate": 1.01
+    "entity_match_rate": 1.01,
+    "fact_grounding_verified": false
   },
   "response_lengths": {
     "mean_sentences": 1.3,

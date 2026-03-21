@@ -164,11 +164,13 @@ def tokenize_and_mask(
                 break
 
         if not found:
-            # Use the original prefix length as best estimate
+            # Cannot determine correct loss mask boundary — skip this entry
+            # rather than silently training on instruction tokens
             print(
-                f"  WARNING: Tokenizer boundary divergence for entry: "
-                f"{entry['instruction'][:50]}... (using prefix_len={prefix_len})"
+                f"  SKIPPED: Tokenizer boundary divergence for entry: "
+                f"{entry['instruction'][:50]}... (could not locate response tokens)"
             )
+            return None
 
     # Create labels: -100 for prefix, actual token IDs for response
     labels = [-100] * prefix_len + full_ids[prefix_len:]

@@ -197,7 +197,7 @@ def extract_passages(
 
     # Sort by score descending and take top documents
     scored.sort(key=lambda x: x[2], reverse=True)
-    top_docs = scored[:max(len(scored), 1)]
+    top_docs = scored[:max(min(len(scored), 10), 1)]
 
     # Extract passages from top-scoring documents
     passages = []

@@ -572,6 +572,11 @@ def get_sft_batch(split, batch_size, block_size, device, data_dir):
     )
 
     num_examples = len(input_data) // block_size
+    if num_examples == 0:
+        raise ValueError(
+            f"SFT dataset too small: {len(input_data)} tokens < {block_size} block_size. "
+            f"Need at least {block_size} tokens in {data_dir}/{prefix}.bin"
+        )
     ix = torch.randint(num_examples, (batch_size,)) * block_size
 
     x = torch.stack(

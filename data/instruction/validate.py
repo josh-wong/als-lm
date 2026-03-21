@@ -467,7 +467,8 @@ def write_rejected(rejected_path, pair, reason, details=None):
 
 def compute_quality_stats(pairs, grounded_count, entity_match_count,
                           leakage_count, benchmark_count,
-                          leakage_threshold=75):
+                          leakage_threshold=75,
+                          fact_grounding_verified=True):
     """Compute quality statistics for the instruction dataset.
 
     Args:
@@ -477,6 +478,8 @@ def compute_quality_stats(pairs, grounded_count, entity_match_count,
         leakage_count: Number of pairs flagged for benchmark leakage.
         benchmark_count: Total number of benchmark questions checked.
         leakage_threshold: Leakage detection threshold used.
+        fact_grounding_verified: Whether fact-level corpus grounding was
+            actually run (False when corpus was too large for fuzzy matching).
 
     Returns:
         Quality statistics report dict.
@@ -559,6 +562,7 @@ def compute_quality_stats(pairs, grounded_count, entity_match_count,
         "total_count": total,
         "grounding_rate": round(grounded_count / total, 2) if total > 0 else 0.0,
         "entity_match_rate": round(entity_match_count / total, 2) if total > 0 else 0.0,
+        "fact_grounding_verified": fact_grounding_verified,
     }
 
     # Leakage check stats
@@ -973,6 +977,7 @@ def main():
 
     # Step 4: Compute and save quality statistics
     print("\nStep 4: Computing quality statistics...")
+    fact_grounding_was_verified = bool(corpus_text)
     stats = compute_quality_stats(
         cleaned,
         grounded_count=len(cleaned),  # All surviving pairs passed grounding
@@ -980,6 +985,7 @@ def main():
         leakage_count=leakage_fails,
         benchmark_count=len(benchmark_questions),
         leakage_threshold=args.leakage_threshold,
+        fact_grounding_verified=fact_grounding_was_verified,
     )
     stats["metadata"]["rejected_count"] = total_rejected
     stats["metadata"]["source_file"] = args.input
@@ -1011,7 +1017,11 @@ def main():
 
     print()
     grounding = stats["corpus_grounding"]
-    print(f"  Corpus grounding rate:  {grounding['grounding_rate']:.2f}")
+    if grounding.get("fact_grounding_verified", True):
+        print(f"  Corpus grounding rate:  {grounding['grounding_rate']:.2f}")
+    else:
+        print(f"  Corpus grounding rate:  {grounding['grounding_rate']:.2f} "
+              f"(entity-only; fact-level skipped — corpus too large)")
     print(f"  Entity match rate:      {grounding['entity_match_rate']:.2f}")
 
     print()
