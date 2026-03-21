@@ -1,13 +1,23 @@
 {
   "metadata": {
-    "timestamp": "2026-03-08T14:23:38Z",
+    "timestamp": "2026-03-21T01:40:37Z",
     "models_compared": [
       "scratch_500m",
-      "gpt2_large_finetune"
+      "gpt2_large_finetune",
+      "scratch_1b_base",
+      "scratch_1b_instruct"
     ],
     "model_labels": {
       "scratch_500m": "ALS-LM 500M (from-scratch)",
-      "gpt2_large_finetune": "GPT-2 large (fine-tuned)"
+      "gpt2_large_finetune": "GPT-2 large (fine-tuned)",
+      "scratch_1b_base": "ALS-LM 1B (from-scratch base)",
+      "scratch_1b_instruct": "ALS-LM 1B (instruction-tuned)"
+    },
+    "model_short_labels": {
+      "scratch_500m": "500M",
+      "gpt2_large_finetune": "GPT-2 large",
+      "scratch_1b_base": "1B base",
+      "scratch_1b_instruct": "1B instruct"
     },
     "quantization": "Q8_0"
   },
@@ -21,40 +31,66 @@
       "mean_accuracy": 0.0312,
       "binary_pass_rate": 0.0187,
       "hedging": 22
+    },
+    "scratch_1b_base": {
+      "mean_accuracy": 0.0,
+      "binary_pass_rate": 0,
+      "hedging": 0
+    },
+    "scratch_1b_instruct": {
+      "mean_accuracy": 0.0,
+      "binary_pass_rate": 0,
+      "hedging": 0
     }
   },
   "per_category_accuracy": {
     "clinical_trials": {
       "scratch_500m": 0.0,
-      "gpt2_large_finetune": 0.0375
+      "gpt2_large_finetune": 0.0375,
+      "scratch_1b_base": 0.0,
+      "scratch_1b_instruct": 0.0
     },
     "diagnostic_criteria": {
       "scratch_500m": 0.0,
-      "gpt2_large_finetune": 0.0125
+      "gpt2_large_finetune": 0.0125,
+      "scratch_1b_base": 0.0,
+      "scratch_1b_instruct": 0.0
     },
     "disease_mechanisms": {
       "scratch_500m": 0.0,
-      "gpt2_large_finetune": 0.0125
+      "gpt2_large_finetune": 0.0125,
+      "scratch_1b_base": 0.0,
+      "scratch_1b_instruct": 0.0
     },
     "drug_treatment": {
       "scratch_500m": 0.0,
-      "gpt2_large_finetune": 0.025
+      "gpt2_large_finetune": 0.025,
+      "scratch_1b_base": 0.0,
+      "scratch_1b_instruct": 0.0
     },
     "epidemiology": {
       "scratch_500m": 0.0,
-      "gpt2_large_finetune": 0.0125
+      "gpt2_large_finetune": 0.0125,
+      "scratch_1b_base": 0.0,
+      "scratch_1b_instruct": 0.0
     },
     "gene_mutation": {
       "scratch_500m": 0.0,
-      "gpt2_large_finetune": 0.1375
+      "gpt2_large_finetune": 0.1375,
+      "scratch_1b_base": 0.0,
+      "scratch_1b_instruct": 0.0
     },
     "patient_care": {
       "scratch_500m": 0.0167,
-      "gpt2_large_finetune": 0.0
+      "gpt2_large_finetune": 0.0,
+      "scratch_1b_base": 0.0,
+      "scratch_1b_instruct": 0.0
     },
     "temporal_accuracy": {
       "scratch_500m": 0.0,
-      "gpt2_large_finetune": 0.0125
+      "gpt2_large_finetune": 0.0125,
+      "scratch_1b_base": 0.0,
+      "scratch_1b_instruct": 0.0
     }
   },
   "taxonomy_distribution": {
@@ -117,11 +153,73 @@
         "count": 156,
         "pct": 97.5
       }
+    },
+    "scratch_1b_base": {
+      "confident_fabrication": {
+        "count": 19,
+        "pct": 11.9
+      },
+      "plausible_blending": {
+        "count": 29,
+        "pct": 18.1
+      },
+      "outdated_information": {
+        "count": 8,
+        "pct": 5.0
+      },
+      "boundary_confusion": {
+        "count": 0,
+        "pct": 0.0
+      },
+      "accurate_but_misleading": {
+        "count": 0,
+        "pct": 0.0
+      },
+      "accurate": {
+        "count": 0,
+        "pct": 0.0
+      },
+      "degenerate": {
+        "count": 104,
+        "pct": 65.0
+      }
+    },
+    "scratch_1b_instruct": {
+      "confident_fabrication": {
+        "count": 0,
+        "pct": 0.0
+      },
+      "plausible_blending": {
+        "count": 0,
+        "pct": 0.0
+      },
+      "outdated_information": {
+        "count": 0,
+        "pct": 0.0
+      },
+      "boundary_confusion": {
+        "count": 0,
+        "pct": 0.0
+      },
+      "accurate_but_misleading": {
+        "count": 0,
+        "pct": 0.0
+      },
+      "accurate": {
+        "count": 0,
+        "pct": 0.0
+      },
+      "degenerate": {
+        "count": 160,
+        "pct": 100.0
+      }
     }
   },
   "non_degenerate_rate": {
     "scratch_500m": 0.675,
-    "gpt2_large_finetune": 0.025
+    "gpt2_large_finetune": 0.025,
+    "scratch_1b_base": 0.35,
+    "scratch_1b_instruct": 0.0
   },
   "degenerate_details": {
     "scratch_500m": {
@@ -135,6 +233,18 @@
       "degenerate": 156,
       "non_degenerate": 4,
       "non_degenerate_rate": 0.025
+    },
+    "scratch_1b_base": {
+      "total": 160,
+      "degenerate": 104,
+      "non_degenerate": 56,
+      "non_degenerate_rate": 0.35
+    },
+    "scratch_1b_instruct": {
+      "total": 160,
+      "degenerate": 160,
+      "non_degenerate": 0,
+      "non_degenerate_rate": 0.0
     }
   },
   "fabrication": {
@@ -155,62 +265,144 @@
       "non_degenerate_flagged": 158,
       "non_degenerate_rate": 0.6556016597510373,
       "non_degenerate_count": 4
+    },
+    "scratch_1b_base": {
+      "overall_extracted": 73,
+      "overall_flagged": 73,
+      "overall_rate": 1.0,
+      "non_degenerate_extracted": 21,
+      "non_degenerate_flagged": 21,
+      "non_degenerate_rate": 1.0,
+      "non_degenerate_count": 56
+    },
+    "scratch_1b_instruct": {
+      "overall_extracted": 0,
+      "overall_flagged": 0,
+      "overall_rate": 0.0,
+      "non_degenerate_extracted": 0,
+      "non_degenerate_flagged": 0,
+      "non_degenerate_rate": 0.0,
+      "non_degenerate_count": 0
     }
   },
   "fabrication_rate_non_degenerate": {
     "scratch_500m": 0.6640625,
-    "gpt2_large_finetune": 0.6556016597510373
+    "gpt2_large_finetune": 0.6556016597510373,
+    "scratch_1b_base": 1.0,
+    "scratch_1b_instruct": 0.0
+  },
+  "capability_gap": {
+    "scratch_500m": {
+      "coherence_pct": 67.5,
+      "accuracy_pct": 0.21,
+      "gap_pct": 67.29
+    },
+    "gpt2_large_finetune": {
+      "coherence_pct": 2.5,
+      "accuracy_pct": 3.12,
+      "gap_pct": -0.62
+    },
+    "scratch_1b_base": {
+      "coherence_pct": 35.0,
+      "accuracy_pct": 0.0,
+      "gap_pct": 35.0
+    },
+    "scratch_1b_instruct": {
+      "coherence_pct": 0.0,
+      "accuracy_pct": 0.0,
+      "gap_pct": 0.0
+    }
   },
   "qualitative_samples": [
+    {
+      "pattern": "instruct_degenerate_others_coherent",
+      "question_id": "CARE-001",
+      "category": "patient_care",
+      "prompt": "Describe the criteria and guidelines for starting non-invasive ventilation (NIV) in ALS patients.",
+      "scratch_500m_response": "\n\n\nThe study, we have a study, we found that the study, we used to evaluate the need for the importance of the future research.\n\n\n\n\n\n\nThe study, we conducted a comprehensive studies, we identified a comprehensive and clinical trials, we have been developed a comprehensive understanding of ALS. We ha",
+      "scratch_500m_taxonomy": "confident_fabrication",
+      "scratch_500m_label": "500M",
+      "gpt2_large_finetune_response": "\n\nA. The criteria for starting NIV in ALS patients are as follows:\n\n1. The patient is able to communicate and understand the instructions given by the healthcare professional.\n\n2. The patient has a stable respiratory rate (RPR) of at least 60% of predicted RPR.\n\n3. The patient has a normal vital cap",
+      "gpt2_large_finetune_taxonomy": "degenerate",
+      "gpt2_large_finetune_label": "GPT-2 large",
+      "scratch_1b_base_response": "D3- toir3- toil3- toil3- toil3- toil/aintt deathulitamp hitamp hitamp hitamp hitamp hitamp hitamp hitamp hitamp hitamp hitamp hitamp hitamp hitamp hitamp hitamp hitamp hitamp hitamp hitamp hitamp hitamp hitamp hitamp hitamp hitamp hitamp hitamp hitamp hitamp hitamp hitamp hitamp hitamp hitamp hitamp",
+      "scratch_1b_base_taxonomy": "degenerate",
+      "scratch_1b_base_label": "1B base",
+      "scratch_1b_instruct_response": "TheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheThe",
+      "scratch_1b_instruct_taxonomy": "degenerate",
+      "scratch_1b_instruct_label": "1B instruct"
+    },
     {
       "pattern": "both_coherent_different_taxonomy",
       "question_id": "DRUG-010",
       "category": "drug_treatment",
       "prompt": "Describe masitinib and explain how it is proposed to help in ALS treatment.",
-      "scratch_response": "\n\n\nThe study, we have a recent study, we found that the first study, we identified a significant differences in the disease progression of AD pathology. The most common tau pathology in AD patients with AD, and tau pathology, and tau pathology, and tau pathology, and tau pathology, and tau pathology",
-      "finetune_response": "\n\nThe authors declare no conflicts of interest.\n",
-      "scratch_taxonomy": "confident_fabrication",
-      "finetune_taxonomy": "plausible_blending"
+      "scratch_500m_response": "\n\n\nThe study, we have a recent study, we found that the first study, we identified a significant differences in the disease progression of AD pathology. The most common tau pathology in AD patients with AD, and tau pathology, and tau pathology, and tau pathology, and tau pathology, and tau pathology",
+      "scratch_500m_taxonomy": "confident_fabrication",
+      "scratch_500m_label": "500M",
+      "gpt2_large_finetune_response": "\n\nThe authors declare no conflicts of interest.\n",
+      "gpt2_large_finetune_taxonomy": "plausible_blending",
+      "gpt2_large_finetune_label": "GPT-2 large",
+      "scratch_1b_base_response": " Fr four effort Star/\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-\u000b-",
+      "scratch_1b_base_taxonomy": "degenerate",
+      "scratch_1b_base_label": "1B base",
+      "scratch_1b_instruct_response": "TheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheThe",
+      "scratch_1b_instruct_taxonomy": "degenerate",
+      "scratch_1b_instruct_label": "1B instruct"
     },
     {
-      "pattern": "both_degenerate",
+      "pattern": "all_degenerate",
       "question_id": "CARE-002",
       "category": "patient_care",
       "prompt": "Describe the indications and timing for PEG tube placement in ALS patients.",
-      "scratch_response": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,",
-      "finetune_response": "\n\nA. The patient was diagnosed with ALS at the age of 35 years.\n\nB. The patient was treated with riluzole for 3 months.\n\nC. The patient was treated with edaravone for 3 months.\n\nD. The patient was treated with riluzole for 3 months.\n\nE. The patient was treated with edaravone for 3 months.\n\nF. The pa",
-      "scratch_taxonomy": "degenerate",
-      "finetune_taxonomy": "degenerate"
-    },
-    {
-      "pattern": "scratch_coherent_finetune_degenerate",
-      "question_id": "CARE-001",
-      "category": "patient_care",
-      "prompt": "Describe the criteria and guidelines for starting non-invasive ventilation (NIV) in ALS patients.",
-      "scratch_response": "\n\n\nThe study, we have a study, we found that the study, we used to evaluate the need for the importance of the future research.\n\n\n\n\n\n\nThe study, we conducted a comprehensive studies, we identified a comprehensive and clinical trials, we have been developed a comprehensive understanding of ALS. We ha",
-      "finetune_response": "\n\nA. The criteria for starting NIV in ALS patients are as follows:\n\n1. The patient is able to communicate and understand the instructions given by the healthcare professional.\n\n2. The patient has a stable respiratory rate (RPR) of at least 60% of predicted RPR.\n\n3. The patient has a normal vital cap",
-      "scratch_taxonomy": "confident_fabrication",
-      "finetune_taxonomy": "degenerate"
+      "scratch_500m_response": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,\n,",
+      "scratch_500m_taxonomy": "degenerate",
+      "scratch_500m_label": "500M",
+      "gpt2_large_finetune_response": "\n\nA. The patient was diagnosed with ALS at the age of 35 years.\n\nB. The patient was treated with riluzole for 3 months.\n\nC. The patient was treated with edaravone for 3 months.\n\nD. The patient was treated with riluzole for 3 months.\n\nE. The patient was treated with edaravone for 3 months.\n\nF. The pa",
+      "gpt2_large_finetune_taxonomy": "degenerate",
+      "gpt2_large_finetune_label": "GPT-2 large",
+      "scratch_1b_base_response": " Fr four effort Star- to Star- to Star- to Star- to Star- to Star- to Star- to Star- to Star/\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b\u000b-\u000b\u000b\u000b\u000b\u000b\u000b\u000b-\u000b\u000b\u000b\u000b\u000b\u000b-\u000b-\u000b-\u000b\u000b-\u000b-\u000b-\u000b-\u000b\u000b-\u000b-\u000b-\u000b\u000b-\u000b-\u000b-\u000b-\u000b-\u000b",
+      "scratch_1b_base_taxonomy": "degenerate",
+      "scratch_1b_base_label": "1B base",
+      "scratch_1b_instruct_response": "TheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheThe",
+      "scratch_1b_instruct_taxonomy": "degenerate",
+      "scratch_1b_instruct_label": "1B instruct"
     },
     {
       "pattern": "scratch_coherent_finetune_degenerate",
       "question_id": "DIAG-005",
       "category": "diagnostic_criteria",
       "prompt": "Describe the electromyography (EMG) findings typically seen in ALS patients.",
-      "scratch_response": "\n\n, we investigated the study of the study. We have a significant differences between the disease progression and AD. The results in the most common genetic changes in AD pathology in AD pathology in AD pathology in AD pathology in AD pathology in AD pathology.\n\n\n\n, we identified a recent study, we ",
-      "finetune_response": "\n\nThe ALSFRS-R is a validated tool for assessing the functional status of ALS patients. The ALSFRS-R is a self-report scale that consists of 10 items, each rated on a 5-point Likert scale. The total score ranges from 0 to 48, with higher scores indicating greater functional impairment. The ALSFRS-R ",
-      "scratch_taxonomy": "confident_fabrication",
-      "finetune_taxonomy": "degenerate"
+      "scratch_500m_response": "\n\n, we investigated the study of the study. We have a significant differences between the disease progression and AD. The results in the most common genetic changes in AD pathology in AD pathology in AD pathology in AD pathology in AD pathology in AD pathology.\n\n\n\n, we identified a recent study, we ",
+      "scratch_500m_taxonomy": "confident_fabrication",
+      "scratch_500m_label": "500M",
+      "gpt2_large_finetune_response": "\n\nThe ALSFRS-R is a validated tool for assessing the functional status of ALS patients. The ALSFRS-R is a self-report scale that consists of 10 items, each rated on a 5-point Likert scale. The total score ranges from 0 to 48, with higher scores indicating greater functional impairment. The ALSFRS-R ",
+      "gpt2_large_finetune_taxonomy": "degenerate",
+      "gpt2_large_finetune_label": "GPT-2 large",
+      "scratch_1b_base_response": "3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.3.",
+      "scratch_1b_base_taxonomy": "plausible_blending",
+      "scratch_1b_base_label": "1B base",
+      "scratch_1b_instruct_response": "TheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheThe",
+      "scratch_1b_instruct_taxonomy": "degenerate",
+      "scratch_1b_instruct_label": "1B instruct"
     },
     {
       "pattern": "scratch_coherent_finetune_degenerate",
-      "question_id": "DRUG-002",
-      "category": "drug_treatment",
-      "prompt": "Explain how riluzole works to treat ALS at the molecular level.",
-      "scratch_response": "\n\n\n\n\n\n\n\n\n\nThe first study, we used a comprehensive data from the model. The study, we identified a single-based approach for the data.\n\n\n\n\n\n\n\n\n\n\n\n\nand the first study, we have a single-based sequencing and RNA-seq analysis of the RNA sequencing (43)\nand the RNA sequencing. We used the RNA sequencing",
-      "finetune_response": "\n\nThe ALS-associated protein TDP-43 is a key pathological feature of ALS. TDP-43 is a nuclear protein that is ubiquitously expressed in the cytoplasm of neurons and glial cells. TDP-43 is a highly conserved RNA-binding protein that is highly expressed in the cytoplasm of neurons and glial cells. TDP",
-      "scratch_taxonomy": "confident_fabrication",
-      "finetune_taxonomy": "degenerate"
+      "question_id": "EPI-002",
+      "category": "epidemiology",
+      "prompt": "State the average age at which ALS symptoms typically begin.",
+      "scratch_500m_response": "\n\n\nThe study, we used a single-based approach for the model. The data were performed using the data from the data.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\\usepackage{upgreek}\n\\usepackage{mathrsfs}\n\\usepackage{amssymb}\n\\usepackage{amsbsy}\n\\usepackage{amsfonts}\n\\usepackage{wasysym}\n\\usepackage{upgreek}\n\\usepackage{upgreek",
+      "scratch_500m_taxonomy": "plausible_blending",
+      "scratch_500m_label": "500M",
+      "gpt2_large_finetune_response": "\n\nThe ALSFRS-R is a validated tool for assessing the severity of ALS. It is a self-report scale that consists of 10 items, each rated on a 5-point Likert scale. The total score ranges from 0 to 48, with higher scores indicating greater severity of the disease.\n\nThe ALSFRS-R is a validated tool for a",
+      "gpt2_large_finetune_taxonomy": "degenerate",
+      "gpt2_large_finetune_label": "GPT-2 large",
+      "scratch_1b_base_response": "D.D.D.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.3.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.3.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.3.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.3.2.2.2.2.2.2.2.2.2.2.2.",
+      "scratch_1b_base_taxonomy": "plausible_blending",
+      "scratch_1b_base_label": "1B base",
+      "scratch_1b_instruct_response": "TheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheThe",
+      "scratch_1b_instruct_taxonomy": "degenerate",
+      "scratch_1b_instruct_label": "1B instruct"
     }
   ]
 }
