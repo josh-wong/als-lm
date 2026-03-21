@@ -58,6 +58,7 @@ reports/*
 !reports/eval/
 !reports/model_comparison_report.md
 !reports/model_comparison_report.json
+!reports/sft_failure_analysis.md
 
 # Training artifacts (Phase 4.3)
 logs/
