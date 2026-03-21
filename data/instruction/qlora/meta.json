@@ -1,0 +1,41 @@
+{
+  "model_id": "Qwen/Qwen2.5-1.5B-Instruct",
+  "timestamp": "2026-03-21T14:59:06Z",
+  "total_examples": 970,
+  "train_examples": 873,
+  "val_examples": 97,
+  "token_stats": {
+    "min": 63,
+    "max": 175,
+    "mean": 101.2,
+    "median": 98.0,
+    "p90": 129.0,
+    "p95": 138.5,
+    "p99": 157.6
+  },
+  "examples_over_max_seq_length": 0,
+  "max_seq_length": 512,
+  "system_prompt": "You are a knowledgeable assistant specializing in amyotrophic lateral sclerosis (ALS) research. Provide accurate, detailed answers based on current scientific understanding.",
+  "category_distribution": {
+    "train": {
+      "clinical_trials": 106,
+      "diagnosis": 96,
+      "epidemiology": 110,
+      "genetics": 102,
+      "pathophysiology": 110,
+      "patient_care": 137,
+      "symptoms": 110,
+      "treatment": 102
+    },
+    "val": {
+      "clinical_trials": 12,
+      "diagnosis": 11,
+      "epidemiology": 13,
+      "genetics": 11,
+      "pathophysiology": 12,
+      "patient_care": 15,
+      "symptoms": 12,
+      "treatment": 11
+    }
+  }
+}

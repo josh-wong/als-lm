@@ -167,8 +167,8 @@ class TestValidateStructure:
 
         for i, sample in enumerate(samples):
             text = sample["text"]
-            tokens = tokenizer(text, return_tensors="pt")
-            decoded = tokenizer.decode(tokens["input_ids"][0])
+            token_ids = tokenizer.encode(text)
+            decoded = tokenizer.decode(token_ids)
             assert "system" in decoded, (
                 f"Sample {i}: missing 'system' role marker in decoded text"
             )

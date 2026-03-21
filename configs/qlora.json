@@ -6,6 +6,7 @@
     "bnb_4bit_use_double_quant": true,
     "bnb_4bit_compute_dtype": "bfloat16"
   },
+  "system_prompt": "You are a knowledgeable assistant specializing in amyotrophic lateral sclerosis (ALS) research. Provide accurate, detailed answers based on current scientific understanding.",
   "lora": {
     "r": 16,
     "lora_alpha": 16,
