@@ -810,63 +810,69 @@ def create_eval_framework_diagram(output_path: Path) -> None:
 # ---------------------------------------------------------------------------
 
 def plot_model_comparison(report_path: Path, output_path: Path) -> None:
-    """Generate grouped bar chart comparing from-scratch 500M vs fine-tuned GPT-2 large.
+    """Generate grouped bar chart comparing all models in the comparison report.
 
     Reads the model comparison JSON report and plots three metric groups:
     accuracy, non-degenerate rate, and fabrication rate among non-degenerate
-    responses. Each group has two bars (blue for 500M, orange for GPT-2 large).
-
-    The accuracy bars are near-zero (0.21% and 3.12%) on a 0-100% scale,
-    so bar value annotations ensure exact numbers are readable.
+    responses. Dynamically handles N models (4 bars per group when all models
+    are present).
     """
     with open(report_path, encoding="utf-8") as f:
         data = json.load(f)
 
-    # Extract the three metric groups in percentage form
-    accuracy_scratch = data["accuracy"]["scratch_500m"]["mean_accuracy"] * 100
-    accuracy_finetune = data["accuracy"]["gpt2_large_finetune"]["mean_accuracy"] * 100
+    # Read model keys dynamically from metadata
+    model_keys = data["metadata"]["models_compared"]
+    short_labels = data["metadata"].get("model_short_labels", {})
+    n_models = len(model_keys)
 
-    nondeg_scratch = data["non_degenerate_rate"]["scratch_500m"] * 100
-    nondeg_finetune = data["non_degenerate_rate"]["gpt2_large_finetune"] * 100
+    # 4 distinct colors: blue, orange, green, red
+    model_colors = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728"]
+    if n_models > len(model_colors):
+        # Extend with tab10 palette if needed
+        import matplotlib.cm as cm
+        cmap = cm.get_cmap("tab10", n_models)
+        model_colors = [cmap(i) for i in range(n_models)]
 
-    fab_scratch = data["fabrication_rate_non_degenerate"]["scratch_500m"] * 100
-    fab_finetune = data["fabrication_rate_non_degenerate"]["gpt2_large_finetune"] * 100
-
-    scratch_vals = [accuracy_scratch, nondeg_scratch, fab_scratch]
-    finetune_vals = [accuracy_finetune, nondeg_finetune, fab_finetune]
-
-    fig, ax = plt.subplots(figsize=FIGURE_SIZE)
-
+    # Extract the three metric groups in percentage form for each model
     metrics = ["Accuracy", "Non-degenerate\nrate", "Fabrication rate\n(non-degenerate)"]
-    x = np.arange(len(metrics))
-    width = 0.30
+    n_metrics = len(metrics)
 
-    bars1 = ax.bar(
-        x - width / 2, scratch_vals, width,
-        color="#1f77b4", label="ALS-LM 500M (from-scratch)",
-        edgecolor="white", linewidth=0.5,
-    )
-    bars2 = ax.bar(
-        x + width / 2, finetune_vals, width,
-        color="#ff7f0e", label="GPT-2 large (fine-tuned)",
-        edgecolor="white", linewidth=0.5,
-    )
+    # Build values matrix: [model_index][metric_index]
+    values = []
+    for mk in model_keys:
+        acc = data["accuracy"][mk]["mean_accuracy"] * 100
+        nondeg = data["non_degenerate_rate"][mk] * 100
+        fab = data["fabrication_rate_non_degenerate"][mk] * 100
+        values.append([acc, nondeg, fab])
 
-    # Annotate each bar with its percentage value
-    for bars in [bars1, bars2]:
+    fig, ax = plt.subplots(figsize=(12, 6))
+
+    x = np.arange(n_metrics)
+    total_width = 0.7
+    bar_width = total_width / n_models
+
+    for i, mk in enumerate(model_keys):
+        offset = (i - (n_models - 1) / 2) * bar_width
+        label = short_labels.get(mk, mk)
+        bars = ax.bar(
+            x + offset, values[i], bar_width,
+            color=model_colors[i], label=label,
+            edgecolor="white", linewidth=0.5,
+        )
+        # Annotate each bar
         for bar in bars:
             height = bar.get_height()
             ax.text(
                 bar.get_x() + bar.get_width() / 2, height + 0.5,
                 f"{height:.1f}%",
-                ha="center", va="bottom", fontsize=9, fontweight="bold",
+                ha="center", va="bottom", fontsize=7, fontweight="bold",
             )
 
     ax.set_xticks(x)
     ax.set_xticklabels(metrics, fontsize=10)
-    ax.legend(loc="upper right", fontsize=9, framealpha=0.9)
+    ax.legend(loc="upper right", fontsize=8, framealpha=0.9)
     setup_axes(
-        ax, "Model comparison: from-scratch vs. fine-tuned",
+        ax, f"Model comparison: {n_models}-model cross-comparison",
         "", "Percentage (%)",
     )
     ax.set_ylim(0, 105)

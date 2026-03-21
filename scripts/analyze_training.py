@@ -272,6 +272,17 @@ def _add_epoch_markers(
         prev_epoch = epoch
 
 
+def _add_insufficient_data_notice(ax: plt.Axes, message: str) -> None:
+    """Add a centered notice to an axes when data is insufficient for plotting."""
+    ax.text(
+        0.5, 0.5, message,
+        transform=ax.transAxes, ha="center", va="center",
+        fontsize=12, color="#888888", style="italic",
+        bbox=dict(boxstyle="round,pad=0.5", facecolor="#f5f5f5",
+                  edgecolor="#cccccc", linewidth=1.0),
+    )
+
+
 def plot_loss_curves(
     steps: list[dict],
     validations: list[dict],
@@ -283,14 +294,26 @@ def plot_loss_curves(
     # Train loss from step entries
     train_steps = [s["step"] for s in steps]
     train_losses = [s["loss"] for s in steps]
-    ax.plot(
-        train_steps, train_losses,
-        color=TRAIN_COLOR, linewidth=1.2, alpha=0.8, label="Train loss",
-    )
 
     # Validation loss at validation intervals
     val_steps = [v["step"] for v in validations]
     val_losses = [v["val_loss"] for v in validations]
+
+    total_points = len(train_steps) + len(val_steps)
+    if len(train_steps) < 2 and len(val_steps) < 2:
+        _setup_axes(ax, "Training and validation loss", "Training step", "Loss")
+        _add_insufficient_data_notice(
+            ax, f"Insufficient data for loss curves\n({total_points} data point(s) logged)"
+        )
+        fig.tight_layout()
+        fig.savefig(output_path, dpi=DPI, bbox_inches="tight")
+        plt.close(fig)
+        return
+
+    ax.plot(
+        train_steps, train_losses,
+        color=TRAIN_COLOR, linewidth=1.2, alpha=0.8, label="Train loss",
+    )
     ax.plot(
         val_steps, val_losses,
         color=VAL_COLOR, linewidth=1.5, marker="o", markersize=4,
@@ -316,6 +339,19 @@ def plot_perplexity_gap(
 ) -> None:
     """Generate perplexity gap plot: train vs val perplexity at validation points."""
     fig, ax = plt.subplots(figsize=FIGURE_SIZE)
+
+    if len(validations) < 2:
+        _setup_axes(
+            ax, "Train vs validation perplexity",
+            "Training step", "Perplexity",
+        )
+        _add_insufficient_data_notice(
+            ax, f"Insufficient data for perplexity trends\n({len(validations)} validation checkpoint(s))"
+        )
+        fig.tight_layout()
+        fig.savefig(output_path, dpi=DPI, bbox_inches="tight")
+        plt.close(fig)
+        return
 
     val_steps = [v["step"] for v in validations]
     train_ppl = [v.get("train_perplexity", 0.0) for v in validations]
@@ -356,8 +392,21 @@ def plot_lr_schedule(
     """Generate learning rate schedule plot."""
     fig, ax = plt.subplots(figsize=FIGURE_SIZE)
 
-    step_nums = [s["step"] for s in steps]
-    lrs = [s.get("lr", 0.0) for s in steps]
+    step_nums = [s["step"] for s in steps if "lr" in s]
+    lrs = [s["lr"] for s in steps if "lr" in s]
+
+    if len(step_nums) < 2:
+        _setup_axes(
+            ax, "Learning rate schedule",
+            "Training step", "Learning rate",
+        )
+        _add_insufficient_data_notice(
+            ax, f"Insufficient data for LR schedule\n({len(step_nums)} step(s) with LR data)"
+        )
+        fig.tight_layout()
+        fig.savefig(output_path, dpi=DPI, bbox_inches="tight")
+        plt.close(fig)
+        return
 
     ax.plot(
         step_nums, lrs,
@@ -394,6 +443,17 @@ def plot_resource_metric(
     step_nums, values = zip(*filtered)
 
     fig, ax = plt.subplots(figsize=FIGURE_SIZE)
+
+    if len(filtered) < 2:
+        _setup_axes(ax, title, "Training step", ylabel)
+        _add_insufficient_data_notice(
+            ax, f"Insufficient data for {title.lower()}\n({len(filtered)} data point(s))"
+        )
+        fig.tight_layout()
+        fig.savefig(output_path, dpi=DPI, bbox_inches="tight")
+        plt.close(fig)
+        return True
+
     ax.plot(step_nums, values, color=color, linewidth=1.2, alpha=0.8)
 
     y_max = max(values) if values else 1.0
@@ -561,6 +621,13 @@ def _interpret_loss_curves(
     if not steps:
         return "Insufficient data for loss curve interpretation."
 
+    if len(steps) < 2:
+        loss = steps[0].get("loss", 0.0)
+        return (
+            f"Only one training step was logged (loss = {loss:.4f}). "
+            f"This is insufficient data to analyze loss curve trends."
+        )
+
     first_loss = steps[0].get("loss", 0.0)
     last_loss = steps[-1].get("loss", 0.0)
     total_steps = steps[-1].get("step", 0) - steps[0].get("step", 0)
@@ -595,6 +662,17 @@ def _interpret_perplexity(validations: list[dict]) -> str:
     """Generate a narrative interpretation of perplexity divergence."""
     if not validations:
         return "No validation data available for perplexity analysis."
+
+    if len(validations) < 2:
+        v = validations[0]
+        train_ppl = v.get("train_perplexity", 0.0)
+        val_ppl = v.get("val_perplexity", 0.0)
+        return (
+            f"Only one validation checkpoint was recorded. "
+            f"Train perplexity: {train_ppl:.2f}, "
+            f"validation perplexity: {val_ppl:.2f}. "
+            f"Multiple checkpoints are needed to analyze perplexity trends."
+        )
 
     first_v = validations[0]
     last_v = validations[-1]
@@ -856,12 +934,24 @@ def generate_report(
             f"({valid} valid entries out of {parsed['total_lines']} total lines).\n"
         )
 
+    # Minimal data warning
+    logged_steps = len(steps)
+    if logged_steps < 2:
+        incompleteness_note += (
+            f"\n> **Note:** Only {logged_steps} training step(s) were logged. "
+            f"Most trend analyses and plots require multiple data points and "
+            f"will show limited information.\n"
+        )
+
     # Training overview narrative
     final_train_loss = validations[-1].get("train_loss", 0.0) if validations else 0.0
     final_val_loss = validations[-1].get("val_loss", 0.0) if validations else 0.0
     epoch_str = f" across {max_epoch + 1} epoch(s)" if max_epoch is not None else ""
+
+    # Use logged step count when total_steps is 0 (only step 0 logged)
+    step_display = total_steps if total_steps > 0 else logged_steps
     overview = (
-        f"The training ran for {total_steps} steps{epoch_str}, "
+        f"The training ran for {step_display} logged step(s){epoch_str}, "
         f"taking approximately {training_time} of wall-clock time. "
         f"The final training loss was {final_train_loss:.4f} and the "
         f"final validation loss was {final_val_loss:.4f}."

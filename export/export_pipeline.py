@@ -69,6 +69,7 @@ except AttributeError:
 LLAMA_CPP_DIR = PROJECT_ROOT / "lib" / "llama.cpp"
 TOKENIZER_HF_DIR = PROJECT_ROOT / "tokenizer" / "hf_tokenizer"
 MODELFILE_TEMPLATE = PROJECT_ROOT / "export" / "Modelfile.template"
+MODELFILE_TEMPLATE_INSTRUCT = PROJECT_ROOT / "export" / "Modelfile.template.instruct"
 CHECKPOINTS_DIR = PROJECT_ROOT / "checkpoints"
 
 # Per-size system prompts for the Ollama SYSTEM directive.
@@ -114,11 +115,31 @@ DISCLAIMERS = {
         "misleading. Always consult qualified medical professionals for any "
         "health-related questions."
     ),
+    "1b-instruct": (
+        "You are ALS-LM-Instruct, a 1B parameter model that was instruction-tuned "
+        "on approximately 970 ALS question-answer pairs using Alpaca format. "
+        "WARNING: This model failed qualitative validation during development. "
+        "It produces degenerate output consisting of repetitive token sequences "
+        "(e.g. 'TheTheThe...') rather than coherent responses. The model is a "
+        "research artifact documenting the failure modes of instruction tuning a "
+        "from-scratch 1B parameter model with limited data. It demonstrates that "
+        "~1,000 instruction pairs are insufficient to teach instruction-following "
+        "behavior to a model trained from scratch without pre-existing language "
+        "understanding. "
+        "This model must only be used for ALS-related research evaluation purposes. "
+        "It must not be used for medical decision-making, diagnosis, treatment "
+        "planning, or any clinical purpose. Its outputs are non-functional and "
+        "should not be treated as information. Always consult qualified medical "
+        "professionals for any health-related questions."
+    ),
 }
 
 
 def _get_disclaimer(size: str) -> str:
     """Get the SYSTEM prompt (topic constraint + disclaimer) for a given model size."""
+    if size not in DISCLAIMERS:
+        print(f"  WARNING: No disclaimer defined for size '{size}', using '500m' default. "
+              f"Valid sizes: {', '.join(sorted(DISCLAIMERS.keys()))}")
     return DISCLAIMERS.get(size, DISCLAIMERS["500m"])
 
 
@@ -1069,16 +1090,23 @@ def stage_ollama_create(
                 "error": err,
             }
 
-        # Read the Modelfile template once
-        if not MODELFILE_TEMPLATE.is_file():
+        # Select the appropriate Modelfile template based on model size.
+        # Instruct models (size contains "instruct") use the template with
+        # the Alpaca TEMPLATE directive; all others use the standard template.
+        if "instruct" in size:
+            modelfile_template = MODELFILE_TEMPLATE_INSTRUCT
+        else:
+            modelfile_template = MODELFILE_TEMPLATE
+
+        if not modelfile_template.is_file():
             return {
                 "success": False,
                 "output_path": base_name,
                 "models": [],
-                "error": f"Modelfile template not found: {MODELFILE_TEMPLATE}",
+                "error": f"Modelfile template not found: {modelfile_template}",
             }
 
-        with open(MODELFILE_TEMPLATE) as f:
+        with open(modelfile_template) as f:
             template = f.read()
 
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -1416,7 +1444,11 @@ def main() -> None:
         "--size",
         type=str,
         default="500m",
-        help="Model size qualifier (default: 500m). Used for output paths and Ollama model name.",
+        help=(
+            "Model size qualifier (default: 500m). Used for output paths, "
+            "Ollama model name, and disclaimer selection. "
+            "Known sizes: 500m, gpt2-large, 1b-instruct."
+        ),
     )
     parser.add_argument(
         "--tokenizer-dir",

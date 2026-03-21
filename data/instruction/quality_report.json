@@ -1,0 +1,88 @@
+{
+  "metadata": {
+    "generated_at": "2026-03-20T09:09:06.026965+00:00",
+    "total_pairs": 970,
+    "rejected_count": 1030,
+    "source_file": "data/instruction/als_instructions.json"
+  },
+  "category_distribution": {
+    "clinical_trials": {
+      "count": 118,
+      "target": 250,
+      "shortfall": 132
+    },
+    "diagnosis": {
+      "count": 107,
+      "target": 250,
+      "shortfall": 143
+    },
+    "epidemiology": {
+      "count": 123,
+      "target": 250,
+      "shortfall": 127
+    },
+    "genetics": {
+      "count": 113,
+      "target": 250,
+      "shortfall": 137
+    },
+    "pathophysiology": {
+      "count": 122,
+      "target": 250,
+      "shortfall": 128
+    },
+    "patient_care": {
+      "count": 152,
+      "target": 250,
+      "shortfall": 98
+    },
+    "symptoms": {
+      "count": 122,
+      "target": 250,
+      "shortfall": 128
+    },
+    "treatment": {
+      "count": 113,
+      "target": 250,
+      "shortfall": 137
+    }
+  },
+  "question_type_distribution": {
+    "comparison": {
+      "count": 152,
+      "percent": 15.7
+    },
+    "explanation": {
+      "count": 287,
+      "percent": 29.6
+    },
+    "factual": {
+      "count": 380,
+      "percent": 39.2
+    },
+    "listing": {
+      "count": 151,
+      "percent": 15.6
+    }
+  },
+  "corpus_grounding": {
+    "grounded_count": 970,
+    "total_count": 970,
+    "grounding_rate": 1.0,
+    "entity_match_rate": 1.01,
+    "fact_grounding_verified": false
+  },
+  "response_lengths": {
+    "mean_sentences": 1.3,
+    "mean_words": 27.1,
+    "min_words": 10,
+    "max_words": 78,
+    "mean_tokens": 32.9
+  },
+  "leakage_check": {
+    "pairs_checked": 970,
+    "pairs_flagged": 6,
+    "threshold": 75,
+    "benchmark_questions": 160
+  }
+}

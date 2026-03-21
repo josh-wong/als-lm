@@ -46,6 +46,9 @@ data/tokenized/
 # GPT-2 re-tokenized data (Phase 22 - binary files, regenerable from corpus + GPT-2 tokenizer)
 data/tokenized_gpt2/
 
+# SFT tokenized data (Phase 43 - binary files, regenerable from instruction JSON + tokenizer)
+data/instruction/tokenized/
+
 # GPT-2 tokenizer files (standard upstream HuggingFace files, auto-downloaded by export pipeline)
 tokenizer/gpt2_tokenizer/
 
@@ -55,6 +58,7 @@ reports/*
 !reports/eval/
 !reports/model_comparison_report.md
 !reports/model_comparison_report.json
+!reports/sft_failure_analysis.md
 
 # Training artifacts (Phase 4.3)
 logs/

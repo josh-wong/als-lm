@@ -1,0 +1,80 @@
+{
+  "metadata": {
+    "model": "als-lm-1b-sft:f16",
+    "ollama_url": "http://localhost:11434",
+    "timestamp": "2026-03-20T15:57:29.769446+00:00",
+    "questions_path": "/mnt/c/Users/joshu/OneDrive/Documents/GitHub/als-lm/eval/questions.json",
+    "seed": 42
+  },
+  "results": [
+    {
+      "question_id": "TRIAL-004",
+      "question": "What was the pivotal clinical trial that led to riluzole's FDA approval?",
+      "category": "clinical_trials",
+      "prompt": "### Instruction:\nWhat was the pivotal clinical trial that led to riluzole's FDA approval?\n\n### Response:\n",
+      "response": "TheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheThe",
+      "coherent": false
+    },
+    {
+      "question_id": "DIAG-001",
+      "question": "What are the El Escorial criteria for diagnosing ALS?",
+      "category": "diagnostic_criteria",
+      "prompt": "### Instruction:\nWhat are the El Escorial criteria for diagnosing ALS?\n\n### Response:\n",
+      "response": "TheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheThe",
+      "coherent": false
+    },
+    {
+      "question_id": "MECH-009",
+      "question": "How does neuroinflammation contribute to ALS progression?",
+      "category": "disease_mechanisms",
+      "prompt": "### Instruction:\nHow does neuroinflammation contribute to ALS progression?\n\n### Response:\n",
+      "response": "TheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheThe",
+      "coherent": false
+    },
+    {
+      "question_id": "DRUG-008",
+      "question": "What are common side effects of riluzole?",
+      "category": "drug_treatment",
+      "prompt": "### Instruction:\nWhat are common side effects of riluzole?\n\n### Response:\n",
+      "response": "TheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheThe",
+      "coherent": false
+    },
+    {
+      "question_id": "EPI-008",
+      "question": "What are the two main types of ALS based on onset location?",
+      "category": "epidemiology",
+      "prompt": "### Instruction:\nWhat are the two main types of ALS based on onset location?\n\n### Response:\n",
+      "response": "TheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheThe",
+      "coherent": false
+    },
+    {
+      "question_id": "GENE-005",
+      "question": "What percentage of ALS cases are familial versus sporadic?",
+      "category": "gene_mutation",
+      "prompt": "### Instruction:\nWhat percentage of ALS cases are familial versus sporadic?\n\n### Response:\n",
+      "response": "TheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheThe",
+      "coherent": false
+    },
+    {
+      "question_id": "CARE-004",
+      "question": "What augmentative and alternative communication devices are used for ALS patients?",
+      "category": "patient_care",
+      "prompt": "### Instruction:\nWhat augmentative and alternative communication devices are used for ALS patients?\n\n### Response:\n",
+      "response": "TheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheThe",
+      "coherent": false
+    },
+    {
+      "question_id": "TEMP-018",
+      "question": "When was tofersen approved by the FDA for SOD1-ALS?",
+      "category": "temporal_accuracy",
+      "prompt": "### Instruction:\nWhen was tofersen approved by the FDA for SOD1-ALS?\n\n### Response:\n",
+      "response": "TheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheTheThe",
+      "coherent": false
+    }
+  ],
+  "summary": {
+    "coherent_count": 0,
+    "total_count": 8,
+    "verdict": "FAIL"
+  }
+}

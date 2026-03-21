@@ -421,7 +421,10 @@ class GPT(nn.Module):
             torch.nn.init.normal_(block.mlp.c_proj.weight, mean=0.0, std=0.02 * scale)
 
     def forward(
-        self, idx: torch.Tensor, targets: Optional[torch.Tensor] = None
+        self,
+        idx: torch.Tensor,
+        targets: Optional[torch.Tensor] = None,
+        labels: Optional[torch.Tensor] = None,
     ) -> tuple[torch.Tensor, Optional[torch.Tensor]]:
         """Run a forward pass through the model.
 
@@ -429,12 +432,18 @@ class GPT(nn.Module):
             idx: Input token indices of shape ``(B, T)`` where B is batch size
                 and T is sequence length. T must be <= ``config.block_size``.
             targets: Optional target token indices of shape ``(B, T)`` for
-                computing cross-entropy loss. If ``None``, loss is not computed.
+                computing standard cross-entropy loss without masking. If
+                ``None`` and ``labels`` is also ``None``, loss is not computed.
+            labels: Optional label indices of shape ``(B, T)`` for computing
+                cross-entropy loss with ``ignore_index=-100``. Positions set
+                to -100 are excluded from loss computation, enabling
+                response-only loss masking for SFT. When both ``labels`` and
+                ``targets`` are provided, ``labels`` takes precedence.
 
         Returns:
             A tuple ``(logits, loss)`` where logits has shape ``(B, T, V)``
-            (V = vocab_size) and loss is a scalar tensor if targets were
-            provided, or ``None`` otherwise.
+            (V = vocab_size) and loss is a scalar tensor if targets or labels
+            were provided, or ``None`` otherwise.
         """
         B, T = idx.size()
         assert T <= self.config.block_size, (
@@ -457,9 +466,15 @@ class GPT(nn.Module):
         x = self.transformer.ln_f(x)
         logits = self.lm_head(x)  # (B, T, vocab_size)
 
-        # Compute cross-entropy loss if targets are provided
+        # Compute loss: labels (with ignore_index=-100) takes precedence over targets
         loss = None
-        if targets is not None:
+        if labels is not None:
+            loss = F.cross_entropy(
+                logits.view(-1, logits.size(-1)),
+                labels.view(-1),
+                ignore_index=-100,
+            )
+        elif targets is not None:
             loss = F.cross_entropy(
                 logits.view(-1, logits.size(-1)),
                 targets.view(-1),
