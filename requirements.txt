@@ -7,7 +7,7 @@ beautifulsoup4==4.12.3
 tenacity==8.2.3
 pubmed-parser==0.5.1
 pyyaml==6.0.2
-tqdm==4.66.2
+tqdm==4.67.1
 
 # PII scrubbing (v0.1.0)
 presidio-analyzer==2.2.354

@@ -7,6 +7,17 @@ environment works end-to-end on the RTX 3060 before committing to the
 multi-phase training pipeline (Phases 48-51). It also resolves the BF16 vs
 FP16 compute dtype question with empirical data.
 
+Verified results (RTX 3060, 2026-03-21):
+
+- BF16: PASSED 6/6 (loss 2.42->2.02, 2.76 GB VRAM, 32.6s)
+- FP16: FAILED (RuntimeError in _amp_foreach_non_finite_check_and_unscale_cuda)
+- Recommendation: BF16
+
+Note: Uses Qwen/Qwen2.5-1.5B-Instruct as a temporary substitute while
+awaiting gated access approval for meta-llama/Llama-3.2-1B-Instruct.
+The QLoRA pipeline (NF4 quantization, LoRA adapter, SFTTrainer) is
+model-agnostic -- switching back to Llama requires only changing MODEL_ID.
+
 Usage::
 
     python qlora/smoke_test.py
@@ -37,7 +48,7 @@ from trl import SFTTrainer, SFTConfig
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-MODEL_ID = "meta-llama/Llama-3.2-1B-Instruct"
+MODEL_ID = "Qwen/Qwen2.5-1.5B-Instruct"
 SMOKE_STEPS = 10
 VRAM_LIMIT_GB = 10.0
 
@@ -224,7 +235,7 @@ def run_dtype_test(compute_dtype, dtype_name: str) -> dict:
             remove_unused_columns=False,
             dataloader_pin_memory=False,
             dataset_text_field="text",
-            max_seq_length=512,
+            max_length=512,
         )
 
         # Create trainer and train
@@ -392,7 +403,7 @@ def main():
         sys.exit(1)
 
     gpu_name = torch.cuda.get_device_name(0)
-    gpu_vram_gb = torch.cuda.get_device_properties(0).total_mem / (1024 ** 3)
+    gpu_vram_gb = torch.cuda.get_device_properties(0).total_memory / (1024 ** 3)
     print(f"\n  GPU: {gpu_name} ({gpu_vram_gb:.1f} GB)")
 
     # Run BF16 test
