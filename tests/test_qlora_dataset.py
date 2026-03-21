@@ -1,9 +1,13 @@
-"""DATA-01 and DATA-02 validation tests for QLoRA dataset formatting.
+"""DATA-01, DATA-02, and DATA-03 validation tests for QLoRA dataset formatting.
 
 Tests verify that qlora/format_dataset.py correctly converts 970 ALS
 instruction pairs from Alpaca format to the model's native chat template
 format with stratified 90/10 train/val split, token length reporting,
 and structural validation.
+
+DATA-03 tests verify that qlora/check_leakage.py correctly detects
+benchmark contamination between the 970 instruction pairs and the
+160 evaluation questions using fuzzy matching (partial_ratio >= 80).
 
 Tests skip gracefully when output files do not exist (run
 `python qlora/format_dataset.py` first to generate them).
@@ -11,6 +15,7 @@ Tests skip gracefully when output files do not exist (run
 
 import json
 import random
+import subprocess
 import sys
 from pathlib import Path
 
@@ -227,4 +232,72 @@ class TestValidateStructure:
         assert over_count == 0, (
             f"{over_count} examples exceed max_seq_length ({max_seq_length}). "
             "Adjust max_seq_length in configs/qlora.json before training."
+        )
+
+
+# ---------------------------------------------------------------------------
+# TestLeakageCheck: DATA-03 validation (6 tests)
+# ---------------------------------------------------------------------------
+
+_leakage_script = _project_root / "qlora" / "check_leakage.py"
+
+
+class TestLeakageCheck:
+    """Validate benchmark leakage detection between instruction pairs and eval questions."""
+
+    def test_leakage_script_exists(self):
+        """qlora/check_leakage.py exists on disk."""
+        assert _leakage_script.exists(), (
+            f"Script not found: {_leakage_script}"
+        )
+
+    def test_leakage_uses_partial_ratio(self):
+        """check_leakage.py uses partial_ratio (not token_set_ratio from older validate.py)."""
+        assert _leakage_script.exists(), f"Script not found: {_leakage_script}"
+        source = _leakage_script.read_text()
+        assert "partial_ratio" in source, (
+            "check_leakage.py should use rapidfuzz.fuzz.partial_ratio, "
+            "not token_set_ratio from the older validate.py"
+        )
+
+    def test_leakage_threshold_80(self):
+        """check_leakage.py uses threshold 80 (not 75 from older validate.py)."""
+        assert _leakage_script.exists(), f"Script not found: {_leakage_script}"
+        source = _leakage_script.read_text()
+        assert "80" in source, (
+            "check_leakage.py should use threshold 80, not 75"
+        )
+
+    def test_leakage_checks_instruction_vs_questions(self):
+        """check_leakage.py compares instruction text against question and prompt_template."""
+        assert _leakage_script.exists(), f"Script not found: {_leakage_script}"
+        source = _leakage_script.read_text()
+        assert "question" in source, (
+            "check_leakage.py should compare against eval 'question' field"
+        )
+        assert "prompt_template" in source, (
+            "check_leakage.py should compare against eval 'prompt_template' field"
+        )
+
+    def test_leakage_checks_answers_vs_key_facts(self):
+        """check_leakage.py compares output/answers against key_facts."""
+        assert _leakage_script.exists(), f"Script not found: {_leakage_script}"
+        source = _leakage_script.read_text()
+        assert "key_facts" in source, (
+            "check_leakage.py should compare instruction answers against eval key_facts"
+        )
+
+    @pytest.mark.skipif(not _leakage_script.exists(), reason="qlora/check_leakage.py does not exist yet")
+    def test_leakage_pass_exit_code(self):
+        """Running check_leakage.py exits with code 0 (no leakage detected)."""
+        result = subprocess.run(
+            [sys.executable, str(_leakage_script)],
+            capture_output=True,
+            text=True,
+            cwd=str(_project_root),
+        )
+        assert result.returncode == 0, (
+            f"check_leakage.py exited with code {result.returncode}.\n"
+            f"stdout: {result.stdout}\n"
+            f"stderr: {result.stderr}"
         )
