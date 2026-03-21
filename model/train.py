@@ -877,7 +877,7 @@ def save_checkpoint_atomic(model_engine, run_dir, step, client_state, checkpoint
 
 def save_best_checkpoint_atomic(model_engine, run_dir, step, val_loss,
                                 model_config_dict, config_name, epoch,
-                                wall_clock_elapsed):
+                                wall_clock_elapsed, extra_client_state=None):
     """Save the best checkpoint to best/ with atomic rename and .pt export.
 
     The best checkpoint includes both the DeepSpeed directory (for resume)
@@ -901,6 +901,8 @@ def save_best_checkpoint_atomic(model_engine, run_dir, step, val_loss,
         # 1. DeepSpeed saves to temp directory
         client_state = {"step": step, "val_loss": val_loss,
                         "best_val_loss": val_loss, "best_val_step": step}
+        if extra_client_state:
+            client_state.update(extra_client_state)
         model_engine.save_checkpoint(temp_best_run, tag=tag, client_state=client_state)
 
         # 2. Extract fp32 state dict and save as best.pt (only for best)
@@ -2328,6 +2330,10 @@ def main():
                             model_engine, run_dir, step, val_loss,
                             model_config_dict, config_label,
                             epoch_tracker.epoch, wall_elapsed,
+                            extra_client_state={
+                                "sft_best_epoch_val_loss": sft_best_epoch_val_loss,
+                                "sft_epochs_without_improvement": sft_epochs_without_improvement,
+                            },
                         )
                         best_dir = os.path.join(run_dir, "best")
                         best_size = sum(
