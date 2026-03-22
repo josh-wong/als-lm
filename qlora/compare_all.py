@@ -378,6 +378,20 @@ def plot_6model_comparison(data: dict, output_path: Path) -> None:
     metrics = ["Accuracy", "Coherence", "Capability\ngap"]
     n_metrics = len(metrics)
 
+    def _shade(hex_color: str, factor: float) -> str:
+        """Lighten (factor>1) or darken (factor<1) a hex color."""
+        r, g, b = int(hex_color[1:3], 16), int(hex_color[3:5], 16), int(hex_color[5:7], 16)
+        if factor > 1:
+            r = int(r + (255 - r) * (factor - 1))
+            g = int(g + (255 - g) * (factor - 1))
+            b = int(b + (255 - b) * (factor - 1))
+        else:
+            r, g, b = int(r * factor), int(g * factor), int(b * factor)
+        return f"#{min(r,255):02x}{min(g,255):02x}{min(b,255):02x}"
+
+    # Track position within each family to alternate dark/light shades
+    _family_seen: dict[str, int] = {}
+
     # Build values: [model_index][metric_index]
     values = []
     colors = []
@@ -388,9 +402,14 @@ def plot_6model_comparison(data: dict, output_path: Path) -> None:
         gap = cg.get("gap_pct", 0.0)
         values.append([acc, coh, gap])
         family = _FAMILY_MAP.get(mk, "from_scratch")
-        colors.append(FAMILY_COLORS.get(family, "#999999"))
+        base_color = FAMILY_COLORS.get(family, "#999999")
+        idx = _family_seen.get(family, 0)
+        _family_seen[family] = idx + 1
+        # First model in family: darker shade, second: lighter shade
+        shade_factor = 0.7 if idx == 0 else 1.4
+        colors.append(_shade(base_color, shade_factor))
 
-    fig, ax = plt.subplots(figsize=(14, 7))
+    fig, ax = plt.subplots(figsize=(16, 7))
 
     x = np.arange(n_metrics)
     total_width = 0.75
@@ -406,12 +425,12 @@ def plot_6model_comparison(data: dict, output_path: Path) -> None:
         )
         for bar in bars:
             height = bar.get_height()
-            if abs(height) > 0.5:
-                ax.text(
-                    bar.get_x() + bar.get_width() / 2, height + 0.5,
-                    f"{height:.1f}%",
-                    ha="center", va="bottom", fontsize=6, fontweight="bold",
-                )
+            label_y = max(height, 0) + 0.5
+            ax.text(
+                bar.get_x() + bar.get_width() / 2, label_y,
+                f"{height:.1f}%",
+                ha="center", va="bottom", fontsize=6, fontweight="bold",
+            )
 
     ax.set_xticks(x)
     ax.set_xticklabels(metrics, fontsize=11)
@@ -422,23 +441,14 @@ def plot_6model_comparison(data: dict, output_path: Path) -> None:
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
 
-    # Family legend
-    family_patches = [
-        mpatches.Patch(color=FAMILY_COLORS[fam], label=FAMILY_DISPLAY[fam])
-        for fam in ["from_scratch", "pretrained_finetune", "pretrained_instruct"]
-    ]
-    legend1 = ax.legend(
-        handles=family_patches, loc="upper left",
-        bbox_to_anchor=(1.02, 1), fontsize=9, title="Approach family",
-    )
-    ax.add_artist(legend1)
+    # Single legend: each model with its unique shade, grouped by family
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(handles, labels, loc="upper center",
+              bbox_to_anchor=(0.5, -0.12), fontsize=8,
+              title="Models (shading: dark = first in family, light = second)",
+              ncol=3, frameon=True, title_fontsize=9)
 
-    # Model legend
-    ax.legend(loc="upper left", bbox_to_anchor=(1.02, 0.7), fontsize=7,
-              title="Models", ncol=1)
-
-    fig.tight_layout()
-    fig.subplots_adjust(right=0.78)
+    fig.subplots_adjust(bottom=0.22)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output_path, dpi=300, bbox_inches="tight")
