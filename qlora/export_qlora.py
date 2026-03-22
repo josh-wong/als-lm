@@ -37,7 +37,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from eval.generate_responses import is_coherent
-from qlora.utils import section, status, ok, warn, fatal, BOLD, RESET
+from qlora.utils import section, status, ok, warn, fatal, BOLD, RESET, GREEN, RED, YELLOW
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -98,7 +98,7 @@ def build_llama_quantize() -> Path:
         )
 
     # CMake build (only the quantize target)
-    nproc = os.cpu_count()
+    nproc = os.cpu_count() or 1
     result = subprocess.run(
         ["cmake", "--build", "build", "--target", "llama-quantize", f"-j{nproc}"],
         capture_output=True,
