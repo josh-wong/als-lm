@@ -1,0 +1,12 @@
+{
+  "pairs_checked": 970,
+  "benchmark_questions": 160,
+  "threshold": 80,
+  "min_key_fact_length": 40,
+  "max_similarity": 74.23,
+  "mean_similarity": 60.2,
+  "flagged_count": 0,
+  "flagged_details": [],
+  "verdict": "PASS",
+  "generated_at": "2026-03-22T08:12:23.346420+00:00"
+}

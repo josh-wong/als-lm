@@ -59,6 +59,9 @@ reports/*
 !reports/model_comparison_report.md
 !reports/model_comparison_report.json
 !reports/sft_failure_analysis.md
+!reports/qlora_comparison_report.md
+!reports/qlora_comparison_report.json
+!reports/experimental-findings.md
 
 # Training artifacts (Phase 4.3)
 logs/
