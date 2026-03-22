@@ -67,6 +67,11 @@ _MODEL_LABELS = {
     "llama32_qlora":       ("Llama 3.2 1B QLoRA", "Llama QLoRA"),
 }
 
+# Family grouping is by technique applied, not model origin:
+# - from_scratch: base models with no fine-tuning stage
+# - pretrained_finetune: models with a fine-tuning stage (SFT or full),
+#   regardless of whether the base was from-scratch or pretrained
+# - pretrained_instruct: instruct-capable models with domain adaptation
 _FAMILY_MAP = {
     "scratch_500m": "from_scratch",
     "scratch_1b_base": "from_scratch",

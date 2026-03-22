@@ -191,7 +191,6 @@ def main():
     # --- Step 9: Compute token length statistics ---
     all_token_counts = [f["token_count"] for f in formatted]
     all_token_counts_sorted = sorted(all_token_counts)
-    n = len(all_token_counts_sorted)
 
     def percentile(data_sorted, p):
         """Compute the p-th percentile from sorted data."""

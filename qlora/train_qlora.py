@@ -40,34 +40,22 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from trl import SFTTrainer, SFTConfig
 
 from eval.generate_responses import is_coherent
+from qlora.utils import print_pass, print_fail
 
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-ASSISTANT_TAG = "<|im_start|>assistant\n"
+_DEFAULT_ASSISTANT_TAG = "<|im_start|>assistant\n"
 CONFIG_PATH = PROJECT_ROOT / "configs" / "qlora.json"
 TRAIN_JSONL = PROJECT_ROOT / "data" / "instruction" / "qlora" / "train.jsonl"
 VAL_JSONL = PROJECT_ROOT / "data" / "instruction" / "qlora" / "val.jsonl"
 
 
 # ---------------------------------------------------------------------------
-# Colored output helpers (matching smoke_test.py)
-# ---------------------------------------------------------------------------
-def print_pass(msg: str):
-    """Print a green PASS message."""
-    print(f"  \033[92m[PASS]\033[0m {msg}")
-
-
-def print_fail(msg: str):
-    """Print a red FAIL message."""
-    print(f"  \033[91m[FAIL]\033[0m {msg}")
-
-
-# ---------------------------------------------------------------------------
 # Dataset loading: prompt-completion format for completion-only loss masking
 # ---------------------------------------------------------------------------
-def load_prompt_completion(jsonl_path: str) -> Dataset:
+def load_prompt_completion(jsonl_path: str, assistant_tag: str = _DEFAULT_ASSISTANT_TAG) -> Dataset:
     """Load pre-formatted JSONL and restructure as prompt-completion pairs.
 
     Each line has {"text": "<|im_start|>system\\n...<|im_end|>\\n<|im_start|>user\\n...<|im_end|>\\n<|im_start|>assistant\\n...<|im_end|>\\n"}
@@ -96,17 +84,43 @@ def load_prompt_completion(jsonl_path: str) -> Dataset:
                 continue
             record = json.loads(line)
             text = record["text"]
-            idx = text.rfind(ASSISTANT_TAG)
+            idx = text.rfind(assistant_tag)
             if idx == -1:
                 print(f"FATAL: No assistant tag found on line {line_num}: "
                       f"{text[:100]}...")
                 print("  Fix: Re-run `python qlora/format_dataset.py` to "
                       "regenerate the dataset.")
                 sys.exit(1)
-            split_point = idx + len(ASSISTANT_TAG)
+            split_point = idx + len(assistant_tag)
             prompts.append(text[:split_point])
             completions.append(text[split_point:])
     return Dataset.from_dict({"prompt": prompts, "completion": completions})
+
+
+def _derive_assistant_tag(tokenizer) -> str:
+    """Derive the assistant turn prefix from the tokenizer's chat template.
+
+    Computes the difference between a user-only chat template rendered with
+    and without ``add_generation_prompt``, which yields the model-specific
+    assistant tag regardless of the model architecture.
+
+    For Qwen: ``<|im_start|>assistant\\n``
+    For Llama: ``<|start_header_id|>assistant<|end_header_id|>\\n\\n``
+    """
+    messages = [{"role": "user", "content": "x"}]
+    with_prompt = tokenizer.apply_chat_template(
+        messages, tokenize=False, add_generation_prompt=True
+    )
+    without_prompt = tokenizer.apply_chat_template(
+        messages, tokenize=False, add_generation_prompt=False
+    )
+    tag = with_prompt[len(without_prompt):]
+    if not tag:
+        raise ValueError(
+            "Could not derive assistant tag from tokenizer chat template. "
+            "The tokenizer may not support add_generation_prompt."
+        )
+    return tag
 
 
 # ---------------------------------------------------------------------------
@@ -234,7 +248,21 @@ def main():
     print(f"  GPU:    {gpu_name} ({gpu_vram_gb:.1f} GB)")
 
     # ------------------------------------------------------------------
-    # 3. Load datasets
+    # 3. Load tokenizer and derive assistant tag
+    # ------------------------------------------------------------------
+    print(f"\n{'=' * 60}")
+    print("  Loading tokenizer...")
+    print(f"{'=' * 60}")
+
+    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+    assistant_tag = _derive_assistant_tag(tokenizer)
+    print(f"  Tokenizer:     {model_id}")
+    print(f"  Assistant tag:  {assistant_tag!r}")
+
+    # ------------------------------------------------------------------
+    # 4. Load datasets
     # ------------------------------------------------------------------
     print(f"\n{'=' * 60}")
     print("  Loading datasets...")
@@ -249,15 +277,15 @@ def main():
         print("  Fix: Run `python qlora/format_dataset.py` first.")
         sys.exit(1)
 
-    train_ds = load_prompt_completion(str(TRAIN_JSONL))
-    val_ds = load_prompt_completion(str(VAL_JSONL))
+    train_ds = load_prompt_completion(str(TRAIN_JSONL), assistant_tag)
+    val_ds = load_prompt_completion(str(VAL_JSONL), assistant_tag)
 
     print(f"  Train examples: {len(train_ds)}")
     print(f"  Val examples:   {len(val_ds)}")
     print(f"  Columns:        {train_ds.column_names}")
 
     # ------------------------------------------------------------------
-    # 4. Load model with 4-bit quantization
+    # 5. Load model with 4-bit quantization
     # ------------------------------------------------------------------
     print(f"\n{'=' * 60}")
     print("  Loading model...")
@@ -288,12 +316,8 @@ def main():
             sys.exit(1)
         raise
 
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
-    if tokenizer.pad_token is None:
-        tokenizer.pad_token = tokenizer.eos_token
-
     # ------------------------------------------------------------------
-    # 5. Apply LoRA
+    # 6. Apply LoRA
     # ------------------------------------------------------------------
     lora_section = config["lora"]
     lora_config = LoraConfig(
@@ -310,7 +334,7 @@ def main():
     model.print_trainable_parameters()
 
     # ------------------------------------------------------------------
-    # 6. Configure training
+    # 7. Configure training
     # ------------------------------------------------------------------
     print(f"\n{'=' * 60}")
     print("  Configuring training...")
@@ -319,6 +343,7 @@ def main():
     training_section = config["training"]
     output_dir = str(PROJECT_ROOT / training_section["output_dir"])
     logging_dir = str(PROJECT_ROOT / "checkpoints" / "qlora" / "logs")
+    max_seq_length = training_section.get("max_seq_length", 512)
 
     training_args = SFTConfig(
         output_dir=output_dir,
@@ -327,7 +352,7 @@ def main():
         gradient_accumulation_steps=training_section["gradient_accumulation_steps"],
         learning_rate=training_section["learning_rate"],
         warmup_ratio=training_section["warmup_ratio"],
-        max_length=512,  # TRL 0.29.1 uses max_length (not max_seq_length)
+        max_length=max_seq_length,
         bf16=True,  # Empirically validated in Phase 47
         logging_dir=logging_dir,
         logging_steps=training_section["logging_steps"],
@@ -357,12 +382,12 @@ def main():
     print(f"  Steps/epoch:    ~{steps_per_epoch}")
     print(f"  Total steps:    ~{total_steps}")
     print(f"  Learning rate:  {training_section['learning_rate']}")
-    print(f"  Max length:     512")
+    print(f"  Max length:     {max_seq_length}")
     print(f"  BF16:           True")
     print(f"  Seed:           42")
 
     # ------------------------------------------------------------------
-    # 7. Train
+    # 8. Train
     # ------------------------------------------------------------------
     print(f"\n{'=' * 60}")
     print("  Training...")
@@ -403,7 +428,7 @@ def main():
     print(f"  Peak VRAM:        {peak_vram_gb:.2f} GB")
 
     # ------------------------------------------------------------------
-    # 8. Save best adapter
+    # 9. Save best adapter
     # ------------------------------------------------------------------
     print(f"\n{'=' * 60}")
     print("  Saving best adapter...")
@@ -424,7 +449,7 @@ def main():
         print("  WARNING: adapter_model.safetensors not found after save")
 
     # ------------------------------------------------------------------
-    # 9. Spot-check (TRAIN-04: catastrophic forgetting detection)
+    # 10. Spot-check (TRAIN-04: catastrophic forgetting detection)
     # ------------------------------------------------------------------
     print(f"\n{'=' * 60}")
     print("  Spot-check: catastrophic forgetting detection")
@@ -466,7 +491,7 @@ def main():
     print(f"{'=' * 60}")
 
     # ------------------------------------------------------------------
-    # 10. Final summary
+    # 11. Final summary
     # ------------------------------------------------------------------
     print(f"\n{'=' * 60}")
     print("  QLoRA Training Complete")

@@ -35,6 +35,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from qlora.utils import section, status, ok, warn, fatal, BOLD, RESET
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
@@ -43,44 +45,6 @@ BASELINE_DIR = PROJECT_ROOT / "checkpoints" / "qlora" / "baseline"
 GGUF_CONVERTER = PROJECT_ROOT / "lib" / "llama.cpp" / "convert_hf_to_gguf.py"
 EVAL_PIPELINE = PROJECT_ROOT / "eval" / "run_evaluation.py"
 CONFIG_PATH = PROJECT_ROOT / "configs" / "qlora.json"
-
-
-# ---------------------------------------------------------------------------
-# Console helpers
-# ---------------------------------------------------------------------------
-GREEN = "\033[92m"
-RED = "\033[91m"
-YELLOW = "\033[93m"
-BOLD = "\033[1m"
-RESET = "\033[0m"
-
-
-def section(title: str):
-    """Print a section header with separators."""
-    print(f"\n{'=' * 60}")
-    print(f"  {title}")
-    print(f"{'=' * 60}")
-
-
-def status(msg: str):
-    """Print a status message."""
-    print(f"  {msg}")
-
-
-def ok(msg: str):
-    """Print a green success message."""
-    print(f"  {GREEN}[OK]{RESET} {msg}")
-
-
-def warn(msg: str):
-    """Print a yellow warning message."""
-    print(f"  {YELLOW}[WARN]{RESET} {msg}")
-
-
-def fatal(msg: str):
-    """Print a red fatal error and exit."""
-    print(f"\n  {RED}FATAL:{RESET} {msg}", file=sys.stderr)
-    sys.exit(1)
 
 
 # ---------------------------------------------------------------------------

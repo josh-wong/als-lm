@@ -23,7 +23,6 @@ Usage::
 
 import json
 import os
-import re
 import shutil
 import subprocess
 import sys
@@ -36,6 +35,9 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
+
+from eval.generate_responses import is_coherent
+from qlora.utils import section, status, ok, warn, fatal, BOLD, RESET
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -64,67 +66,6 @@ SMOKE_TEST_PROMPTS = [
     "Explain the role of TDP-43 protein aggregation in ALS pathogenesis.",
     "What is the current evidence for riluzole and edaravone in treating ALS?",
 ]
-
-# ---------------------------------------------------------------------------
-# Console helpers
-# ---------------------------------------------------------------------------
-GREEN = "\033[92m"
-RED = "\033[91m"
-YELLOW = "\033[93m"
-BOLD = "\033[1m"
-RESET = "\033[0m"
-
-
-def section(title: str):
-    """Print a section header with separators."""
-    print(f"\n{'=' * 60}")
-    print(f"  {title}")
-    print(f"{'=' * 60}")
-
-
-def status(msg: str):
-    """Print a status message."""
-    print(f"  {msg}")
-
-
-def ok(msg: str):
-    """Print a green success message."""
-    print(f"  {GREEN}[OK]{RESET} {msg}")
-
-
-def warn(msg: str):
-    """Print a yellow warning message."""
-    print(f"  {YELLOW}[WARN]{RESET} {msg}")
-
-
-def fatal(msg: str):
-    """Print a red fatal error and exit."""
-    print(f"\n  {RED}FATAL:{RESET} {msg}", file=sys.stderr)
-    sys.exit(1)
-
-
-# ---------------------------------------------------------------------------
-# Coherence filter
-# ---------------------------------------------------------------------------
-def check_coherence(text: str) -> bool:
-    """Binary coherence check for smoke test responses.
-
-    Reuses the proven heuristics from eval/generate_responses.py:
-    non-empty, >50 chars, no excessive word repetition, no token-salad.
-    """
-    if not text or not text.strip():
-        return False
-    stripped = text.strip()
-    if len(stripped) < 50:
-        return False
-    # Excessive word repetition (same word 6+ times consecutively)
-    if re.search(r"(\b\w+\b)(\s+\1){5,}", stripped, re.IGNORECASE):
-        return False
-    # Token salad (>80% non-alphanumeric characters)
-    alnum = sum(1 for c in stripped if c.isalnum())
-    if len(stripped) > 0 and alnum / len(stripped) < 0.2:
-        return False
-    return True
 
 
 # ---------------------------------------------------------------------------
@@ -544,7 +485,7 @@ def run_smoke_tests() -> dict:
                 status(f"  {'-' * 50}")
 
                 # Coherence check
-                if check_coherence(response):
+                if is_coherent(response):
                     ok(f"  Coherent ({len(response)} chars)")
                     results[tag]["passed"] += 1
                 else:

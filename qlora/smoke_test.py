@@ -39,6 +39,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from qlora.utils import print_pass, print_fail
+
 import torch
 from datasets import Dataset
 from peft import LoraConfig, TaskType, get_peft_model
@@ -97,16 +99,6 @@ def alpaca_to_chat_messages(entry: dict, tokenizer) -> str:
         {"role": "assistant", "content": entry["output"]},
     ]
     return tokenizer.apply_chat_template(messages, tokenize=False)
-
-
-def print_pass(msg: str):
-    """Print a green PASS message."""
-    print(f"  \033[92m[PASS]\033[0m {msg}")
-
-
-def print_fail(msg: str):
-    """Print a red FAIL message."""
-    print(f"  \033[91m[FAIL]\033[0m {msg}")
 
 
 # ---------------------------------------------------------------------------
