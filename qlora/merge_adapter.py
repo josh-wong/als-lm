@@ -24,18 +24,16 @@ import time
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
-# Project root discovery (existing project pattern)
+# Project root bootstrap (needed before qlora.utils import)
 # ---------------------------------------------------------------------------
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
+_bootstrap_root = Path(__file__).resolve().parent.parent
+if str(_bootstrap_root) not in sys.path:
+    sys.path.insert(0, str(_bootstrap_root))
 
-from qlora.utils import section, status, ok, warn, fatal, BOLD, RESET
-
-# ---------------------------------------------------------------------------
-# Constants
-# ---------------------------------------------------------------------------
-CONFIG_PATH = PROJECT_ROOT / "configs" / "qlora.json"
+from qlora.utils import (
+    section, status, ok, warn, fatal, BOLD, RESET,
+    PROJECT_ROOT, CONFIG_PATH, load_qlora_config,
+)
 ADAPTER_DIR = PROJECT_ROOT / "checkpoints" / "qlora" / "adapter" / "best"
 MERGED_DIR = PROJECT_ROOT / "checkpoints" / "qlora" / "merged"
 
@@ -80,8 +78,7 @@ def check_prerequisites():
 def load_config() -> dict:
     """Load model_id and other config from configs/qlora.json."""
     section("Step 1: Loading config")
-    with open(CONFIG_PATH) as f:
-        config = json.load(f)
+    config = load_qlora_config()
     model_id = config["model"]["model_id"]
     status(f"Model ID: {model_id}")
     status(f"Adapter path: {ADAPTER_DIR}")

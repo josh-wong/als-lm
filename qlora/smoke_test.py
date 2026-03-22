@@ -39,7 +39,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from qlora.utils import print_pass, print_fail
+from qlora.utils import print_pass, print_fail, PROJECT_ROOT, load_qlora_config
 
 import torch
 from datasets import Dataset
@@ -189,10 +189,7 @@ def run_dtype_test(compute_dtype, dtype_name: str) -> dict:
         model, tokenizer = load_model_and_tokenizer(compute_dtype)
 
         # Load LoRA config from configs/qlora.json
-        config_path = PROJECT_ROOT / "configs" / "qlora.json"
-        with open(config_path) as f:
-            qlora_config = json.load(f)
-
+        qlora_config = load_qlora_config()
         lora_section = qlora_config["lora"]
         lora_config = LoraConfig(
             r=lora_section["r"],

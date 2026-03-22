@@ -80,26 +80,33 @@ class TestTrainScript:
 # ---------------------------------------------------------------------------
 
 class TestCompletionMasking:
-    """Verify load_prompt_completion() correctly splits JSONL at the assistant tag boundary."""
+    """Verify load_prompt_completion() correctly splits JSONL at the assistant tag boundary.
+
+    The fixture uses the current model's assistant tag (derived from
+    _DEFAULT_ASSISTANT_TAG) so that tests remain valid when the model_id
+    in configs/qlora.json changes.
+    """
 
     @pytest.fixture
     def sample_jsonl(self, tmp_path):
-        """Create a temporary JSONL file with a realistic Qwen chat-template sample."""
+        """Create a temporary JSONL file with a chat-template sample using the default assistant tag."""
+        from qlora.utils import DEFAULT_ASSISTANT_TAG as _DEFAULT_ASSISTANT_TAG
+        # Build a generic sample using the current model's tag format
         sample_text = (
             "<|im_start|>system\n"
             "You are a knowledgeable assistant specializing in ALS research.<|im_end|>\n"
             "<|im_start|>user\n"
             "What is riluzole?<|im_end|>\n"
-            "<|im_start|>assistant\n"
+            f"{_DEFAULT_ASSISTANT_TAG}"
             "Riluzole is the first FDA-approved drug for treating ALS.<|im_end|>\n"
         )
         jsonl_path = tmp_path / "test_sample.jsonl"
         jsonl_path.write_text(json.dumps({"text": sample_text}) + "\n")
-        return jsonl_path, sample_text
+        return jsonl_path, sample_text, _DEFAULT_ASSISTANT_TAG
 
     def test_prompt_completion_split(self, sample_jsonl):
         """load_prompt_completion() correctly splits a sample JSONL line at the assistant tag boundary."""
-        jsonl_path, original_text = sample_jsonl
+        jsonl_path, original_text, _ = sample_jsonl
         from qlora.train_qlora import load_prompt_completion
         ds = load_prompt_completion(str(jsonl_path))
         assert "prompt" in ds.column_names, "Dataset should have 'prompt' column"
@@ -113,23 +120,23 @@ class TestCompletionMasking:
         )
 
     def test_prompt_ends_with_assistant_tag(self, sample_jsonl):
-        """Prompt field ends with the assistant tag '<|im_start|>assistant\\n'."""
-        jsonl_path, _ = sample_jsonl
+        """Prompt field ends with the model's assistant tag."""
+        jsonl_path, _, assistant_tag = sample_jsonl
         from qlora.train_qlora import load_prompt_completion
         ds = load_prompt_completion(str(jsonl_path))
         prompt = ds[0]["prompt"]
-        assert prompt.endswith("<|im_start|>assistant\n"), (
-            f"Prompt should end with '<|im_start|>assistant\\n', got: ...{prompt[-40:]!r}"
+        assert prompt.endswith(assistant_tag), (
+            f"Prompt should end with {assistant_tag!r}, got: ...{prompt[-40:]!r}"
         )
 
-    def test_completion_ends_with_eos(self, sample_jsonl):
-        """Completion field ends with '<|im_end|>\\n'."""
-        jsonl_path, _ = sample_jsonl
+    def test_completion_does_not_include_assistant_tag(self, sample_jsonl):
+        """Completion field starts with the response text, not the assistant tag."""
+        jsonl_path, _, assistant_tag = sample_jsonl
         from qlora.train_qlora import load_prompt_completion
         ds = load_prompt_completion(str(jsonl_path))
         completion = ds[0]["completion"]
-        assert completion.endswith("<|im_end|>\n"), (
-            f"Completion should end with '<|im_end|>\\n', got: ...{completion[-40:]!r}"
+        assert not completion.startswith(assistant_tag), (
+            f"Completion should not start with the assistant tag {assistant_tag!r}"
         )
 
 

@@ -110,6 +110,14 @@ def main():
 
     # --- Step 5: Convert each entry ---
     print("\n  Converting to chat template format...")
+    required_keys = {"instruction", "output"}
+    for i, entry in enumerate(data):
+        missing = required_keys - entry.keys()
+        if missing:
+            print(f"\nFATAL: Entry {i} missing required keys: {missing}")
+            print(f"  Keys found: {sorted(entry.keys())}")
+            sys.exit(1)
+
     formatted = []
     for i, entry in enumerate(data):
         user_content = entry["instruction"]

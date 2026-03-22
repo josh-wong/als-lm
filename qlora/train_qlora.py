@@ -27,11 +27,11 @@ import time
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
-# Project root discovery (existing project pattern)
+# Project root bootstrap (needed before qlora.utils import)
 # ---------------------------------------------------------------------------
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
+_bootstrap_root = Path(__file__).resolve().parent.parent
+if str(_bootstrap_root) not in sys.path:
+    sys.path.insert(0, str(_bootstrap_root))
 
 import torch
 from datasets import Dataset
@@ -40,14 +40,16 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from trl import SFTTrainer, SFTConfig
 
 from eval.generate_responses import is_coherent
-from qlora.utils import print_pass, print_fail
+from qlora.utils import (
+    print_pass, print_fail, PROJECT_ROOT, CONFIG_PATH,
+    load_qlora_config, DEFAULT_ASSISTANT_TAG,
+)
 
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-_DEFAULT_ASSISTANT_TAG = "<|im_start|>assistant\n"
-CONFIG_PATH = PROJECT_ROOT / "configs" / "qlora.json"
+_DEFAULT_ASSISTANT_TAG = DEFAULT_ASSISTANT_TAG
 TRAIN_JSONL = PROJECT_ROOT / "data" / "instruction" / "qlora" / "train.jsonl"
 VAL_JSONL = PROJECT_ROOT / "data" / "instruction" / "qlora" / "val.jsonl"
 
@@ -82,7 +84,15 @@ def load_prompt_completion(jsonl_path: str, assistant_tag: str = _DEFAULT_ASSIST
             line = line.strip()
             if not line:
                 continue
-            record = json.loads(line)
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError as e:
+                print(f"FATAL: Invalid JSON on line {line_num}: {e}")
+                sys.exit(1)
+            if "text" not in record:
+                print(f"FATAL: Missing 'text' key on line {line_num}")
+                print(f"  Keys found: {sorted(record.keys())}")
+                sys.exit(1)
             text = record["text"]
             idx = text.rfind(assistant_tag)
             if idx == -1:
@@ -224,13 +234,7 @@ def main():
     print("  QLoRA Training: ALS Domain Adaptation")
     print("=" * 60)
 
-    if not CONFIG_PATH.exists():
-        print(f"\nFATAL: Config not found at {CONFIG_PATH}")
-        print("  Fix: Ensure configs/qlora.json exists in the project root.")
-        sys.exit(1)
-
-    with open(CONFIG_PATH) as f:
-        config = json.load(f)
+    config = load_qlora_config()
 
     model_id = config["model"]["model_id"]
     print(f"\n  Model:  {model_id}")

@@ -29,13 +29,16 @@ import time
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
-# Project root discovery (existing project pattern)
+# Project root bootstrap (needed before qlora.utils import)
 # ---------------------------------------------------------------------------
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
+_bootstrap_root = Path(__file__).resolve().parent.parent
+if str(_bootstrap_root) not in sys.path:
+    sys.path.insert(0, str(_bootstrap_root))
 
-from qlora.utils import section, status, ok, warn, fatal, BOLD, RESET
+from qlora.utils import (
+    section, status, ok, warn, fatal, BOLD, RESET,
+    PROJECT_ROOT, CONFIG_PATH, load_qlora_config,
+)
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -44,7 +47,6 @@ OLLAMA_MODEL_NAME = "als-lm-llama32-base"
 BASELINE_DIR = PROJECT_ROOT / "checkpoints" / "qlora" / "baseline"
 GGUF_CONVERTER = PROJECT_ROOT / "lib" / "llama.cpp" / "convert_hf_to_gguf.py"
 EVAL_PIPELINE = PROJECT_ROOT / "eval" / "run_evaluation.py"
-CONFIG_PATH = PROJECT_ROOT / "configs" / "qlora.json"
 
 
 # ---------------------------------------------------------------------------
@@ -76,7 +78,7 @@ def check_prerequisites():
         fatal(f"Evaluation pipeline not found at {EVAL_PIPELINE}")
     ok("Evaluation pipeline found")
 
-    # Check config exists
+    # Check config exists (CONFIG_PATH imported from utils)
     if not CONFIG_PATH.exists():
         fatal(f"Config not found at {CONFIG_PATH}")
     ok("Config found")
@@ -88,8 +90,7 @@ def check_prerequisites():
 def load_config() -> dict:
     """Load model_id and other config from configs/qlora.json."""
     section("Step 1: Loading config")
-    with open(CONFIG_PATH) as f:
-        config = json.load(f)
+    config = load_qlora_config()
     model_id = config["model"]["model_id"]
     status(f"Model ID: {model_id}")
     status(f"GGUF output dir: {BASELINE_DIR}")
@@ -191,9 +192,17 @@ def register_ollama(gguf_path: Path) -> None:
         capture_output=True,
         text=True,
     )
-    if result.returncode == 0 and OLLAMA_MODEL_NAME in result.stdout:
-        ok(f"Model '{OLLAMA_MODEL_NAME}' already registered, skipping")
-        return
+    if result.returncode == 0:
+        # Parse model names from ollama list output (first column, before colon)
+        registered = set()
+        for line in result.stdout.strip().splitlines()[1:]:  # skip header
+            if line.strip():
+                name = line.split()[0]
+                registered.add(name)
+                registered.add(name.split(":")[0])  # also match without tag
+        if OLLAMA_MODEL_NAME in registered:
+            ok(f"Model '{OLLAMA_MODEL_NAME}' already registered, skipping")
+            return
 
     # Write Modelfile
     modelfile_path = BASELINE_DIR / "Modelfile"

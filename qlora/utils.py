@@ -1,7 +1,29 @@
 #!/usr/bin/env python3
 """Shared console and utility functions for QLoRA pipeline scripts."""
 
+import json
 import sys
+from pathlib import Path
+
+# ---------------------------------------------------------------------------
+# Shared paths (single source of truth for project root and config location)
+# ---------------------------------------------------------------------------
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+CONFIG_PATH = PROJECT_ROOT / "configs" / "qlora.json"
+
+
+# Default assistant tag for Qwen chat template format. Used as fallback
+# when the tokenizer is not available (e.g., in tests without GPU packages).
+# The actual tag is derived dynamically in train_qlora._derive_assistant_tag().
+DEFAULT_ASSISTANT_TAG = "<|im_start|>assistant\n"
+
+
+def load_qlora_config() -> dict:
+    """Load and return the QLoRA config from configs/qlora.json."""
+    if not CONFIG_PATH.exists():
+        fatal(f"Config not found at {CONFIG_PATH}")
+    with open(CONFIG_PATH) as f:
+        return json.load(f)
 
 # ANSI color codes
 GREEN = "\033[92m"
