@@ -1,6 +1,6 @@
 # ALS-LM: A domain-specific language model for ALS knowledge
 
-ALS-LM is a 516M-parameter decoder-only transformer trained from scratch on 143M tokens of curated amyotrophic lateral sclerosis (ALS) research. The project investigates what a purpose-built model can learn from a narrow medical corpus, how it fails, and how its failure modes compare to retrieval-augmented generation (RAG). A controlled comparison experiment fine-tuning GPT-2 large (774M parameters) on the same corpus validates the data deficit hypothesis and reveals instruction-following as a separate failure dimension.
+ALS-LM is a 516M-parameter decoder-only transformer trained from scratch on 143M tokens of curated amyotrophic lateral sclerosis (ALS) research. The project investigates what a purpose-built model can learn from a narrow medical corpus, how it fails, and how its failure modes compare to retrieval-augmented generation (RAG) and domain adaptation of pre-trained models. A 6-model comparison spanning from-scratch training, pre-trained fine-tuning, and QLoRA domain adaptation reveals that a model's pre-trained parametric knowledge determines its ALS performance floor, and small-scale domain fine-tuning cannot reliably improve on it.
 
 > [!CAUTION]
 >
@@ -10,18 +10,19 @@ ALS-LM is a 516M-parameter decoder-only transformer trained from scratch on 143M
 
 ## Key findings
 
-The central result is a disconnect between language-modeling competence and factual knowledge. The model achieves a Well-fit training classification (validation loss relative gap of +0.42%), yet achieves a 0.0% binary pass rate on a 160-question factual benchmark. Naive RAG over the same corpus does not help: the best RAG configuration (13.8% accuracy) fails to exceed a no-retrieval baseline (14.3%), revealing retrieval quality as the primary bottleneck. Fine-tuning GPT-2 large on the same corpus achieves 15x higher accuracy (3.12%) but produces degenerate output in 97.5% of responses, revealing data deficit and instruction-following as two orthogonal failure dimensions.
+The central result across 6 model variants is that knowledge source matters most: a model's pre-trained parametric knowledge determines its ALS accuracy floor, and small-scale domain fine-tuning cannot reliably improve on it. The unmodified Llama 3.2 1B Instruct model achieves 10.31% accuracy on the 160-question benchmark without any ALS-specific training, outperforming all other approaches including QLoRA domain adaptation on 970 ALS instruction pairs (7.24%), which actually degraded accuracy by 3.07 percentage points. From-scratch models trained on 143M ALS tokens achieve near-zero accuracy regardless of model size, confirming a severe data deficit.
 
 ![Accuracy comparison across all six approaches: ALS-LM, baseline, and four RAG configurations](docs/figures/accuracy_comparison.png)
 
-*The fine-tuned GPT-2 large model is not shown in this figure; see the [cross-model comparison](#cross-model-comparison) table below.*
+*This figure shows the from-scratch model and RAG configurations. See the [6-model comparison](#cross-model-comparison) table and [grouped bar chart](docs/figures/qlora_comparison.png) for the complete cross-model analysis.*
 
-- **0.0% binary pass rate** across all quantization levels on the hallucination benchmark (0/480 responses)
+- **Knowledge source is the primary accuracy driver.** The unmodified Llama 3.2 1B Instruct model (10.31% accuracy) outperforms all domain-adapted variants, including QLoRA fine-tuning (7.24%), confirming that pre-trained parametric knowledge determines the performance floor
+- **QLoRA domain adaptation degraded accuracy by 3.07 percentage points** (10.31% to 7.24%) while increasing coherence from 29.4% to 50.0%, widening the perceived capability gap from 19.1% to 42.8% — the model sounds more confident but is less accurate
+- **0.0% binary pass rate** from the from-scratch 500M model across all quantization levels on the hallucination benchmark (0/480 responses)
 - **Best RAG 13.8% vs. baseline 14.3%**, meaning that retrieval-augmented generation does not outperform the no-retrieval baseline
 - **PubMedBERT outperforms MiniLM by 2.1x** for medical retrieval (12.7% vs. 5.9% mean accuracy)
 - **80x below Chinchilla-optimal** data ratio (0.25 tokens/parameter vs. the recommended ~20)
-- **3.12% mean accuracy with GPT-2 large fine-tuning**, meaning a 15x improvement over the from-scratch model, validating that pretrained knowledge helps even on a narrow medical corpus
-- **97.5% degenerate output** from the fine-tuned model, indicating that instruction-following capability is not preserved through domain fine-tuning alone
+- **3.12% mean accuracy with GPT-2 large fine-tuning**, a 15x improvement over the from-scratch model, but with 97.5% degenerate output revealing instruction-following as a separate failure dimension
 
 ## Pipeline
 
@@ -34,6 +35,7 @@ The project implements an end-to-end pipeline from data collection through evalu
 - **Tokenizer training.** A custom BPE tokenizer (50,257 vocabulary) trained on the ALS corpus encodes 50 of the top 100 ALS-specific medical terms as single tokens.
 - **Model training.** A GPT-2-style transformer with Pre-LN normalization (516M parameters) trains for 3 epochs by using DeepSpeed ZeRO Stage 2 with CPU offloading on an NVIDIA RTX 3060 (12GB VRAM).
 - **Fine-tuning comparison.** GPT-2 large (774M parameters) fine-tuned on the same ALS corpus for 2 epochs by using DeepSpeed ZeRO Stage 2 with pretrained weights, serving as a controlled comparison against the from-scratch model.
+- **QLoRA domain adaptation.** Llama 3.2 1B Instruct (via Qwen2.5-1.5B-Instruct as a temporary substitute) fine-tuned with QLoRA (4-bit NF4 quantization, LoRA rank 16) on 970 ALS instruction pairs, testing whether domain-specific fine-tuning of a pre-trained instruct model can improve ALS accuracy.
 - **Export.** A unified pipeline converts PyTorch checkpoints to Hugging Face format, then to GGUF (Q4_K_M, Q8_0, F16) for local inference via Ollama.
 - **Evaluation.** A hallucination evaluation framework scores model responses against 160 curated questions by using key-fact fuzzy matching, entity-based fabrication detection (~48K entities), and a 5-mode failure taxonomy.
 - **RAG comparison.** Four RAG configurations (two embedding models at two chunk sizes) that use ChromaDB are benchmarked against the from-scratch model and a no-retrieval Llama 3.1 8B baseline.
@@ -70,7 +72,7 @@ All three quantization levels achieve 0.0% binary pass rate across the 160-quest
 | ALS-LM (Q8_0)   |        0.0021 |       0.0%  |           66.4%  |   108/160 (67.5%)  |
 | ALS-LM (Q4_K_M) |        0.0052 |       0.0%  |           66.2%  |   116/160 (72.5%)  |
 
-The failure taxonomy reveals three dominant modes: confident fabrication (33.1%), degenerate output (32.5%), and plausible blending (23.8%).
+The failure taxonomy reveals three dominant modes: confident fabrication (33.1%), degenerate output (32.5%), and plausible blending (23.8%). See the [6-model comparison report](reports/qlora_comparison_report.md) for failure taxonomy distributions across all model variants.
 
 ![Failure taxonomy distribution showing the proportions of confident fabrication, plausible blending, outdated information, and degenerate output](docs/figures/failure_taxonomy.png)
 
@@ -93,14 +95,22 @@ Failure decomposition shows retrieval failures account for 52-89% of wrong answe
 
 ### Cross-model comparison
 
-The following table compares all three approaches on the 160-question ALS benchmark at Q8_0 quantization. Degenerate output rate measures the proportion of responses that are incoherent (repetitive loops, token salad, or empty); this metric is not applicable to RAG configurations where Llama 3.1 8B generates coherent text.
+The following table compares all 6 model variants on the 160-question ALS benchmark at Q8_0 quantization, grouped by approach family. Coherence measures the proportion of non-degenerate responses (not repetitive loops, token salad, or empty). Capability gap is the difference between coherence and accuracy — a high gap indicates the model sounds plausible but is factually wrong.
 
-| Approach                       | Mean accuracy | Fabrication rate | Degenerate output rate |
-|--------------------------------|---------------|------------------|------------------------|
-| ALS-LM 500M (from-scratch)    |        0.0021 |           66.4%  |                 32.5%  |
-| GPT-2 large 774M (fine-tuned) |        0.0312 |           77.0%  |                 97.5%  |
-| RAG 500-PubMedBERT            |        0.1380 |           80.3%  |                    —   |
-| Baseline (no retrieval)       |        0.1432 |           87.2%  |                    —   |
+**Table 3.** 6-model comparison on the 160-question ALS hallucination benchmark at Q8_0 quantization.
+
+| Model                                    | Family                | Accuracy | Fab. rate | Coherence | Cap. gap |
+|------------------------------------------|-----------------------|----------|-----------|-----------|----------|
+| ALS-LM 500M (from-scratch)              | From-scratch          |    0.21% |     66.4% |     67.5% |    67.3% |
+| ALS-LM 1B (from-scratch base)           | From-scratch          |    0.00% |    100.0% |     35.0% |    35.0% |
+| GPT-2 large 774M (fine-tuned)           | Pre-trained fine-tune |    3.12% |     77.0% |      2.5% |    -0.6% |
+| ALS-LM 1B (instruction-tuned)          | Pre-trained fine-tune |    0.00% |      0.0% |      0.0% |     0.0% |
+| Llama 3.2 1B Instruct (unmodified)      | Pre-trained instruct  |   10.31% |     87.6% |     29.4% |    19.1% |
+| Llama 3.2 1B QLoRA (domain-adapted)     | Pre-trained instruct  |    7.24% |     81.0% |     50.0% |    42.8% |
+
+The unmodified Llama 3.2 1B Instruct model achieves the highest accuracy (10.31%) without any ALS-specific training, supporting the hypothesis that a model's pre-trained parametric knowledge matters more than model size or training approach. QLoRA domain adaptation on 970 ALS instruction pairs reduced accuracy by 3.07 percentage points while increasing coherence from 29.4% to 50.0%, widening the perceived capability gap. See the [full 6-model comparison report](reports/qlora_comparison_report.md) for failure taxonomy analysis and implications.
+
+![6-model comparison grouped bar chart showing accuracy, coherence, and capability gap across from-scratch, pre-trained fine-tune, and pre-trained instruct families](docs/figures/qlora_comparison.png)
 
 ## Getting started
 
@@ -128,6 +138,22 @@ Fine-tune GPT-2 large on the ALS corpus by using pretrained weights. Run `python
 
 ```bash
 deepspeed model/train.py --deepspeed --deepspeed_config config/ds_zero2.json --config gpt2-large --pretrained-weights checkpoints/gpt2large_init/init.pt --max-epochs 2
+```
+
+### QLoRA domain adaptation
+
+Run QLoRA fine-tuning on a pre-trained instruct model, merge adapters, and export to GGUF for Ollama.
+
+```bash
+# Fine-tune with QLoRA (4-bit NF4, LoRA rank 16, 970 ALS instruction pairs)
+python qlora/train_qlora.py
+
+# Merge adapters into full model and export to GGUF
+python qlora/merge_adapter.py
+python qlora/export_qlora.py
+
+# Evaluate across all quantization levels
+python eval/run_multi_model_eval.py --model-base alslm-1b
 ```
 
 ### Export
@@ -168,7 +194,7 @@ Please read the following disclaimers carefully before using or referencing ALS-
 
 ### This is not a medical resource
 
-ALS-LM is a machine-learning research project. It is **not** a diagnostic tool, treatment guide, or substitute for professional medical advice. The models generate text that sounds authoritative but is factually incorrect—the from-scratch model achieves 0.0% binary pass rate on our benchmark while the fine-tuned variant achieves only 1.87% with 97.5% of responses being degenerate.
+ALS-LM is a machine-learning research project. It is **not** a diagnostic tool, treatment guide, or substitute for professional medical advice. The models generate text that sounds authoritative but is factually incorrect — the best-performing variant (unmodified Llama 3.2 1B Instruct) achieves only 10.31% accuracy, the QLoRA domain-adapted variant achieves 7.24%, and the from-scratch model achieves 0.0% binary pass rate. None of the 6 model variants produces reliable medical information.
 
 **If you or someone you know is affected by ALS, please consult qualified healthcare providers and trusted resources such as:**
 
@@ -178,7 +204,7 @@ ALS-LM is a machine-learning research project. It is **not** a diagnostic tool, 
 
 ### On hallucinations and medical safety
 
-The from-scratch model hallucinates at a rate of 66.4% fabricated entities across all quantization levels. The fine-tuned GPT-2 large variant produces 77.0% fabrication among coherent responses, but only generates coherent responses 2.5% of the time. In a medical context, both models represent a potential harm. This project treats hallucination measurement as a primary research question, not a side effect to be minimized.
+All 6 model variants exhibit high fabrication rates: from 66.4% (from-scratch 500M) to 87.6% (unmodified Llama 3.2 baseline). The QLoRA domain-adapted model fabricates at 81.0% while producing coherent output 50.0% of the time, making it the most deceptive variant — it sounds plausible more often while remaining factually unreliable. In a medical context, all models represent a potential harm. This project treats hallucination measurement as a primary research question, not a side effect to be minimized.
 
 All model outputs should be treated as experimental results, not as medical information.
 
@@ -221,6 +247,7 @@ Documentation from the original investigation into domain-specific language mode
 | [White paper](docs/v1-white-paper.md)                                         | Research motivation, approach, and contributions  |
 | [Product requirements document](docs/v1-product-requirements-doc.md)          | Scope, requirements, and success criteria         |
 | [Design document](docs/v1-design-doc.md)                                      | Technical architecture and implementation details |
+| [6-model comparison report](reports/qlora_comparison_report.md)               | Cross-model evaluation with QLoRA domain adaptation |
 
 ## License
 
