@@ -39,9 +39,9 @@ from pathlib import Path
 # Constants
 # ---------------------------------------------------------------------------
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-_DEFAULT_RESULTS_DIR = REPO_ROOT / "eval" / "results"
+_DEFAULT_RESULTS_DIR = PROJECT_ROOT / "eval" / "results"
 
 _MODEL_SUBDIRS = {
     "scratch_500m":        "als-lm-500m_q8_0",
