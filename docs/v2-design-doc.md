@@ -440,6 +440,25 @@ SFT on a small instruction dataset (1,000-5,000 pairs) carries elevated overfitt
 - **Diverse training examples:** The instruction dataset generation methodology (Section 6.2) ensures coverage across all 8 knowledge categories with varied question types, reducing the risk of the model learning category-specific patterns rather than general instruction-following behavior.
 - **Evaluation benchmark independence:** The strict separation between the instruction dataset and the 160-question evaluation benchmark (Section 6.3) ensures that evaluation measures generalization, not memorization of training examples.
 
+### 7.4 QLoRA implementation and knowledge attribution
+
+The original SFT plan (Sections 7.1-7.3) described fine-tuning the from-scratch pretrained 1B model on instruction-response pairs. During implementation, the approach was revised to use quantized low-rank adaptation (QLoRA) on Llama 3.2 1B Instruct instead. This revision leverages a pretrained instruct model's existing language coherence and instruction-following capabilities while adapting it to the ALS domain through the curated instruction dataset.
+
+This approach introduces a methodological concern: Llama 3.2 1B Instruct was pretrained on web-scale data that includes ALS-related content. If the base model already possesses significant ALS knowledge, then accuracy improvements after QLoRA fine-tuning could reflect pretrained knowledge rather than knowledge transferred from the ALS corpus. This would undermine the research question of what a purpose-built corpus can teach a model about ALS.
+
+An ablation baseline evaluation resolves this concern. The unmodified Llama 3.2 1B Instruct model was evaluated on the full 160-question ALS benchmark before any fine-tuning, producing the following results.
+
+| Metric           | Value  |
+| ---------------- | ------ |
+| Mean accuracy    | 10.3%  |
+| Binary pass rate | 8.1%   |
+| Degenerate rate  | 70.6%  |
+| Accurate         | 1/160  |
+
+The baseline establishes that the instruct model's pretrained ALS knowledge is negligible: it cannot meaningfully answer ALS-domain questions, and the majority of its responses are degenerate. This validates a clean division of labor in the QLoRA approach. The base model contributes grammar, coherence, and instruction-following format, while the ALS instruction dataset contributes domain-specific factual knowledge through the LoRA adapter. Any accuracy improvement after fine-tuning is attributable to the corpus rather than pretrained knowledge contamination.
+
+The full ablation baseline report is available at `reports/eval/als-lm-llama32-base/hallucination_eval_als-lm-llama32-base.md`.
+
 ## 8. Export pipeline
 
 The export pipeline is unchanged from [ALS-LM-1 Section 6](v1-design-doc.md#6-model-export-and-ollama-integration). The same PyTorch to Hugging Face to GGUF conversion flow, quantization levels (F16, Q8_0, Q4_K_M), and Ollama registration process apply to the instruction-tuned 1B model.

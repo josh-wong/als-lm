@@ -159,7 +159,30 @@ ok "All dependencies installed"
 echo ""
 
 # ---------------------------------------------------------------------------
-# 8. Quick validation checks
+# 8. HuggingFace gated model access (Llama 3.2)
+# ---------------------------------------------------------------------------
+echo "Checking HuggingFace authentication..."
+
+if command -v huggingface-cli &>/dev/null; then
+    if huggingface-cli whoami &>/dev/null 2>&1; then
+        ok "HuggingFace CLI authenticated"
+    else
+        warn "HuggingFace CLI not authenticated"
+        info "To access Llama 3.2 1B Instruct (gated model):"
+        info "  1. Create account at https://huggingface.co/join"
+        info "  2. Visit https://huggingface.co/meta-llama/Llama-3.2-1B-Instruct"
+        info "  3. Accept the Llama 3.2 Community License Agreement"
+        info "  4. Create token at https://huggingface.co/settings/tokens"
+        info "  5. Run: huggingface-cli login"
+    fi
+else
+    warn "huggingface-cli not found (install huggingface_hub)"
+fi
+
+echo ""
+
+# ---------------------------------------------------------------------------
+# 9. Quick validation checks
 # ---------------------------------------------------------------------------
 echo "Running validation checks..."
 
@@ -191,10 +214,24 @@ else
     exit 1
 fi
 
+if python -c "import peft; print(f'peft {peft.__version__}')"; then
+    ok "peft import validation passed"
+else
+    fail "peft import failed."
+    exit 1
+fi
+
+if python -c "import bitsandbytes; print(f'bitsandbytes {bitsandbytes.__version__}')"; then
+    ok "bitsandbytes import validation passed"
+else
+    fail "bitsandbytes import failed."
+    exit 1
+fi
+
 echo ""
 
 # ---------------------------------------------------------------------------
-# 9. Run ds_report and save output
+# 10. Run ds_report and save output
 # ---------------------------------------------------------------------------
 echo "Running DeepSpeed environment report..."
 
@@ -224,7 +261,7 @@ fi
 echo ""
 
 # ---------------------------------------------------------------------------
-# 10. Summary
+# 11. Summary
 # ---------------------------------------------------------------------------
 echo "=========================================="
 echo "  Environment Setup Complete"
@@ -234,6 +271,8 @@ ok "PyTorch $(python -c 'import torch; print(torch.__version__)') with CUDA $(py
 ok "DeepSpeed $(python -c 'import deepspeed; print(deepspeed.__version__)') with CPUAdam"
 ok "transformers $(python -c 'import transformers; print(transformers.__version__)')"
 ok "safetensors $(python -c 'import safetensors; print(safetensors.__version__)')"
+ok "peft $(python -c 'import peft; print(peft.__version__)')"
+ok "bitsandbytes $(python -c 'import bitsandbytes; print(bitsandbytes.__version__)')"
 ok "GPU: $(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null)"
 ok "ds_report saved to reports/ds_report.txt"
 echo ""
