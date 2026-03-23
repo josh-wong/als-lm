@@ -100,6 +100,20 @@ def load_base_model(model_id: str):
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
+    # Check available RAM — loading a 1.5B model in FP16 requires ~6 GB
+    try:
+        import psutil
+        avail_gb = psutil.virtual_memory().available / (1024 ** 3)
+        if avail_gb < 6.0:
+            warn(
+                f"Only {avail_gb:.1f} GB RAM available (recommended: 6+ GB)\n"
+                "  The merge may fail with OOM. Close other applications to free memory."
+            )
+        else:
+            status(f"Available RAM: {avail_gb:.1f} GB")
+    except ImportError:
+        pass  # psutil not installed, skip check
+
     status(f"Loading {model_id} with torch.float16 on CPU...")
     status("This may take 1-2 minutes for download + loading...")
 

@@ -175,6 +175,25 @@ def load_model_data(model_dir: Path) -> dict:
             sys.exit(1)
         with open(filepath, "r", encoding="utf-8") as f:
             data[filename.replace(".json", "")] = json.load(f)
+
+    # Validate expected top-level structure
+    required_paths = {
+        "scores": ["aggregate", "overall"],
+        "fabrications": ["summary"],
+        "taxonomy": ["distribution"],
+        "responses": ["responses"],
+    }
+    for key, path in required_paths.items():
+        current = data[key]
+        for p in path:
+            if not isinstance(current, dict) or p not in current:
+                print(
+                    f"ERROR: {model_dir.name}/{key}.json missing expected key "
+                    f"path: {' -> '.join(required_paths[key])} (failed at '{p}')",
+                    file=sys.stderr,
+                )
+                sys.exit(1)
+            current = current[p]
     return data
 
 

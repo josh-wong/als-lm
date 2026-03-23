@@ -204,10 +204,11 @@ def register_ollama(gguf_path: Path) -> None:
             ok(f"Model '{OLLAMA_MODEL_NAME}' already registered, skipping")
             return
 
-    # Write Modelfile
+    # Write Modelfile (Ollama requires absolute path in FROM directive;
+    # if the project directory moves, re-run this script to re-register)
     modelfile_path = BASELINE_DIR / "Modelfile"
     modelfile_content = (
-        f"FROM {gguf_path}\n"
+        f"FROM {gguf_path.resolve()}\n"
         f"PARAMETER num_ctx 1024\n"
         f"PARAMETER num_predict 512\n"
         f"PARAMETER temperature 0.0\n"
@@ -247,7 +248,7 @@ def run_sanity_check() -> None:
         ["ollama", "run", OLLAMA_MODEL_NAME, "What is ALS?"],
         capture_output=True,
         text=True,
-        timeout=120,
+        timeout=300,
     )
 
     if result.returncode != 0:

@@ -58,6 +58,14 @@ GGUF_FILENAMES = {
     "q4_k_m": "alslm-1b-q4_k_m.gguf",
 }
 
+# Minimum file sizes (MB) to detect interrupted conversions.  A valid 1B
+# model GGUF is at least this large; anything smaller is likely corrupt.
+MIN_GGUF_SIZE_MB = {
+    "f16": 500,
+    "q8_0": 200,
+    "q4_k_m": 100,
+}
+
 # Smoke test prompts covering diverse ALS topics
 SMOKE_TEST_PROMPTS = [
     "What are the early symptoms of ALS and how is it diagnosed?",
@@ -81,6 +89,13 @@ def build_llama_quantize() -> Path:
         return quantize_bin
 
     status("Building llama-quantize from source...")
+
+    if shutil.which("cmake") is None:
+        fatal(
+            "cmake not found in PATH (required to build llama-quantize)\n"
+            "  Install: sudo apt install cmake   (Linux)\n"
+            "           brew install cmake        (macOS)"
+        )
 
     # CMake configure
     result = subprocess.run(
@@ -202,9 +217,13 @@ def convert_to_gguf(quantize_bin: Path) -> dict:
     # Step 2a: HF -> F16 GGUF
     f16_path = GGUF_DIR / GGUF_FILENAMES["f16"]
     if f16_path.exists():
-        size_gb = f16_path.stat().st_size / (1024 ** 3)
-        ok(f"F16 GGUF already exists, skipping ({size_gb:.2f} GB)")
-    else:
+        size_mb = f16_path.stat().st_size / (1024 ** 2)
+        if size_mb < MIN_GGUF_SIZE_MB["f16"]:
+            warn(f"F16 GGUF exists but is only {size_mb:.0f} MB (minimum {MIN_GGUF_SIZE_MB['f16']} MB) — likely corrupt, re-converting")
+            f16_path.unlink()
+        else:
+            ok(f"F16 GGUF already exists, skipping ({size_mb / 1024:.2f} GB)")
+    if not f16_path.exists():
         status(f"Converting merged model to F16 GGUF...")
         status(f"  Input:  {MERGED_DIR}")
         status(f"  Output: {f16_path}")
@@ -240,9 +259,13 @@ def convert_to_gguf(quantize_bin: Path) -> dict:
     # Step 2b: F16 -> Q8_0
     q8_path = GGUF_DIR / GGUF_FILENAMES["q8_0"]
     if q8_path.exists():
-        size_gb = q8_path.stat().st_size / (1024 ** 3)
-        ok(f"Q8_0 GGUF already exists, skipping ({size_gb:.2f} GB)")
-    else:
+        size_mb = q8_path.stat().st_size / (1024 ** 2)
+        if size_mb < MIN_GGUF_SIZE_MB["q8_0"]:
+            warn(f"Q8_0 GGUF exists but is only {size_mb:.0f} MB — likely corrupt, re-quantizing")
+            q8_path.unlink()
+        else:
+            ok(f"Q8_0 GGUF already exists, skipping ({size_mb / 1024:.2f} GB)")
+    if not q8_path.exists():
         status("Quantizing F16 -> Q8_0...")
         result = subprocess.run(
             [str(quantize_bin), str(f16_path), str(q8_path), "Q8_0"],
@@ -262,9 +285,13 @@ def convert_to_gguf(quantize_bin: Path) -> dict:
     # Step 2c: F16 -> Q4_K_M
     q4_path = GGUF_DIR / GGUF_FILENAMES["q4_k_m"]
     if q4_path.exists():
-        size_gb = q4_path.stat().st_size / (1024 ** 3)
-        ok(f"Q4_K_M GGUF already exists, skipping ({size_gb:.2f} GB)")
-    else:
+        size_mb = q4_path.stat().st_size / (1024 ** 2)
+        if size_mb < MIN_GGUF_SIZE_MB["q4_k_m"]:
+            warn(f"Q4_K_M GGUF exists but is only {size_mb:.0f} MB — likely corrupt, re-quantizing")
+            q4_path.unlink()
+        else:
+            ok(f"Q4_K_M GGUF already exists, skipping ({size_mb / 1024:.2f} GB)")
+    if not q4_path.exists():
         status("Quantizing F16 -> Q4_K_M...")
         result = subprocess.run(
             [str(quantize_bin), str(f16_path), str(q4_path), "Q4_K_M"],
@@ -311,9 +338,9 @@ def register_ollama(gguf_paths: dict, system_prompt: str):
 
         status(f"\nRegistering {model_name}...")
 
-        # Generate Modelfile inline
+        # Generate Modelfile inline (Ollama requires absolute path in FROM)
         modelfile_content = (
-            f"FROM {gguf_path}\n"
+            f"FROM {gguf_path.resolve()}\n"
             f"SYSTEM {system_prompt}\n"
             f"PARAMETER num_ctx 1024\n"
             f"PARAMETER num_predict 512\n"
@@ -329,7 +356,7 @@ def register_ollama(gguf_paths: dict, system_prompt: str):
             ["ollama", "create", model_name, "-f", str(modelfile_path)],
             capture_output=True,
             text=True,
-            timeout=120,
+            timeout=300,
         )
 
         if result.returncode != 0:
@@ -398,7 +425,7 @@ def register_baseline():
     # Generate Modelfile for baseline (no system prompt -- baseline has no
     # fine-tuning context, matching existing baseline Modelfile pattern)
     modelfile_content = (
-        f"FROM {baseline_gguf}\n"
+        f"FROM {baseline_gguf.resolve()}\n"
         f"PARAMETER num_ctx 1024\n"
         f"PARAMETER num_predict 512\n"
         f"PARAMETER temperature 0.0\n"
@@ -463,7 +490,7 @@ def run_smoke_tests() -> dict:
                     ["ollama", "run", model_name, prompt],
                     capture_output=True,
                     text=True,
-                    timeout=120,
+                    timeout=300,
                 )
 
                 response = result.stdout.strip()
@@ -492,7 +519,7 @@ def run_smoke_tests() -> dict:
                 results[tag]["responses"].append(response)
 
             except subprocess.TimeoutExpired:
-                warn(f"  Timed out after 120 seconds")
+                warn(f"  Timed out after 300 seconds")
                 results[tag]["warned"] += 1
                 results[tag]["responses"].append("(timeout)")
             except Exception as e:

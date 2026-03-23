@@ -132,14 +132,17 @@ class TestFormatDataset:
             f"Val categories mismatch: expected {_EXPECTED_CATEGORIES}, got {val_cats}"
         )
 
-        # Verify roughly 90/10 proportions for each category
+        # Verify roughly 90/10 proportions for each category.
+        # The split uses stratified sampling with test_size=0.1, so each
+        # category should be close to 10%.  Allow 5-18% to accommodate
+        # small categories where integer rounding shifts the ratio.
         for cat in _EXPECTED_CATEGORIES:
             train_count = dist["train"][cat]
             val_count = dist["val"][cat]
             total = train_count + val_count
             val_ratio = val_count / total if total > 0 else 0
-            assert 0.05 <= val_ratio <= 0.20, (
-                f"Category '{cat}': val ratio {val_ratio:.2f} not in [0.05, 0.20] "
+            assert 0.05 <= val_ratio <= 0.18, (
+                f"Category '{cat}': val ratio {val_ratio:.2f} not in [0.05, 0.18] "
                 f"(train={train_count}, val={val_count})"
             )
 
@@ -202,6 +205,13 @@ class TestValidateStructure:
             assert field in meta["token_stats"], (
                 f"Missing '{field}' in token_stats"
             )
+
+        # Validate token stats ordering invariants
+        ts = meta["token_stats"]
+        assert ts["min"] > 0, f"min tokens should be > 0, got {ts['min']}"
+        assert ts["min"] <= ts["median"] <= ts["max"], (
+            f"Token stats ordering violated: min={ts['min']} median={ts['median']} max={ts['max']}"
+        )
 
     @pytest.mark.skipif(not _output_exists, reason=_skip_reason)
     def test_model_id_consistency(self):

@@ -247,10 +247,16 @@ def main():
         cat = r["category"]
         val_cats[cat] = val_cats.get(cat, 0) + 1
 
+    # Warn about unexpected categories
+    all_cats = set(train_cats.keys()) | set(val_cats.keys())
+    unexpected = all_cats - EXPECTED_CATEGORIES
+    if unexpected:
+        print(f"\n  WARNING: Found {len(unexpected)} unexpected categories: {sorted(unexpected)}")
+
     print(f"\n  Category Distribution")
     print(f"  {'Category':<20} {'Train':>6} {'Val':>6} {'Total':>6}")
     print(f"  {'-' * 20} {'-' * 6} {'-' * 6} {'-' * 6}")
-    for cat in sorted(EXPECTED_CATEGORIES):
+    for cat in sorted(EXPECTED_CATEGORIES | unexpected):
         tc = train_cats.get(cat, 0)
         vc = val_cats.get(cat, 0)
         print(f"  {cat:<20} {tc:>6} {vc:>6} {tc + vc:>6}")

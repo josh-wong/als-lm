@@ -200,8 +200,10 @@ def main():
     mean_similarity = statistics.mean(all_max_scores) if all_max_scores else 0.0
     flagged_count = len(all_flagged)
 
-    # Write JSON report
+    # Write JSON report (overwrites previous report if it exists)
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
+    if REPORT_PATH.exists():
+        print(f"  Overwriting previous report at {REPORT_PATH.relative_to(PROJECT_ROOT)}")
     report = {
         "pairs_checked": total_pairs,
         "benchmark_questions": len(questions),

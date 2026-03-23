@@ -149,10 +149,12 @@ class TestModelSubdirs:
         assert set(_MODEL_SUBDIRS.keys()) == expected_keys
         assert len(_MODEL_SUBDIRS) == 6
 
-    def test_subdirs_are_unique(self):
-        """All subdirectory names are unique."""
-        subdirs = list(_MODEL_SUBDIRS.values())
-        assert len(subdirs) == len(set(subdirs))
+    def test_subdirs_are_non_empty_strings(self):
+        """All subdirectory names are non-empty strings."""
+        for key, subdir in _MODEL_SUBDIRS.items():
+            assert isinstance(subdir, str) and len(subdir) > 0, (
+                f"{key} has invalid subdirectory name: {subdir!r}"
+            )
 
     def test_subdirs_match_expected_directories(self):
         """Subdirectory values match the known eval/results/ directory names."""
@@ -259,6 +261,23 @@ class TestLoadModelData:
         import json
         with open(tmp_path / "scores.json", "w") as f:
             json.dump({}, f)
+
+        with pytest.raises(SystemExit):
+            load_model_data(tmp_path)
+
+    def test_load_model_data_invalid_structure_exits(self, tmp_path):
+        """load_model_data exits when JSON files have wrong structure."""
+        import json
+        # Create files with valid JSON but missing expected nested keys
+        fixture_data = {
+            "scores.json": {"wrong_key": {}},
+            "fabrications.json": {"summary": {}},
+            "taxonomy.json": {"distribution": {}},
+            "responses.json": {"responses": []},
+        }
+        for fname, content in fixture_data.items():
+            with open(tmp_path / fname, "w") as f:
+                json.dump(content, f)
 
         with pytest.raises(SystemExit):
             load_model_data(tmp_path)

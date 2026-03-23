@@ -77,6 +77,11 @@ def load_prompt_completion(jsonl_path: str, assistant_tag: str = _DEFAULT_ASSIST
     Returns:
         A HuggingFace Dataset with "prompt" and "completion" columns.
     """
+    if not assistant_tag:
+        print("FATAL: assistant_tag is empty — cannot split prompt/completion")
+        print("  This usually means _derive_assistant_tag() failed.")
+        sys.exit(1)
+
     prompts = []
     completions = []
     with open(jsonl_path) as f:
