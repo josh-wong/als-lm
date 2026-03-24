@@ -228,28 +228,20 @@ When including patient perspectives, this project only uses content that individ
 
 ## Project documents
 
-### ALS-LM-2 (in progress)
+The following documents cover the full investigation from initial design through final results.
 
-Planning documents for the next phase of investigation, targeting instruction tuning, corpus expansion, and parameter scaling.
-
-| Document                                                                      | Description                                       |
-|-------------------------------------------------------------------------------|---------------------------------------------------|
-| [White paper](docs/v2-white-paper.md)                                         | Research vision, hypotheses, and success criteria  |
-| [Product requirements document](docs/v2-product-requirements-doc.md)          | Scope, requirements, and milestones               |
-| [Design document](docs/v2-design-doc.md)                                      | Technical architecture and implementation details |
-
-### ALS-LM-1 (complete)
-
-Documentation from the original investigation into domain-specific language model training on ALS research.
-
-| Document                                                                      | Description                                       |
-|-------------------------------------------------------------------------------|---------------------------------------------------|
-| [Research paper](docs/v1-research-paper.md)                                   | Full experimental results and analysis            |
-| [Model card](docs/v1-model-card.md)                                           | Model documentation, safety, and limitations      |
-| [White paper](docs/v1-white-paper.md)                                         | Research motivation, approach, and contributions  |
-| [Product requirements document](docs/v1-product-requirements-doc.md)          | Scope, requirements, and success criteria         |
-| [Design document](docs/v1-design-doc.md)                                      | Technical architecture and implementation details |
-| [6-model comparison report](reports/qlora_comparison_report.md)               | Cross-model evaluation with QLoRA domain adaptation |
+| Document                                                             | Description                                                                    |
+|----------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| [Research paper](docs/v2-research-paper.md)                          | Full experimental results and analysis (6 models, 3 approach families)         |
+| [Model card](docs/v1-model-card.md)                                  | Model documentation, safety, and limitations                                   |
+| [6-model comparison report](reports/qlora_comparison_report.md)      | Cross-model evaluation with failure taxonomy                                   |
+| [v2 white paper](docs/v2-white-paper.md)                             | v2 research vision, hypotheses, and success criteria                           |
+| [v2 product requirements](docs/v2-product-requirements-doc.md)       | v2 scope, requirements, and milestones                                         |
+| [v2 design document](docs/v2-design-doc.md)                          | v2 technical architecture and implementation details                           |
+| [v1 research paper](docs/v1-research-paper.md)                       | Original investigation results (2-model comparison)                            |
+| [v1 white paper](docs/v1-white-paper.md)                             | Original research motivation and approach                                      |
+| [v1 product requirements](docs/v1-product-requirements-doc.md)       | Original scope and success criteria                                            |
+| [v1 design document](docs/v1-design-doc.md)                          | Original technical architecture                                                |
 
 ## License
 
