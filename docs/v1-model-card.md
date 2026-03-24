@@ -2,13 +2,13 @@
 
 > [!CAUTION]
 >
-> This project produced two model variants, neither suitable for medical use. The from-scratch 500M model achieves a 0.0% binary pass rate and fabricates medical entities at a 66.4% rate. The fine-tuned GPT-2 large 774M model achieves only 3.12% mean accuracy, with 97.5% of its responses degrading into repetitive or incoherent output. Neither model should ever be used for clinical decision-making, patient education, or any application where factual accuracy matters.
+> This project evaluated six model variants across three approach families. None is suitable for medical use. The best-performing variant (unmodified Qwen 2.5 1.5B Instruct) achieves only 10.31% accuracy on the ALS benchmark. The QLoRA domain-adapted variant achieves 7.24%. The from-scratch 500M model achieves 0.21%, the from-scratch 1B base achieves 0.00%, the instruction-tuned 1B SFT produces 100% degenerate output, and the fine-tuned GPT-2 large achieves 3.12% with 97.5% degenerate output. No model should ever be used for clinical decision-making, patient education, or any application where factual accuracy matters.
 >
 > For reliable ALS information, please consult the [ALS Association](https://www.als.org/), [Mayo Clinic](https://www.mayoclinic.org/diseases-conditions/amyotrophic-lateral-sclerosis/symptoms-causes/syc-20354022), or [NIH NINDS](https://www.ninds.nih.gov/health-information/disorders/amyotrophic-lateral-sclerosis-als).
 
 ## Model details
 
-ALS-LM is a 516M-parameter decoder-only transformer trained from scratch on 143M tokens of curated amyotrophic lateral sclerosis (ALS) research. We built the model to investigate what a purpose-built language model can learn from a narrow medical corpus, how it fails, and how those failure modes compare to retrieval-augmented generation (RAG) approaches. The near-zero factual accuracy we observed is a central research finding, not a shortcoming—it demonstrates the data deficit threshold below which domain-specific models cannot internalize factual knowledge.
+ALS-LM is a 516M-parameter decoder-only transformer trained from scratch on 143M tokens of curated amyotrophic lateral sclerosis (ALS) research. We built the model to investigate what a purpose-built language model can learn from a narrow medical corpus, how it fails, and how those failure modes compare to retrieval-augmented generation (RAG) approaches. The near-zero factual accuracy we observed is a central research finding, not a shortcoming—it demonstrates the data deficit threshold below which domain-specific models cannot internalize factual knowledge. We subsequently extended the investigation to six model variants spanning from-scratch training, pretrained fine-tuning, and pretrained domain adaptation, with full results documented in the [research paper](v2-research-paper.md).
 
 We use a GPT-2-style architecture with Pre-LN (layer normalization before attention) for training stability. As a controlled comparison experiment, we also fine-tuned GPT-2 large (774M parameters) on the same ALS corpus; see the [Model variants](#model-variants) section below for details.
 
@@ -27,12 +27,31 @@ We trained the model with PyTorch and DeepSpeed ZeRO Stage 2 with CPU offloading
 **Model sources:**
 
 - **Repository:** [als-lm on GitHub](https://github.com/josh-wong/als-lm)
-- **Research paper:** [Full methodology and analysis](v1-research-paper.md)
+- **Research paper:** [Full methodology and analysis](v2-research-paper.md)
 - **Interactive demo:** [CLI chat interface](../demo/cli.py)
 
 ## Model variants
 
-As a controlled comparison experiment, we fine-tuned OpenAI's GPT-2 large (774M parameters) on the same ALS corpus to test whether pretrained general knowledge could overcome the data deficit hypothesis observed with the from-scratch model. See [Section 7 of the research paper](v1-research-paper.md#7-general-pretraining-comparison) for the full methodology and analysis.
+As a controlled comparison experiment, we fine-tuned OpenAI's GPT-2 large (774M parameters) on the same ALS corpus to test whether pretrained general knowledge could overcome the data deficit hypothesis observed with the from-scratch model. See [Section 7 of the research paper](v2-research-paper.md) for the full methodology and analysis.
+
+### ALS-LM 1B base (1.02B)
+
+The 1B variant scales the from-scratch architecture to test whether increased model capacity improves factual accuracy.
+
+| Parameter           | Value                                           |
+|---------------------|-------------------------------------------------|
+| Parameters          | 1.02B                                           |
+| Layers              | 24                                              |
+| Attention heads     | 32                                              |
+| Embedding dimension | 2,048                                           |
+| Context length      | 1,024 tokens                                    |
+| Vocabulary          | 50,257 (custom BPE)                             |
+| Normalization       | Pre-LN (LayerNorm)                              |
+| Training data       | 142M tokens (ALS corpus)                        |
+| Training time       | ~21 hours, 3 epochs                             |
+| Memory strategy     | DeepSpeed ZeRO Stage 2/3, CPU offloading        |
+
+The 1B model achieves 0.00% accuracy on the ALS benchmark compared to 0.21% for the 500M model, demonstrating that scaling parameters without additional data reduces rather than improves accuracy. With 65.0% degenerate output and 100.0% fabrication rate across non-degenerate responses, the model confirms that model capacity is not the binding constraint.
 
 ### Fine-tuned GPT-2 large (774M)
 
@@ -52,19 +71,17 @@ The fine-tuned variant uses OpenAI's pretrained GPT-2 large weights as a startin
 | Optimizer           | AdamW (lr=2e-5, cosine decay)                |
 | Memory strategy     | DeepSpeed ZeRO Stage 2, CPU offloading       |
 
-#### Evaluation results (Q8_0)
+See the [6-model comparison table](#evaluation-results) for the GPT-2 large evaluation results alongside all other variants.
 
-The following table compares both model variants at the Q8_0 quantization level.
+### Domain adaptation experiments
 
-| Metric              | ALS-LM 500M (from-scratch)   | GPT-2 large 774M (fine-tuned) |
-|---------------------|-------------------------------|-------------------------------|
-| Mean accuracy       | 0.21%                         | 3.12% (15x improvement)       |
-| Binary pass rate    | 0.0%                          | 1.87%                         |
-| Coherent responses  | 108/160 (67.5%)               | 4/160 (2.5%)                  |
-| Fabrication rate    | 66.4%                         | 77.0%                         |
-| Dominant failure    | Confident fabrication (33.1%) | Degenerate output (97.5%)     |
+Two additional models were evaluated to test instruction tuning and pretrained domain adaptation. These used external base models rather than the ALS-LM architecture.
 
-The 15x accuracy improvement (0.21% to 3.12%) confirms that pretrained knowledge partially bridges the data deficit gap. However, 97.5% degenerate output reveals that GPT-2's completion-based architecture lacks the instruction-following capability needed for the Q&A evaluation format. Data deficit and instruction-following are two orthogonal dimensions of model failure.
+**1B SFT (instruction-tuned).** The from-scratch 1B base model was instruction-tuned with supervised fine-tuning (SFT) on 970 Alpaca-format ALS question-answer pairs using completion-only loss masking. The result was catastrophic: 160/160 responses were degenerate (100%), producing no evaluable factual content. This demonstrates that instruction tuning cannot surface knowledge that was never internalized during pretraining. See [Section 8 of the research paper](v2-research-paper.md) for full methodology and root cause analysis.
+
+**Qwen 2.5 1.5B Instruct (unmodified baseline).** The unmodified Qwen 2.5 1.5B Instruct model was evaluated without any ALS-specific training to establish the pretrained knowledge baseline. It achieves 10.31% accuracy — the highest of any model evaluated — with 29.4% coherent non-degenerate output and 87.6% fabrication rate. This confirms that a model's pretrained parametric knowledge determines its ALS performance floor.
+
+**Qwen 2.5 1.5B QLoRA (domain-adapted).** Qwen 2.5 1.5B Instruct was fine-tuned with QLoRA (4-bit NF4 quantization, LoRA rank 16, alpha 32) on the same 970 ALS instruction pairs. Accuracy degraded from 10.31% to 7.24% while coherence increased from 29.4% to 50.0%, widening the perceived capability gap from 19.1% to 42.8%. The model sounds more knowledgeable while being less accurate. See [Section 9 of the research paper](v2-research-paper.md) and the [6-model comparison report](../reports/qlora_comparison_report.md) for the full QLoRA ablation analysis.
 
 ## Intended use
 
@@ -117,17 +134,34 @@ Training converged to a final validation loss of 5.4956 with a loss relative gap
 
 ## Evaluation results
 
-We evaluated all three GGUF quantization levels against a 160-question ALS factual benchmark by using key-fact fuzzy matching, entity-based fabrication detection (~48K entities), and a 5-mode failure taxonomy.
+The following table compares all six model variants at the Q8_0 quantization level.
 
-| Model           | Mean accuracy | Binary pass | Fabrication rate | Coherent responses  |
-|-----------------|---------------|-------------|------------------|---------------------|
-| ALS-LM (F16)    |        0.0036 |       0.0%  |           65.2%  |   110/160 (68.8%)   |
-| ALS-LM (Q8_0)   |        0.0021 |       0.0%  |           66.4%  |   108/160 (67.5%)   |
-| ALS-LM (Q4_K_M) |        0.0052 |       0.0%  |           66.2%  |   116/160 (72.5%)   |
+**Table 1.** 6-model comparison on the 160-question ALS benchmark (Q8_0). All approaches fall short of the RAG baseline accuracy (14.3%).
+
+| Model                                       | Approach             | Accuracy | Degenerate rate | Fabrication rate |
+|---------------------------------------------|----------------------|:--------:|:---------------:|:----------------:|
+| ALS-LM 500M (from-scratch)                  | From-scratch         |    0.21% |           32.5% |            66.4% |
+| ALS-LM 1B base (from-scratch)               | From-scratch         |    0.00% |           65.0% |           100.0% |
+| GPT-2 large 774M (fine-tuned)               | Pretrained fine-tune |    3.12% |           97.5% |            77.0% |
+| ALS-LM 1B SFT (instruction-tuned)           | From-scratch SFT     |    0.00% |          100.0% |             0.0% |
+| Qwen 2.5 1.5B Instruct (unmodified)         | Pretrained instruct  |   10.31% |           70.6% |            87.6% |
+| Qwen 2.5 1.5B QLoRA (domain-adapted)        | Pretrained QLoRA     |    7.24% |           50.0% |            81.0% |
+
+The unmodified Qwen 2.5 1.5B Instruct model achieves the highest accuracy (10.31%) without any ALS-specific training, confirming that pretrained parametric knowledge determines the performance floor. QLoRA domain adaptation on 970 ALS instruction pairs reduced accuracy by 3.07 percentage points while increasing coherence, widening the perceived capability gap. The 1B SFT model's complete output collapse (100% degenerate) demonstrates that instruction tuning cannot create knowledge absent from the base model. See the [research paper](v2-research-paper.md) for the full analysis.
+
+### From-scratch quantization comparison
+
+We evaluated all three GGUF quantization levels of the from-scratch 500M model against the 160-question ALS factual benchmark by using key-fact fuzzy matching, entity-based fabrication detection (~48K entities), and a 5-mode failure taxonomy.
+
+| Model            | Mean accuracy | Binary pass | Fabrication rate | Coherent responses |
+|------------------|---------------|-------------|------------------|--------------------|
+| ALS-LM (F16)    |        0.0036 |       0.0%  |           65.2%  |  110/160 (68.8%)   |
+| ALS-LM (Q8_0)   |        0.0021 |       0.0%  |           66.4%  |  108/160 (67.5%)   |
+| ALS-LM (Q4_K_M) |        0.0052 |       0.0%  |           66.2%  |  116/160 (72.5%)   |
 
 All three quantization levels achieve 0.0% binary pass rate. The dominant failure modes are confident fabrication (33.1%), degenerate output (32.5%), and plausible blending (23.8%). Quantization level has no meaningful effect on evaluation quality, suggesting the accuracy ceiling is determined by training data volume rather than inference precision.
 
-We also conducted a RAG comparison experiment by using four configurations (two embedding models at two chunk sizes) with ChromaDB, benchmarked against a no-retrieval Llama 3.1 8B baseline. The best RAG configuration (500-token chunks with PubMedBERT embeddings) achieved 13.8% mean accuracy but did not exceed the no-retrieval baseline at 14.3%, revealing retrieval quality as the primary bottleneck rather than generation capability. For the full RAG methodology and failure decomposition analysis, see [Section 6 of the research paper](v1-research-paper.md#6-rag-comparison).
+We also conducted a RAG comparison experiment by using four configurations (two embedding models at two chunk sizes) with ChromaDB, benchmarked against a no-retrieval Llama 3.1 8B baseline. The best RAG configuration (500-token chunks with PubMedBERT embeddings) achieved 13.8% mean accuracy but did not exceed the no-retrieval baseline at 14.3%, revealing retrieval quality as the primary bottleneck rather than generation capability. For the full RAG methodology and failure decomposition analysis, see [Section 6 of the research paper](v2-research-paper.md).
 
 ## Bias, risks, and limitations
 
