@@ -1,6 +1,8 @@
+![Status: Research Complete](https://img.shields.io/badge/Status-Research%20Complete-blue)
+
 # ALS-LM: A domain-specific language model for ALS knowledge
 
-ALS-LM is a 516M-parameter decoder-only transformer trained from scratch on 143M tokens of curated amyotrophic lateral sclerosis (ALS) research. The project investigates what a purpose-built model can learn from a narrow medical corpus, how it fails, and how its failure modes compare to retrieval-augmented generation (RAG) and domain adaptation of pre-trained models. A 6-model comparison spanning from-scratch training, pre-trained fine-tuning, and QLoRA domain adaptation reveals that a model's pre-trained parametric knowledge determines its ALS performance floor, and small-scale domain fine-tuning cannot reliably improve on it.
+ALS-LM is a completed research investigation into domain-specific language model training on a narrow medical corpus. Over 15 milestones (v0.1.0 through v1.5.0), we trained and evaluated 6 model variants spanning from-scratch training, pre-trained fine-tuning, and QLoRA domain adaptation, all on a curated corpus of 142M tokens of amyotrophic lateral sclerosis (ALS) research. The central finding is that data scarcity — an 80x deficit relative to the Chinchilla-optimal ratio — is the binding constraint: no approach exceeded the RAG baseline accuracy of 14.3%. This repository contains the complete pipeline, evaluation framework, and all documentation. The final release is [v2.0.0](https://github.com/josh-wong/als-lm/releases/tag/v2.0.0).
 
 > [!CAUTION]
 >
@@ -10,13 +12,13 @@ ALS-LM is a 516M-parameter decoder-only transformer trained from scratch on 143M
 
 ## Key findings
 
-The central result across 6 model variants is that knowledge source matters most: a model's pre-trained parametric knowledge determines its ALS accuracy floor, and small-scale domain fine-tuning cannot reliably improve on it. The unmodified Llama 3.2 1B Instruct model achieves 10.31% accuracy on the 160-question benchmark without any ALS-specific training, outperforming all other approaches including QLoRA domain adaptation on 970 ALS instruction pairs (7.24%), which actually degraded accuracy by 3.07 percentage points. From-scratch models trained on 143M ALS tokens achieve near-zero accuracy regardless of model size, confirming a severe data deficit.
+The central result across 6 model variants is that knowledge source matters most: a model's pre-trained parametric knowledge determines its ALS accuracy floor, and small-scale domain fine-tuning cannot reliably improve on it. The unmodified Qwen 2.5 1.5B Instruct model (used as a substitute for Llama 3.2 1B Instruct, which required gated access) achieves 10.31% accuracy on the 160-question benchmark without any ALS-specific training, outperforming all other approaches including QLoRA domain adaptation on 970 ALS instruction pairs (7.24%), which actually degraded accuracy by 3.07 percentage points. From-scratch models trained on 143M ALS tokens achieve near-zero accuracy regardless of model size, confirming a severe data deficit.
 
 ![Accuracy comparison across all six approaches: ALS-LM, baseline, and four RAG configurations](docs/figures/accuracy_comparison.png)
 
 *This figure shows the from-scratch model and RAG configurations. See the [6-model comparison](#cross-model-comparison) table and [grouped bar chart](docs/figures/qlora_comparison.png) for the complete cross-model analysis.*
 
-- **Knowledge source is the primary accuracy driver.** The unmodified Llama 3.2 1B Instruct model (10.31% accuracy) outperforms all domain-adapted variants, including QLoRA fine-tuning (7.24%), confirming that pre-trained parametric knowledge determines the performance floor
+- **Knowledge source is the primary accuracy driver.** The unmodified Qwen 2.5 1.5B Instruct model (10.31% accuracy) outperforms all domain-adapted variants, including QLoRA fine-tuning (7.24%), confirming that pre-trained parametric knowledge determines the performance floor
 - **QLoRA domain adaptation degraded accuracy by 3.07 percentage points** (10.31% to 7.24%) while increasing coherence from 29.4% to 50.0%, widening the perceived capability gap from 19.1% to 42.8% — the model sounds more confident but is less accurate
 - **0.0% binary pass rate** from the from-scratch 500M model across all quantization levels on the hallucination benchmark (0/480 responses)
 - **Best RAG 13.8% vs. baseline 14.3%**, meaning that retrieval-augmented generation does not outperform the no-retrieval baseline
@@ -35,7 +37,7 @@ The project implements an end-to-end pipeline from data collection through evalu
 - **Tokenizer training.** A custom BPE tokenizer (50,257 vocabulary) trained on the ALS corpus encodes 50 of the top 100 ALS-specific medical terms as single tokens.
 - **Model training.** A GPT-2-style transformer with Pre-LN normalization (516M parameters) trains for 3 epochs by using DeepSpeed ZeRO Stage 2 with CPU offloading on an NVIDIA RTX 3060 (12GB VRAM).
 - **Fine-tuning comparison.** GPT-2 large (774M parameters) fine-tuned on the same ALS corpus for 2 epochs by using DeepSpeed ZeRO Stage 2 with pretrained weights, serving as a controlled comparison against the from-scratch model.
-- **QLoRA domain adaptation.** Llama 3.2 1B Instruct (via Qwen2.5-1.5B-Instruct as a temporary substitute) fine-tuned with QLoRA (4-bit NF4 quantization, LoRA rank 16) on 970 ALS instruction pairs, testing whether domain-specific fine-tuning of a pre-trained instruct model can improve ALS accuracy.
+- **QLoRA domain adaptation.** Qwen 2.5 1.5B Instruct fine-tuned with QLoRA (4-bit NF4 quantization, LoRA rank 16) on 970 ALS instruction pairs, testing whether domain-specific fine-tuning of a pre-trained instruct model can improve ALS accuracy.
 - **Export.** A unified pipeline converts PyTorch checkpoints to Hugging Face format, then to GGUF (Q4_K_M, Q8_0, F16) for local inference via Ollama.
 - **Evaluation.** A hallucination evaluation framework scores model responses against 160 curated questions by using key-fact fuzzy matching, entity-based fabrication detection (~48K entities), and a 5-mode failure taxonomy.
 - **RAG comparison.** Four RAG configurations (two embedding models at two chunk sizes) that use ChromaDB are benchmarked against the from-scratch model and a no-retrieval Llama 3.1 8B baseline.
@@ -105,10 +107,10 @@ The following table compares all 6 model variants on the 160-question ALS benchm
 | ALS-LM 1B (from-scratch base)           | From-scratch          |    0.00% |    100.0% |     35.0% |    35.0% |
 | GPT-2 large 774M (fine-tuned)           | Pre-trained fine-tune |    3.12% |     77.0% |      2.5% |    -0.6% |
 | ALS-LM 1B (instruction-tuned)          | Pre-trained fine-tune |    0.00% |      0.0% |      0.0% |     0.0% |
-| Llama 3.2 1B Instruct (unmodified)      | Pre-trained instruct  |   10.31% |     87.6% |     29.4% |    19.1% |
-| Llama 3.2 1B QLoRA (domain-adapted)     | Pre-trained instruct  |    7.24% |     81.0% |     50.0% |    42.8% |
+| Qwen 2.5 1.5B Instruct (unmodified)     | Pre-trained instruct  |   10.31% |     87.6% |     29.4% |    19.1% |
+| Qwen 2.5 1.5B QLoRA (domain-adapted)    | Pre-trained instruct  |    7.24% |     81.0% |     50.0% |    42.8% |
 
-The unmodified Llama 3.2 1B Instruct model achieves the highest accuracy (10.31%) without any ALS-specific training, supporting the hypothesis that a model's pre-trained parametric knowledge matters more than model size or training approach. QLoRA domain adaptation on 970 ALS instruction pairs reduced accuracy by 3.07 percentage points while increasing coherence from 29.4% to 50.0%, widening the perceived capability gap. See the [full 6-model comparison report](reports/qlora_comparison_report.md) for failure taxonomy analysis and implications.
+The unmodified Qwen 2.5 1.5B Instruct model achieves the highest accuracy (10.31%) without any ALS-specific training, supporting the hypothesis that a model's pre-trained parametric knowledge matters more than model size or training approach. QLoRA domain adaptation on 970 ALS instruction pairs reduced accuracy by 3.07 percentage points while increasing coherence from 29.4% to 50.0%, widening the perceived capability gap. See the [full 6-model comparison report](reports/qlora_comparison_report.md) for failure taxonomy analysis and implications.
 
 ![6-model comparison grouped bar chart showing accuracy, coherence, and capability gap across from-scratch, pre-trained fine-tune, and pre-trained instruct families](docs/figures/qlora_comparison.png)
 
@@ -194,7 +196,7 @@ Please read the following disclaimers carefully before using or referencing ALS-
 
 ### This is not a medical resource
 
-ALS-LM is a machine-learning research project. It is **not** a diagnostic tool, treatment guide, or substitute for professional medical advice. The models generate text that sounds authoritative but is factually incorrect — the best-performing variant (unmodified Llama 3.2 1B Instruct) achieves only 10.31% accuracy, the QLoRA domain-adapted variant achieves 7.24%, and the from-scratch model achieves 0.0% binary pass rate. None of the 6 model variants produces reliable medical information.
+ALS-LM is a machine-learning research project. It is **not** a diagnostic tool, treatment guide, or substitute for professional medical advice. The models generate text that sounds authoritative but is factually incorrect — the best-performing variant (unmodified Qwen 2.5 1.5B Instruct) achieves only 10.31% accuracy, the QLoRA domain-adapted variant achieves 7.24%, and the from-scratch model achieves 0.0% binary pass rate. None of the 6 model variants produces reliable medical information.
 
 **If you or someone you know is affected by ALS, please consult qualified healthcare providers and trusted resources such as:**
 
@@ -204,7 +206,7 @@ ALS-LM is a machine-learning research project. It is **not** a diagnostic tool, 
 
 ### On hallucinations and medical safety
 
-All 6 model variants exhibit high fabrication rates: from 66.4% (from-scratch 500M) to 87.6% (unmodified Llama 3.2 baseline). The QLoRA domain-adapted model fabricates at 81.0% while producing coherent output 50.0% of the time, making it the most deceptive variant — it sounds plausible more often while remaining factually unreliable. In a medical context, all models represent a potential harm. This project treats hallucination measurement as a primary research question, not a side effect to be minimized.
+All 6 model variants exhibit high fabrication rates: from 66.4% (from-scratch 500M) to 87.6% (unmodified Qwen 2.5 baseline). The QLoRA domain-adapted model fabricates at 81.0% while producing coherent output 50.0% of the time, making it the most deceptive variant — it sounds plausible more often while remaining factually unreliable. In a medical context, all models represent a potential harm. This project treats hallucination measurement as a primary research question, not a side effect to be minimized.
 
 All model outputs should be treated as experimental results, not as medical information.
 
@@ -226,28 +228,21 @@ When including patient perspectives, this project only uses content that individ
 
 ## Project documents
 
-### ALS-LM-2 (in progress)
+The following documents cover the full investigation from initial design through final results.
 
-Planning documents for the next phase of investigation, targeting instruction tuning, corpus expansion, and parameter scaling.
-
-| Document                                                                      | Description                                       |
-|-------------------------------------------------------------------------------|---------------------------------------------------|
-| [White paper](docs/v2-white-paper.md)                                         | Research vision, hypotheses, and success criteria  |
-| [Product requirements document](docs/v2-product-requirements-doc.md)          | Scope, requirements, and milestones               |
-| [Design document](docs/v2-design-doc.md)                                      | Technical architecture and implementation details |
-
-### ALS-LM-1 (complete)
-
-Documentation from the original investigation into domain-specific language model training on ALS research.
-
-| Document                                                                      | Description                                       |
-|-------------------------------------------------------------------------------|---------------------------------------------------|
-| [Research paper](docs/v1-research-paper.md)                                   | Full experimental results and analysis            |
-| [Model card](docs/v1-model-card.md)                                           | Model documentation, safety, and limitations      |
-| [White paper](docs/v1-white-paper.md)                                         | Research motivation, approach, and contributions  |
-| [Product requirements document](docs/v1-product-requirements-doc.md)          | Scope, requirements, and success criteria         |
-| [Design document](docs/v1-design-doc.md)                                      | Technical architecture and implementation details |
-| [6-model comparison report](reports/qlora_comparison_report.md)               | Cross-model evaluation with QLoRA domain adaptation |
+| Document                                                             | Description                                                                    |
+|----------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| [Research paper](docs/v2-research-paper.md)                          | Full experimental results and analysis (6 models, 3 approach families)         |
+| [v2 model card](docs/v2-model-card.md)                               | Model documentation, safety, and limitations across all 6 model variants       |
+| [6-model comparison report](reports/qlora_comparison_report.md)      | Cross-model evaluation with failure taxonomy                                   |
+| [v2 white paper](docs/v2-white-paper.md)                             | v2 research vision, hypotheses, and success criteria                           |
+| [v2 product requirements](docs/v2-product-requirements-doc.md)       | v2 scope, requirements, and milestones                                         |
+| [v2 design document](docs/v2-design-doc.md)                          | v2 technical architecture and implementation details                           |
+| [v1 research paper](docs/v1-research-paper.md)                       | Original investigation results (2-model comparison)                            |
+| [v1 model card](docs/v1-model-card.md)                               | Original model documentation for the 2-model investigation                     |
+| [v1 white paper](docs/v1-white-paper.md)                             | Original research motivation and approach                                      |
+| [v1 product requirements](docs/v1-product-requirements-doc.md)       | Original scope and success criteria                                            |
+| [v1 design document](docs/v1-design-doc.md)                          | Original technical architecture                                                |
 
 ## License
 
