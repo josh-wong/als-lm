@@ -102,7 +102,7 @@ We explicitly prohibit the following uses of ALS-LM:
 - Any application requiring factual accuracy about ALS or any other medical topic
 - Generating text presented as medical information to any audience
 
-Neither model variant—the from-scratch model at 0.0% and the fine-tuned model at 1.87% binary pass rate—achieves accuracy sufficient for any information-retrieval purpose.
+No model variant — from the from-scratch models at 0.0% accuracy to the best-performing Qwen 2.5 baseline at 10.31% — achieves accuracy sufficient for any information-retrieval purpose.
 
 ## Training data
 
@@ -114,7 +114,7 @@ We trained the model on 19,164 documents (143M tokens) from three publicly avail
 | ClinicalTrials.gov  | Clinical trial records  | Public domain (US government) |
 | Educational sources | Patient/medical content | Public web content            |
 
-All data comes from publicly available sources. We did not use private medical records, content from private support groups, or any data subject to HIPAA or equivalent protections. For the full data collection and processing methodology, including our 11-step cleaning pipeline and deduplication approach, see [Section 3.1 of the research paper](v1-research-paper.md#31-data-pipeline).
+All data comes from publicly available sources. We did not use private medical records, content from private support groups, or any data subject to HIPAA or equivalent protections. For the full data collection and processing methodology, including our 11-step cleaning pipeline and deduplication approach, see [Section 3.1 of the research paper](v2-research-paper.md#31-data-pipeline).
 
 ## Training procedure
 
@@ -130,7 +130,7 @@ We trained for 3 epochs (11,760 steps) over 4 hours and 27 minutes.
 | Precision            | FP16 mixed precision                         |
 | Memory strategy      | DeepSpeed ZeRO Stage 2, CPU offloading       |
 
-Training converged to a final validation loss of 5.4956 with a loss relative gap of +0.42%, which we classify as Well-fit. Despite this healthy training dynamic, the model achieves near-zero factual accuracy—a central finding of the research that we analyze in detail in the [research paper](v1-research-paper.md).
+Training converged to a final validation loss of 5.4956 with a loss relative gap of +0.42%, which we classify as Well-fit. Despite this healthy training dynamic, the model achieves near-zero factual accuracy—a central finding of the research that we analyze in detail in the [research paper](v2-research-paper.md).
 
 ## Evaluation results
 
@@ -167,13 +167,13 @@ We also conducted a RAG comparison experiment by using four configurations (two 
 
 ### Medical safety
 
-ALS-LM has demonstrated a near-complete inability to produce factually accurate medical content. Across 480 evaluations (160 questions x 3 quantization levels), the model achieves 0.0% binary pass rate, fabricates medical entities at a 66.4% rate, and produces degenerate output (repetitive or incoherent text) 32.5% of the time. Anyone who encounters this model should understand it as a research artifact demonstrating failure modes, not a functional information source.
+All six model variants demonstrate an inability to produce factually accurate medical content. The best-performing variant (unmodified Qwen 2.5 1.5B Instruct) achieves only 10.31% accuracy, while fabrication rates range from 66.4% (from-scratch 500M) to 100.0% (from-scratch 1B base) across non-degenerate responses. The QLoRA domain-adapted variant is the most deceptive: it produces coherent output 50.0% of the time while achieving only 7.24% accuracy, creating a perceived capability gap of 42.8 percentage points. Anyone who encounters these models should understand them as research artifacts demonstrating failure modes, not functional information sources.
 
-The fine-tuned GPT-2 large model exhibits a distinct failure profile. While the from-scratch model fails primarily through fabrication—inventing plausible but false medical content with high confidence—the fine-tuned model fails through degeneration, with 97.5% of responses producing repetitive or incoherent output. Both failure profiles make the models unsuitable for any medical use, but for different reasons: the from-scratch model is dangerously confident in wrong answers, while the fine-tuned model mostly fails to produce coherent responses at all.
+The six models exhibit distinct failure profiles. The from-scratch 500M model fails primarily through confident fabrication (33.1%) — inventing plausible but false medical claims. The from-scratch 1B base model produces 65.0% degenerate output with 100.0% fabrication in remaining responses. The fine-tuned GPT-2 large fails through degeneration (97.5% degenerate output). The 1B SFT model collapses entirely (100% degenerate, zero evaluable content). The unmodified Qwen 2.5 baseline produces 70.6% degenerate output with 87.6% fabrication. The QLoRA variant reduces degeneration to 50.0% but with 81.0% fabrication. All failure profiles make the models unsuitable for medical use.
 
 ### Technical limitations
 
-We trained on only 143M tokens, which is 80x below the Chinchilla-optimal ratio of ~20 tokens per parameter for a 516M model. This severe data deficit is the primary explanation for the near-zero factual accuracy despite healthy training loss convergence. The fine-tuning experiment confirmed the data deficit as the primary accuracy bottleneck, with pretrained knowledge yielding a 15x improvement, while revealing instruction-following as a separate limitation not addressed by domain-specific training alone. Additional limitations include single-domain training (ALS literature only, with no general English pretraining), a single model size (516M parameters, with no scaling experiments), and a 1,024-token context window that constrains the complexity of questions the model can address.
+We evaluated models trained on only 142M tokens, which is 80x below the Chinchilla-optimal ratio. This data deficit is the primary explanation for the near-zero accuracy across all from-scratch variants and the inability of domain adaptation to improve upon the pretrained baseline. The investigation spanned six models: from-scratch training at 500M and 1B scales, GPT-2 large fine-tuning, supervised fine-tuning of the 1B model, and QLoRA domain adaptation of Qwen 2.5 1.5B Instruct. Additional limitations include single-domain training (ALS literature only), a 1,024-token context window, and a 160-question benchmark that cannot exhaustively test all aspects of ALS knowledge.
 
 ### Recommendations
 
@@ -182,6 +182,14 @@ We recommend that anyone encountering ALS-LM treat it exclusively as a research 
 - [ALS Association](https://www.als.org/)
 - [Mayo Clinic – ALS overview](https://www.mayoclinic.org/diseases-conditions/amyotrophic-lateral-sclerosis/symptoms-causes/syc-20354022)
 - [NIH National Institute of Neurological Disorders and Stroke](https://www.ninds.nih.gov/health-information/disorders/amyotrophic-lateral-sclerosis-als)
+
+## Conclusions
+
+This investigation began with a focused question: what can a purpose-built language model learn from a narrow medical corpus? Over 15 milestones spanning from-scratch training, pretrained fine-tuning, supervised fine-tuning, and QLoRA domain adaptation, we evaluated six model variants against a 160-question ALS factual benchmark. The answer is consistent across all approaches: data scarcity is the fundamental constraint.
+
+Our ALS corpus of 142M tokens represents an 80x deficit relative to the Chinchilla-optimal ratio of approximately 20 tokens per parameter. This deficit propagates through every approach we attempted. From-scratch models achieve near-zero accuracy despite healthy convergence. Scaling from 500M to 1B parameters makes accuracy worse, not better. Instruction tuning a knowledge-deficient base model produces complete output collapse. Domain adaptation of a pretrained instruct model (Qwen 2.5 1.5B Instruct) via QLoRA degrades accuracy from 10.31% to 7.24%. No approach exceeds the RAG baseline of 14.3%. The 142M-token corpus is sufficient for learning how ALS research sounds but insufficient for learning what it says.
+
+For practitioners considering domain-specific model training on rare disease literature, the key lesson is to assess available corpus size against scaling law requirements before investing in training. When the public literature for a medical subdomain produces a corpus orders of magnitude below compute-optimal ratios, retrieval-augmented approaches using general-purpose models will likely outperform domain-specific training. For the full analysis, hypothesis verdicts, and future directions, see the [research paper](v2-research-paper.md).
 
 ## Ethical considerations
 
@@ -198,4 +206,4 @@ ALS-LM: A domain-specific language model for ALS knowledge
 https://github.com/josh-wong/als-lm
 ```
 
-For detailed methodology, evaluation results, and analysis, see the [research paper](v1-research-paper.md).
+For detailed methodology, evaluation results, and analysis, see the [research paper](v2-research-paper.md).
