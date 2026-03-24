@@ -2,7 +2,7 @@
 
 # ALS-LM: A domain-specific language model for ALS knowledge
 
-ALS-LM is a completed research investigation into domain-specific language model training on a narrow medical corpus. Over 15 milestones (v0.1.0 through v1.5.0), we trained and evaluated 6 model variants spanning from-scratch training, pre-trained fine-tuning, and QLoRA domain adaptation, all on a curated corpus of 142M tokens of amyotrophic lateral sclerosis (ALS) research. The central finding is that data scarcity — an 80x deficit relative to the Chinchilla-optimal ratio — is the binding constraint: no approach exceeded the RAG baseline accuracy of 14.3%. This repository contains the complete pipeline, evaluation framework, and all documentation. The final release is [v2.0.0](https://github.com/josh-wong/als-lm/releases/tag/v2.0.0).
+ALS-LM is a completed research investigation into domain-specific language model training on a narrow medical corpus. Over 15 milestones (v0.1.0 through v1.5.0), we trained and evaluated 6 model variants spanning from-scratch training, pre-trained fine-tuning, and QLoRA domain adaptation, all on a curated corpus of 142M tokens of amyotrophic lateral sclerosis (ALS) research. The central finding is that data scarcity—an 80x deficit relative to the Chinchilla-optimal ratio—is the binding constraint: no approach exceeded the RAG baseline accuracy of 14.3%. This repository contains the complete pipeline, evaluation framework, and all documentation. The final release is [v2.0.0](https://github.com/josh-wong/als-lm/releases/tag/v2.0.0).
 
 > [!CAUTION]
 >
@@ -19,7 +19,7 @@ The central result across 6 model variants is that knowledge source matters most
 *This figure shows the from-scratch model and RAG configurations. See the [6-model comparison](#cross-model-comparison) table and [grouped bar chart](docs/figures/qlora_comparison.png) for the complete cross-model analysis.*
 
 - **Knowledge source is the primary accuracy driver.** The unmodified Qwen 2.5 1.5B Instruct model (10.31% accuracy) outperforms all domain-adapted variants, including QLoRA fine-tuning (7.24%), confirming that pre-trained parametric knowledge determines the performance floor
-- **QLoRA domain adaptation degraded accuracy by 3.07 percentage points** (10.31% to 7.24%) while increasing coherence from 29.4% to 50.0%, widening the perceived capability gap from 19.1% to 42.8% — the model sounds more confident but is less accurate
+- **QLoRA domain adaptation degraded accuracy by 3.07 percentage points** (10.31% to 7.24%) while increasing coherence from 29.4% to 50.0%, widening the perceived capability gap from 19.1% to 42.8%—the model sounds more confident but is less accurate
 - **0.0% binary pass rate** from the from-scratch 500M model across all quantization levels on the hallucination benchmark (0/480 responses)
 - **Best RAG 13.8% vs. baseline 14.3%**, meaning that retrieval-augmented generation does not outperform the no-retrieval baseline
 - **PubMedBERT outperforms MiniLM by 2.1x** for medical retrieval (12.7% vs. 5.9% mean accuracy)
@@ -97,18 +97,18 @@ Failure decomposition shows retrieval failures account for 52-89% of wrong answe
 
 ### Cross-model comparison
 
-The following table compares all 6 model variants on the 160-question ALS benchmark at Q8_0 quantization, grouped by approach family. Coherence measures the proportion of non-degenerate responses (not repetitive loops, token salad, or empty). Capability gap is the difference between coherence and accuracy — a high gap indicates the model sounds plausible but is factually wrong.
+The following table compares all 6 model variants on the 160-question ALS benchmark at Q8_0 quantization, grouped by approach family. Coherence measures the proportion of non-degenerate responses (not repetitive loops, token salad, or empty). Capability gap is the difference between coherence and accuracy—a high gap indicates the model sounds plausible but is factually wrong.
 
 **Table 3.** 6-model comparison on the 160-question ALS hallucination benchmark at Q8_0 quantization.
 
-| Model                                    | Family                | Accuracy | Fab. rate | Coherence | Cap. gap |
-|------------------------------------------|-----------------------|----------|-----------|-----------|----------|
-| ALS-LM 500M (from-scratch)              | From-scratch          |    0.21% |     66.4% |     67.5% |    67.3% |
-| ALS-LM 1B (from-scratch base)           | From-scratch          |    0.00% |    100.0% |     35.0% |    35.0% |
-| GPT-2 large 774M (fine-tuned)           | Pre-trained fine-tune |    3.12% |     77.0% |      2.5% |    -0.6% |
-| ALS-LM 1B (instruction-tuned)          | Pre-trained fine-tune |    0.00% |      0.0% |      0.0% |     0.0% |
-| Qwen 2.5 1.5B Instruct (unmodified)     | Pre-trained instruct  |   10.31% |     87.6% |     29.4% |    19.1% |
-| Qwen 2.5 1.5B QLoRA (domain-adapted)    | Pre-trained instruct  |    7.24% |     81.0% |     50.0% |    42.8% |
+| Model                                | Family                | Accuracy | Fab. rate | Coherence | Cap. gap |
+|--------------------------------------|-----------------------|----------|-----------|-----------|----------|
+| ALS-LM 500M (from-scratch)           | From-scratch          |    0.21% |     66.4% |     67.5% |    67.3% |
+| ALS-LM 1B (from-scratch base)        | From-scratch          |    0.00% |    100.0% |     35.0% |    35.0% |
+| GPT-2 large 774M (fine-tuned)        | Pre-trained fine-tune |    3.12% |     77.0% |      2.5% |    -0.6% |
+| ALS-LM 1B (instruction-tuned)        | Pre-trained fine-tune |    0.00% |      0.0% |      0.0% |     0.0% |
+| Qwen 2.5 1.5B Instruct (unmodified)  | Pre-trained instruct  |   10.31% |     87.6% |     29.4% |    19.1% |
+| Qwen 2.5 1.5B QLoRA (domain-adapted) | Pre-trained instruct  |    7.24% |     81.0% |     50.0% |    42.8% |
 
 The unmodified Qwen 2.5 1.5B Instruct model achieves the highest accuracy (10.31%) without any ALS-specific training, supporting the hypothesis that a model's pre-trained parametric knowledge matters more than model size or training approach. QLoRA domain adaptation on 970 ALS instruction pairs reduced accuracy by 3.07 percentage points while increasing coherence from 29.4% to 50.0%, widening the perceived capability gap. See the [full 6-model comparison report](reports/qlora_comparison_report.md) for failure taxonomy analysis and implications.
 
@@ -196,7 +196,7 @@ Please read the following disclaimers carefully before using or referencing ALS-
 
 ### This is not a medical resource
 
-ALS-LM is a machine-learning research project. It is **not** a diagnostic tool, treatment guide, or substitute for professional medical advice. The models generate text that sounds authoritative but is factually incorrect — the best-performing variant (unmodified Qwen 2.5 1.5B Instruct) achieves only 10.31% accuracy, the QLoRA domain-adapted variant achieves 7.24%, and the from-scratch model achieves 0.0% binary pass rate. None of the 6 model variants produces reliable medical information.
+ALS-LM is a machine-learning research project. It is **not** a diagnostic tool, treatment guide, or substitute for professional medical advice. The models generate text that sounds authoritative but is factually incorrect—the best-performing variant (unmodified Qwen 2.5 1.5B Instruct) achieves only 10.31% accuracy, the QLoRA domain-adapted variant achieves 7.24%, and the from-scratch model achieves 0.0% binary pass rate. None of the 6 model variants produces reliable medical information.
 
 **If you or someone you know is affected by ALS, please consult qualified healthcare providers and trusted resources such as:**
 
@@ -206,7 +206,7 @@ ALS-LM is a machine-learning research project. It is **not** a diagnostic tool, 
 
 ### On hallucinations and medical safety
 
-All 6 model variants exhibit high fabrication rates: from 66.4% (from-scratch 500M) to 87.6% (unmodified Qwen 2.5 baseline). The QLoRA domain-adapted model fabricates at 81.0% while producing coherent output 50.0% of the time, making it the most deceptive variant — it sounds plausible more often while remaining factually unreliable. In a medical context, all models represent a potential harm. This project treats hallucination measurement as a primary research question, not a side effect to be minimized.
+All 6 model variants exhibit high fabrication rates: from 66.4% (from-scratch 500M) to 87.6% (unmodified Qwen 2.5 baseline). The QLoRA domain-adapted model fabricates at 81.0% while producing coherent output 50.0% of the time, making it the most deceptive variant—it sounds plausible more often while remaining factually unreliable. In a medical context, all models represent a potential harm. This project treats hallucination measurement as a primary research question, not a side effect to be minimized.
 
 All model outputs should be treated as experimental results, not as medical information.
 
@@ -230,19 +230,19 @@ When including patient perspectives, this project only uses content that individ
 
 The following documents cover the full investigation from initial design through final results.
 
-| Document                                                             | Description                                                                    |
-|----------------------------------------------------------------------|--------------------------------------------------------------------------------|
-| [Research paper](docs/v2-research-paper.md)                          | Full experimental results and analysis (6 models, 3 approach families)         |
-| [v2 model card](docs/v2-model-card.md)                               | Model documentation, safety, and limitations across all 6 model variants       |
-| [6-model comparison report](reports/qlora_comparison_report.md)      | Cross-model evaluation with failure taxonomy                                   |
-| [v2 white paper](docs/v2-white-paper.md)                             | v2 research vision, hypotheses, and success criteria                           |
-| [v2 product requirements](docs/v2-product-requirements-doc.md)       | v2 scope, requirements, and milestones                                         |
-| [v2 design document](docs/v2-design-doc.md)                          | v2 technical architecture and implementation details                           |
-| [v1 research paper](docs/v1-research-paper.md)                       | Original investigation results (2-model comparison)                            |
-| [v1 model card](docs/v1-model-card.md)                               | Original model documentation for the 2-model investigation                     |
-| [v1 white paper](docs/v1-white-paper.md)                             | Original research motivation and approach                                      |
-| [v1 product requirements](docs/v1-product-requirements-doc.md)       | Original scope and success criteria                                            |
-| [v1 design document](docs/v1-design-doc.md)                          | Original technical architecture                                                |
+| Document                                                        | Description                                                              |
+|-----------------------------------------------------------------|--------------------------------------------------------------------------|
+| [Research paper](docs/v2-research-paper.md)                     | Full experimental results and analysis (6 models, 3 approach families)   |
+| [v2 model card](docs/v2-model-card.md)                          | Model documentation, safety, and limitations across all 6 model variants |
+| [6-model comparison report](reports/qlora_comparison_report.md) | Cross-model evaluation with failure taxonomy                             |
+| [v2 white paper](docs/v2-white-paper.md)                        | v2 research vision, hypotheses, and success criteria                     |
+| [v2 product requirements](docs/v2-product-requirements-doc.md)  | v2 scope, requirements, and milestones                                   |
+| [v2 design document](docs/v2-design-doc.md)                     | v2 technical architecture and implementation details                     |
+| [v1 research paper](docs/v1-research-paper.md)                  | Original investigation results (2-model comparison)                      |
+| [v1 model card](docs/v1-model-card.md)                          | Original model documentation for the 2-model investigation               |
+| [v1 white paper](docs/v1-white-paper.md)                        | Original research motivation and approach                                |
+| [v1 product requirements](docs/v1-product-requirements-doc.md)  | Original scope and success criteria                                      |
+| [v1 design document](docs/v1-design-doc.md)                     | Original technical architecture                                          |
 
 ## License
 
