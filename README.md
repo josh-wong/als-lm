@@ -233,12 +233,13 @@ The following documents cover the full investigation from initial design through
 | Document                                                             | Description                                                                    |
 |----------------------------------------------------------------------|--------------------------------------------------------------------------------|
 | [Research paper](docs/v2-research-paper.md)                          | Full experimental results and analysis (6 models, 3 approach families)         |
-| [Model card](docs/v1-model-card.md)                                  | Model documentation, safety, and limitations                                   |
+| [v2 model card](docs/v2-model-card.md)                               | Model documentation, safety, and limitations across all 6 model variants       |
 | [6-model comparison report](reports/qlora_comparison_report.md)      | Cross-model evaluation with failure taxonomy                                   |
 | [v2 white paper](docs/v2-white-paper.md)                             | v2 research vision, hypotheses, and success criteria                           |
 | [v2 product requirements](docs/v2-product-requirements-doc.md)       | v2 scope, requirements, and milestones                                         |
 | [v2 design document](docs/v2-design-doc.md)                          | v2 technical architecture and implementation details                           |
 | [v1 research paper](docs/v1-research-paper.md)                       | Original investigation results (2-model comparison)                            |
+| [v1 model card](docs/v1-model-card.md)                               | Original model documentation for the 2-model investigation                     |
 | [v1 white paper](docs/v1-white-paper.md)                             | Original research motivation and approach                                      |
 | [v1 product requirements](docs/v1-product-requirements-doc.md)       | Original scope and success criteria                                            |
 | [v1 design document](docs/v1-design-doc.md)                          | Original technical architecture                                                |
