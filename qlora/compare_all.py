@@ -662,7 +662,7 @@ def generate_markdown_report(
         "The 6-model comparison reveals a consistent narrative about knowledge "
         "sources in domain-specific language models. From-scratch models "
         "(500M and 1B) internalize minimal factual knowledge from the ALS "
-        "corpus despite training on 143M tokens. GPT-2 large, which starts "
+        "corpus despite training on roughly 143-153M tokens. GPT-2 large, which starts "
         "from pretrained weights, shows that pre-existing knowledge from "
         "large-scale pretraining provides a measurable but limited advantage. "
         "The 1B SFT variant is different: it was trained from scratch and "

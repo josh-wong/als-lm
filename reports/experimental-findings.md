@@ -33,9 +33,9 @@ QLoRA domain adaptation on 970 ALS instruction pairs shifted the model's behavio
 
 ### 3. SFT did not surface knowledge in a from-scratch model
 
-Instruction tuning the from-scratch 1B model produced 160/160 degenerate responses (0% accuracy, 0% coherence). The model collapsed to repeating "TheTheThe..." for every input. SFT is designed to format existing knowledge into structured responses, and this result is consistent with the base model having no extractable knowledge for it to format, though we did not test this directly. This rejected Hypothesis 3 from the v2 white paper. Full analysis: [SFT failure analysis](sft_failure_analysis.md)
+Instruction tuning the from-scratch 1B model produced 160/160 degenerate responses (0% accuracy, 0% coherence). The model collapsed to repeating "TheTheThe..." for every input. SFT is designed to format existing knowledge into structured responses, and this result is consistent with the base model having no extractable knowledge for it to format, though we did not test this directly. This did not support Hypothesis 3 from the v2 white paper. Full analysis: [SFT failure analysis](sft_failure_analysis.md)
 
-### 4. From-scratch training on about 143M tokens did not yield factual knowledge
+### 4. From-scratch training on about 143-153M tokens did not yield factual knowledge
 
 Both from-scratch models (500M and 1B) achieved near-zero accuracy despite training on the full ALS corpus. They learned statistical patterns in ALS text (producing coherent-sounding domain language) but did not internalize extractable medical facts. Scaling from 500M to 1B parameters did not help, which is consistent with data being the bottleneck rather than model capacity. We did not vary data volume, so this remains a hypothesis.
 

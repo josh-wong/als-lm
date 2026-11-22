@@ -52,7 +52,7 @@ Distribution of failure modes across the 7 taxonomy categories for all 6 models.
 
 ## Implications
 
-The 6-model comparison reveals a consistent narrative about knowledge sources in domain-specific language models. From-scratch models (500M and 1B) internalize minimal factual knowledge from the ALS corpus despite training on 143M tokens. GPT-2 large, which starts from pretrained weights, shows that pre-existing knowledge from large-scale pretraining provides a measurable but limited advantage. The 1B SFT variant is different: it was trained from scratch and then instruction-tuned, not initialized from a pretrained model.
+The 6-model comparison reveals a consistent narrative about knowledge sources in domain-specific language models. From-scratch models (500M and 1B) internalize minimal factual knowledge from the ALS corpus despite training on roughly 143-153M tokens. GPT-2 large, which starts from pretrained weights, shows that pre-existing knowledge from large-scale pretraining provides a measurable but limited advantage. The 1B SFT variant is different: it was trained from scratch and then instruction-tuned, not initialized from a pretrained model.
 
 The Qwen 2.5 1.5B comparison pair (unmodified vs QLoRA) provides the clearest test of domain adaptation: starting from an instruction-capable model with strong general knowledge, QLoRA fine-tuning on 970 ALS instruction pairs raised the share of non-degenerate responses but lowered mean key-fact accuracy. The ablation delta quantifies this shift directly. The pair was added after the instruction-tuned 1B checkpoint produced degenerate output on all 160 questions; the original plan targeted Llama 3.2 1B Instruct, which was not accessible, so Qwen 2.5 1.5B Instruct was used instead.
 
