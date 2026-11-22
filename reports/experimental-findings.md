@@ -15,7 +15,9 @@ Six model variants were evaluated on the same 160-question ALS hallucination ben
 | Qwen 2.5 1.5B Instruct (base) | Pre-trained instruct    |   10.31% |     29.4% |          19.1% |            87.6% |
 | Qwen 2.5 1.5B QLoRA           | Pre-trained instruct    |    7.24% |     50.0% |          42.8% |            81.0% |
 
-*The 1B instruction-tuned model's 0.0% fabrication rate reflects that all 160 outputs were degenerate, so no entities could be checked. The original plan targeted Llama 3.2 1B Instruct, but gated access was not available, so Qwen 2.5 1.5B Instruct was substituted. Some result directories and JSON keys still use the `llama32_*` names.*
+\*The 1B instruction-tuned model's 0.0% fabrication rate reflects that all 160 outputs were degenerate, so no entities could be checked.
+
+The original plan targeted Llama 3.2 1B Instruct, but gated access was not available, so Qwen 2.5 1.5B Instruct was substituted. Some result directories and JSON keys still use the `llama32_*` names.
 
 Full data: [6-model comparison report](qlora_comparison_report.md) and [qlora_comparison_report.json](qlora_comparison_report.json)
 
@@ -63,9 +65,9 @@ Cross-quantization analysis of the QLoRA model showed no meaningful accuracy deg
 
 | Hypothesis | Statement                                                                                                      | Status   | Evidence                            |
 |------------|----------------------------------------------------------------------------------------------------------------|----------|-------------------------------------|
-| 1          | Higher-quality, deduplicated training data improves model accuracy                                             | Partial  | Corpus expanded but not retested    |
-| 2          | Scaling from 500M to 1B+ parameters improves domain knowledge                                                  | Rejected | 1B base: 0.00% vs 500M: 0.21%      |
-| 3          | Instruction tuning surfaces internalized ALS knowledge in Q&A format                                           | Rejected | SFT: 0%/160 degenerate; QLoRA: -3% |
+| 1          | Higher-quality, deduplicated training data improves model accuracy                                             | Partial  | Corpus expanded; effect not isolated |
+| 2          | Scaling from 500M to 1B+ parameters improves domain knowledge                                                  | Not supported | 1B base: 0.00% vs 500M: 0.21% |
+| 3          | Instruction tuning surfaces internalized ALS knowledge in Q&A format                                           | Not supported | SFT: 160/160 degenerate; QLoRA: -3 pts |
 
 ## Source reports
 

@@ -161,7 +161,7 @@ We evaluated all three GGUF quantization levels of the from-scratch 500M model a
 | ALS-LM (Q8_0)   |        0.0021 |       0.0%  |           66.4%  |  108/160 (67.5%)   |
 | ALS-LM (Q4_K_M) |        0.0052 |       0.0%  |           66.2%  |  116/160 (72.5%)   |
 
-All three quantization levels achieve 0.0% binary pass rate. The dominant failure modes are confident fabrication (33.1%), degenerate output (32.5%), and plausible blending (23.8%). Quantization level has no meaningful effect on evaluation quality, suggesting the accuracy ceiling is determined by training data volume rather than inference precision.
+All three quantization levels achieve 0.0% binary pass rate. The dominant failure modes are confident fabrication (33.1%), degenerate output (32.5%), and plausible blending (23.8%). Quantization level has no meaningful effect on evaluation quality, suggesting inference precision is not the limiting factor; training data volume is a plausible contributor, though we did not test it.
 
 We also conducted a RAG comparison experiment by using four configurations (two embedding models at two chunk sizes) with ChromaDB, benchmarked against Llama 3.1 8B answering without retrieval. The best RAG configuration (500-token chunks with PubMedBERT embeddings) achieved 13.8% mean accuracy but did not exceed the no-retrieval result at 14.3%, which points toward retrieval quality as the main bottleneck rather than generation capability. For the full RAG methodology and failure decomposition analysis, see [Section 6 of the research paper](v2-research-paper.md).
 
