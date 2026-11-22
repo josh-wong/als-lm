@@ -14,16 +14,16 @@
       "scratch_1b_base": "ALS-LM 1B (from-scratch base)",
       "gpt2_large": "GPT-2 large (fine-tuned)",
       "scratch_1b_instruct": "ALS-LM 1B (instruction-tuned)",
-      "llama32_base": "Llama 3.2 1B Instruct (base)",
-      "llama32_qlora": "Llama 3.2 1B QLoRA"
+      "llama32_base": "Qwen 2.5 1.5B Instruct (unmodified)",
+      "llama32_qlora": "Qwen 2.5 1.5B QLoRA (domain-adapted)"
     },
     "model_short_labels": {
       "scratch_500m": "500M",
       "scratch_1b_base": "1B base",
       "gpt2_large": "GPT-2 large",
       "scratch_1b_instruct": "1B SFT",
-      "llama32_base": "Llama base",
-      "llama32_qlora": "Llama QLoRA"
+      "llama32_base": "Qwen base",
+      "llama32_qlora": "Qwen QLoRA"
     },
     "model_families": {
       "scratch_500m": "from_scratch",
@@ -33,7 +33,8 @@
       "llama32_base": "pretrained_instruct",
       "llama32_qlora": "pretrained_instruct"
     },
-    "quantization": "Q8_0"
+    "quantization": "Q8_0",
+    "note": "Display names refer to Qwen 2.5 1.5B Instruct (substituted for Llama 3.2 1B Instruct, which was gated). Keys and result directories keep the legacy llama32_* names."
   },
   "accuracy": {
     "scratch_500m": {
