@@ -6,8 +6,6 @@ This document synthesizes the experimental results from ALS-LM-1 (v1.0.0 through
 
 Six model variants were evaluated on the same 160-question ALS hallucination benchmark at Q8_0 quantization. The models span three approach families: from-scratch training, fine-tuning, and pre-trained instruction tuning.
 
-*The 1B instruction-tuned model's 0.0% fabrication rate reflects that all 160 outputs were degenerate, so no entities could be checked. The original plan targeted Llama 3.2 1B Instruct, but gated access was not available, so Qwen 2.5 1.5B Instruct was substituted. Some result directories and JSON keys still use the `llama32_*` names.*
-
 | Model                          | Approach                | Accuracy | Coherence | Capability gap | Fabrication rate |
 |--------------------------------|-------------------------|----------|-----------|----------------|------------------|
 | ALS-LM 500M (from-scratch)    | From-scratch            |    0.21% |     67.5% |          67.3% |            66.4% |
@@ -16,6 +14,8 @@ Six model variants were evaluated on the same 160-question ALS hallucination ben
 | ALS-LM 1B (instruction-tuned) | Fine-tuned              |    0.00% |      0.0% |           0.0% |            0.0%* |
 | Qwen 2.5 1.5B Instruct (base) | Pre-trained instruct    |   10.31% |     29.4% |          19.1% |            87.6% |
 | Qwen 2.5 1.5B QLoRA           | Pre-trained instruct    |    7.24% |     50.0% |          42.8% |            81.0% |
+
+*The 1B instruction-tuned model's 0.0% fabrication rate reflects that all 160 outputs were degenerate, so no entities could be checked. The original plan targeted Llama 3.2 1B Instruct, but gated access was not available, so Qwen 2.5 1.5B Instruct was substituted. Some result directories and JSON keys still use the `llama32_*` names.*
 
 Full data: [6-model comparison report](qlora_comparison_report.md) and [qlora_comparison_report.json](qlora_comparison_report.json)
 
@@ -27,11 +27,11 @@ The unmodified Qwen 2.5 1.5B Instruct model achieved the highest accuracy (10.31
 
 ### 2. Domain fine-tuning with limited data is a double-edged sword
 
-QLoRA domain adaptation on 970 ALS instruction pairs shifted the model's behavior toward ALS-specific patterns, increasing coherence from 29.4% to 50.0%. However, it decreased factual accuracy from 10.31% to 7.24% (a -3.07% delta). The model became more willing to engage with ALS topics but partially overwrote general biomedical knowledge in the process. This accuracy-coherence tradeoff suggests that 970 instruction pairs is below the threshold needed for domain adaptation to improve factual performance.
+QLoRA domain adaptation on 970 ALS instruction pairs shifted the model's behavior toward ALS-specific patterns, increasing coherence from 29.4% to 50.0%. However, it decreased factual accuracy from 10.31% to 7.24% (a -3.07% delta). The model became more willing to engage with ALS topics but partially overwrote general biomedical knowledge in the process. This accuracy-coherence tradeoff suggests that 970 instruction pairs may be below the threshold needed for domain adaptation to improve factual performance.
 
-### 3. SFT cannot create knowledge from nothing
+### 3. SFT did not surface knowledge in a from-scratch model
 
-Instruction tuning the from-scratch 1B model produced 160/160 degenerate responses (0% accuracy, 0% coherence). The model collapsed to repeating "TheTheThe..." for every input. SFT is designed to format existing knowledge into structured responses, not to inject knowledge that was never learned during pre-training. This rejected Hypothesis 3 from the v2 white paper. Full analysis: [SFT failure analysis](sft_failure_analysis.md)
+Instruction tuning the from-scratch 1B model produced 160/160 degenerate responses (0% accuracy, 0% coherence). The model collapsed to repeating "TheTheThe..." for every input. SFT is designed to format existing knowledge into structured responses, and this result is consistent with the base model having no extractable knowledge for it to format, though we did not test this directly. This rejected Hypothesis 3 from the v2 white paper. Full analysis: [SFT failure analysis](sft_failure_analysis.md)
 
 ### 4. From-scratch training on about 143M tokens did not yield factual knowledge
 
@@ -45,11 +45,11 @@ The 500M from-scratch model has the highest capability gap at 67.3% — it produ
 
 ### Training data
 
-The 970 instruction pairs used for SFT and QLoRA are insufficient. V2 should target an order of magnitude more domain-specific training data (5,000-50,000 instruction pairs) to cross the threshold where domain adaptation improves rather than degrades factual accuracy. The data collection pipeline from v1 (PubMed Central, ClinicalTrials.gov, educational sources) is proven and can be extended.
+The 970 instruction pairs used for SFT and QLoRA appear insufficient, though dataset size was not varied. V2 should target an order of magnitude more domain-specific training data (5,000-50,000 instruction pairs) to test whether more data lets domain adaptation improve rather than degrade factual accuracy. The data collection pipeline from v1 (PubMed Central, ClinicalTrials.gov, educational sources) is proven and can be extended.
 
 ### Base model selection
 
-Pre-trained instruction-capable models are the only viable starting point for domain-specific Q&A with limited data. V2 should build on a pre-trained base rather than training from scratch, and should select a model with strong existing biomedical knowledge.
+Pre-trained instruction-capable models appear to be the more viable starting point for domain-specific Q&A with limited data, based on these results. V2 should build on a pre-trained base rather than training from scratch, and should select a model with strong existing biomedical knowledge.
 
 ### Evaluation framework
 
@@ -63,7 +63,7 @@ Cross-quantization analysis of the QLoRA model showed no meaningful accuracy deg
 
 | Hypothesis | Statement                                                                                                      | Status   | Evidence                            |
 |------------|----------------------------------------------------------------------------------------------------------------|----------|-------------------------------------|
-| 1          | Higher-quality, deduplicated training data improves model accuracy                                             | Open     | Corpus expanded but not retested    |
+| 1          | Higher-quality, deduplicated training data improves model accuracy                                             | Partial  | Corpus expanded but not retested    |
 | 2          | Scaling from 500M to 1B+ parameters improves domain knowledge                                                  | Rejected | 1B base: 0.00% vs 500M: 0.21%      |
 | 3          | Instruction tuning surfaces internalized ALS knowledge in Q&A format                                           | Rejected | SFT: 0%/160 degenerate; QLoRA: -3% |
 
