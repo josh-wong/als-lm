@@ -6,11 +6,15 @@ Standalone script that reads Q8_0 evaluation results for:
   2. From-scratch 1B base model
   3. GPT-2 large fine-tuned model
   4. From-scratch 1B instruction-tuned model
-  5. Llama 3.2 1B Instruct (base ablation)
-  6. Llama 3.2 1B QLoRA (domain-adapted)
+  5. Qwen 2.5 1.5B Instruct (unmodified baseline)
+  6. Qwen 2.5 1.5B QLoRA (domain-adapted)
+
+The internal model keys (``llama32_base``, ``llama32_qlora``) and the on-disk
+result directory names retain the original plan's Llama 3.2 naming. The models
+actually evaluated are Qwen 2.5 1.5B Instruct and its QLoRA-adapted variant.
 
 Produces a Markdown report with grouped bar chart, JSON artifact, and
-analysis organized by approach family (from-scratch, pretrained fine-tune,
+analysis organized by approach family (from-scratch, fine-tuned,
 pretrained instruct).
 
 This is a research analysis tool, not a medical information system.
@@ -63,14 +67,16 @@ _MODEL_LABELS = {
     "scratch_1b_base":     ("ALS-LM 1B (from-scratch base)", "1B base"),
     "gpt2_large":          ("GPT-2 large (fine-tuned)", "GPT-2 large"),
     "scratch_1b_instruct": ("ALS-LM 1B (instruction-tuned)", "1B SFT"),
-    "llama32_base":        ("Llama 3.2 1B Instruct (base)", "Llama base"),
-    "llama32_qlora":       ("Llama 3.2 1B QLoRA", "Llama QLoRA"),
+    "llama32_base":        ("Qwen 2.5 1.5B Instruct (unmodified)", "Qwen base"),
+    "llama32_qlora":       ("Qwen 2.5 1.5B QLoRA (domain-adapted)", "Qwen QLoRA"),
 }
 
 # Family grouping is by technique applied, not model origin:
 # - from_scratch: base models with no fine-tuning stage
 # - pretrained_finetune: models with a fine-tuning stage (SFT or full),
-#   regardless of whether the base was from-scratch or pretrained
+#   regardless of whether the base was from-scratch or pretrained. The key
+#   name is historical: GPT-2 large is pretrained, but the 1B instruction-tuned
+#   model was trained from scratch and then instruction-tuned.
 # - pretrained_instruct: instruct-capable models with domain adaptation
 _FAMILY_MAP = {
     "scratch_500m": "from_scratch",
@@ -89,7 +95,7 @@ FAMILY_COLORS = {
 
 FAMILY_DISPLAY = {
     "from_scratch": "From-scratch",
-    "pretrained_finetune": "Pre-trained fine-tune",
+    "pretrained_finetune": "Fine-tuned",
     "pretrained_instruct": "Pre-trained instruct",
 }
 
@@ -568,6 +574,17 @@ def generate_markdown_report(
             f"| {label:<40} | {family:<22} | {acc:>9.2f}% | {fab:>9.1f}% | {coh:>10.1f}% | {gap:>9.1f}% |{delta_col}"
         )
     add()
+    add(
+        "**Notes.** The 1B SFT model was trained from scratch and then "
+        "instruction-tuned. The Fine-tuned family groups it with GPT-2 large "
+        "(which starts from pretrained weights) by technique, not origin. "
+        "Its 0.0% fabrication rate reflects that all 160 outputs were "
+        "degenerate, so no entities were extracted. Qwen base and Qwen QLoRA "
+        "are the unmodified Qwen 2.5 1.5B Instruct model and its "
+        "QLoRA-adapted variant; the original plan targeted Llama 3.2 1B "
+        "Instruct, which was not accessible."
+    )
+    add()
 
     # Capability gap section
     add("## Perceived capability gap")
@@ -595,8 +612,8 @@ def generate_markdown_report(
         add("## QLoRA ablation delta")
         add()
         add(
-            "Delta between the Llama 3.2 QLoRA model and the unmodified "
-            "Llama 3.2 1B Instruct baseline. Positive accuracy delta and "
+            "Delta between the Qwen 2.5 1.5B QLoRA model and the unmodified "
+            "Qwen 2.5 1.5B Instruct baseline. Positive accuracy delta and "
             "negative fabrication delta indicate improvement from domain "
             "adaptation."
         )
@@ -645,23 +662,31 @@ def generate_markdown_report(
         "The 6-model comparison reveals a consistent narrative about knowledge "
         "sources in domain-specific language models. From-scratch models "
         "(500M and 1B) internalize minimal factual knowledge from the ALS "
-        "corpus despite training on 143M tokens. Pre-trained models (GPT-2 "
-        "large and the 1B SFT variant) show that pre-existing knowledge from "
-        "large-scale pretraining provides a measurable but limited advantage."
+        "corpus despite training on 143M tokens. GPT-2 large, which starts "
+        "from pretrained weights, shows that pre-existing knowledge from "
+        "large-scale pretraining provides a measurable but limited advantage. "
+        "The 1B SFT variant is different: it was trained from scratch and "
+        "then instruction-tuned, not initialized from a pretrained model."
     )
     add()
     add(
-        "The Llama 3.2 comparison pair (base ablation vs QLoRA) provides the "
+        "The Qwen 2.5 1.5B comparison pair (unmodified vs QLoRA) provides the "
         "clearest test of domain adaptation: starting from an instruction-capable "
-        "model with strong general knowledge, QLoRA fine-tuning on ALS-specific "
-        "data can shift the model's behavior toward the target domain. The "
-        "ablation delta quantifies this shift directly."
+        "model with strong general knowledge, QLoRA fine-tuning on 970 ALS "
+        "instruction pairs raised the share of non-degenerate responses but "
+        "lowered mean key-fact accuracy. The ablation delta quantifies this "
+        "shift directly. The pair was added after the instruction-tuned 1B "
+        "checkpoint produced degenerate output on all 160 questions; the "
+        "original plan targeted Llama 3.2 1B Instruct, which was not "
+        "accessible, so Qwen 2.5 1.5B Instruct was used instead."
     )
     add()
     add(
         "The SFT failure (1B instruction-tuned model producing 100% degenerate "
-        "output) remains the strongest evidence that instruction tuning cannot "
-        "create knowledge that was never internalized during pretraining. For "
+        "output) is consistent with instruction tuning being unable to surface "
+        "knowledge that the from-scratch base model did not internalize. The "
+        "model's 0.0% fabrication rate reflects that no entities could be "
+        "extracted from degenerate output, not that it avoided fabrication. For "
         "detailed analysis, see reports/sft_failure_analysis.md."
     )
     add()
@@ -678,7 +703,7 @@ def generate_markdown_report(
     add()
     add(
         "**General knowledge confound.** Pre-trained models (GPT-2 large, "
-        "Llama 3.2) carry general biomedical knowledge from their pretraining "
+        "Qwen 2.5 1.5B) carry general biomedical knowledge from their pretraining "
         "corpora. When these models answer correctly, we cannot fully separate "
         "domain-specific fine-tuning effects from retained general knowledge."
     )
@@ -766,7 +791,7 @@ def main() -> int:
         description=(
             "Compare hallucination evaluation results across 6 model variants: "
             "from-scratch 500M, from-scratch 1B base, GPT-2 large fine-tuned, "
-            "1B instruction-tuned, Llama 3.2 base ablation, Llama 3.2 QLoRA."
+            "1B instruction-tuned, Qwen 2.5 1.5B Instruct, Qwen 2.5 1.5B QLoRA."
         )
     )
     parser.add_argument(

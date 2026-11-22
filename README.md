@@ -2,7 +2,7 @@
 
 # ALS-LM: A domain-specific language model for ALS knowledge
 
-ALS-LM is a completed research investigation into domain-specific language model training on a narrow medical corpus. Over 15 milestones (v0.1.0 through v1.5.0), we trained and evaluated 6 model variants spanning from-scratch training, pre-trained fine-tuning, and QLoRA domain adaptation, all on a curated corpus of 142M tokens of amyotrophic lateral sclerosis (ALS) research. The central finding is that data scarcity—an 80x deficit relative to the Chinchilla-optimal ratio—is the binding constraint: no approach exceeded the RAG baseline accuracy of 14.3%. This repository contains the complete pipeline, evaluation framework, and all documentation. The final release is [v2.0.0](https://github.com/josh-wong/als-lm/releases/tag/v2.0.0).
+ALS-LM is a completed research investigation into domain-specific language model training on a narrow medical corpus. Over 15 milestones (v0.1.0 through v1.5.0), we trained and evaluated 6 model variants spanning from-scratch training, pre-trained fine-tuning, and QLoRA domain adaptation, all on a curated corpus of 142M tokens of amyotrophic lateral sclerosis (ALS) research. The original 516M from-scratch run trained at roughly 0.25 tokens per parameter, about 80x below the Chinchilla reference ratio of ~20, so data scarcity is a plausible contributor to its near-zero accuracy. No approach exceeded the 14.3% that Llama 3.1 8B achieved without retrieval, and the best retrieval configuration scored 13.8%. This repository contains the complete pipeline, evaluation framework, and all documentation. The final release is [v2.0.0](https://github.com/josh-wong/als-lm/releases/tag/v2.0.0).
 
 > [!CAUTION]
 >
@@ -12,18 +12,20 @@ ALS-LM is a completed research investigation into domain-specific language model
 
 ## Key findings
 
-The central result across 6 model variants is that knowledge source matters most: a model's pre-trained parametric knowledge determines its ALS accuracy floor, and small-scale domain fine-tuning cannot reliably improve on it. The unmodified Qwen 2.5 1.5B Instruct model (used as a substitute for Llama 3.2 1B Instruct, which required gated access) achieves 10.31% accuracy on the 160-question benchmark without any ALS-specific training, outperforming all other approaches including QLoRA domain adaptation on 970 ALS instruction pairs (7.24%), which actually degraded accuracy by 3.07 percentage points. From-scratch models trained on 143M ALS tokens achieve near-zero accuracy regardless of model size, confirming a severe data deficit.
+The central result across 6 model variants is that knowledge source matters most: a model's pre-trained parametric knowledge determines its ALS accuracy floor, and small-scale domain fine-tuning cannot reliably improve on it. The unmodified Qwen 2.5 1.5B Instruct model achieves 10.31% mean key-fact accuracy on the 160-question benchmark without any ALS-specific training. This is the highest result in the six-model comparison, ahead of QLoRA domain adaptation on 970 ALS instruction pairs (7.24%), which lowered accuracy by 3.07 percentage points. From-scratch models trained on 143M ALS tokens achieve near-zero accuracy regardless of model size, which is consistent with a severe data deficit.
+
+The Qwen experiments were added after the original v2 plan. The instruction-tuned ALS-LM 1B checkpoint (trained from scratch, then instruction-tuned) produced degenerate responses on all 160 benchmark questions, so the project added a QLoRA experiment on a pretrained instruct model. The original plan targeted Llama 3.2 1B Instruct, but gated access was not available, so Qwen 2.5 1.5B Instruct was used instead. The v1 investigation and the original v2 research plan are preserved as historical records.
 
 ![Accuracy comparison across all six approaches: ALS-LM, baseline, and four RAG configurations](docs/figures/accuracy_comparison.png)
 
 *This figure shows the from-scratch model and RAG configurations. See the [6-model comparison](#cross-model-comparison) table and [grouped bar chart](docs/figures/qlora_comparison.png) for the complete cross-model analysis.*
 
-- **Knowledge source is the primary accuracy driver.** The unmodified Qwen 2.5 1.5B Instruct model (10.31% accuracy) outperforms all domain-adapted variants, including QLoRA fine-tuning (7.24%), confirming that pre-trained parametric knowledge determines the performance floor
-- **QLoRA domain adaptation degraded accuracy by 3.07 percentage points** (10.31% to 7.24%) while increasing coherence from 29.4% to 50.0%, widening the perceived capability gap from 19.1% to 42.8%—the model sounds more confident but is less accurate
+- **Pre-trained knowledge appears to matter most.** The unmodified Qwen 2.5 1.5B Instruct model (10.31% accuracy) scores higher than all domain-adapted variants, including QLoRA fine-tuning (7.24%), which suggests that pre-trained parametric knowledge sets the performance floor
+- **QLoRA domain adaptation lowered mean key-fact accuracy by 3.07 percentage points** (10.31% to 7.24%) while raising the share of non-degenerate responses from 29.4% to 50.0%, which widened the perceived capability gap from 19.1% to 42.8%. The adapted model produced coherent-looking output more often, but its answers matched fewer key facts
 - **0.0% binary pass rate** from the from-scratch 500M model across all quantization levels on the hallucination benchmark (0/480 responses)
-- **Best RAG 13.8% vs. baseline 14.3%**, meaning that retrieval-augmented generation does not outperform the no-retrieval baseline
+- **Llama 3.1 8B without retrieval scored 14.3%; the best RAG configuration scored 13.8%.** In this setup, retrieval did not improve on the no-retrieval result
 - **PubMedBERT outperforms MiniLM by 2.1x** for medical retrieval (12.7% vs. 5.9% mean accuracy)
-- **80x below Chinchilla-optimal** data ratio (0.25 tokens/parameter vs. the recommended ~20)
+- **About 80x below the Chinchilla reference ratio for the original 516M run** (about 0.25 training tokens per parameter vs. ~20). Data scarcity is a plausible contributor to that run's near-zero accuracy; the QLoRA and retrieval experiments measured different things and do not test this directly
 - **3.12% mean accuracy with GPT-2 large fine-tuning**, a 15x improvement over the from-scratch model, but with 97.5% degenerate output revealing instruction-following as a separate failure dimension
 
 ## Pipeline
@@ -80,20 +82,20 @@ The failure taxonomy reveals three dominant modes: confident fabrication (33.1%)
 
 ### RAG comparison
 
-The best RAG configuration (500-token chunks with PubMedBERT) achieves 13.8% mean accuracy but does not exceed the no-retrieval Llama 3.1 8B baseline at 14.3%.
+The best RAG configuration (500-token chunks with PubMedBERT) achieves 13.8% mean accuracy, which does not exceed Llama 3.1 8B answering without retrieval (14.3%). The 14.3% is therefore a no-retrieval result, not a RAG result.
 
-**Table 2.** Cross-approach accuracy comparison on the 160-question ALS benchmark. ALS-LM values use Q8_0 as the representative quantization level (all three levels produce equivalent results). Baseline is Llama 3.1 8B without retrieval.
+**Table 2.** Cross-approach accuracy comparison on the 160-question ALS benchmark. ALS-LM values use Q8_0 as the representative quantization level (all three levels produce equivalent results). The no-retrieval row is Llama 3.1 8B answering without retrieval.
 
 | Approach                | Mean accuracy | Binary pass | Fabrication rate |
 |-------------------------|---------------|-------------|------------------|
 | ALS-LM (Q8_0)           |        0.0021 |       0.0%  |            66.4% |
-| Baseline (no retrieval) |        0.1432 |      13.8%  |            87.2% |
+| Llama 3.1 8B (no retrieval) |    0.1432 |      13.8%  |            87.2% |
 | RAG 500-MiniLM          |        0.0219 |       1.9%  |            51.4% |
 | RAG 200-MiniLM          |        0.0969 |       8.1%  |            81.0% |
 | RAG 500-PubMedBERT      |        0.1380 |      10.6%  |            80.3% |
 | RAG 200-PubMedBERT      |        0.1151 |      12.5%  |            84.0% |
 
-Failure decomposition shows retrieval failures account for 52-89% of wrong answers depending on configuration, confirming retrieval quality as the primary bottleneck.
+Failure decomposition shows retrieval failures account for 52-89% of wrong answers depending on configuration, which points to retrieval quality as the main bottleneck.
 
 ### Cross-model comparison
 
@@ -106,11 +108,13 @@ The following table compares all 6 model variants on the 160-question ALS benchm
 | ALS-LM 500M (from-scratch)           | From-scratch          |    0.21% |     66.4% |     67.5% |    67.3% |
 | ALS-LM 1B (from-scratch base)        | From-scratch          |    0.00% |    100.0% |     35.0% |    35.0% |
 | GPT-2 large 774M (fine-tuned)        | Pre-trained fine-tune |    3.12% |     77.0% |      2.5% |    -0.6% |
-| ALS-LM 1B (instruction-tuned)        | Pre-trained fine-tune |    0.00% |      0.0% |      0.0% |     0.0% |
+| ALS-LM 1B (instruction-tuned)        | From-scratch + SFT    |    0.00% |     0.0%* |      0.0% |     0.0% |
 | Qwen 2.5 1.5B Instruct (unmodified)  | Pre-trained instruct  |   10.31% |     87.6% |     29.4% |    19.1% |
 | Qwen 2.5 1.5B QLoRA (domain-adapted) | Pre-trained instruct  |    7.24% |     81.0% |     50.0% |    42.8% |
 
-The unmodified Qwen 2.5 1.5B Instruct model achieves the highest accuracy (10.31%) without any ALS-specific training, supporting the hypothesis that a model's pre-trained parametric knowledge matters more than model size or training approach. QLoRA domain adaptation on 970 ALS instruction pairs reduced accuracy by 3.07 percentage points while increasing coherence from 29.4% to 50.0%, widening the perceived capability gap. See the [full 6-model comparison report](reports/qlora_comparison_report.md) for failure taxonomy analysis and implications.
+*The 0.0% fabrication rate for the instruction-tuned 1B model is not evidence of reliability. All 160 of its outputs were degenerate (repeated "TheTheThe..."), so no entities were extracted to check.
+
+The unmodified Qwen 2.5 1.5B Instruct model achieves the highest mean key-fact accuracy in this six-model comparison (10.31%) without any ALS-specific training, which is consistent with pre-trained parametric knowledge mattering more than model size or training approach. QLoRA domain adaptation on 970 ALS instruction pairs reduced accuracy by 3.07 percentage points while raising the share of non-degenerate responses from 29.4% to 50.0%, widening the perceived capability gap. Llama 3.1 8B without retrieval (14.3%) scored higher, but it is a larger model evaluated in the separate RAG comparison and is not one of the six. See the [full 6-model comparison report](reports/qlora_comparison_report.md) for failure taxonomy analysis and implications.
 
 ![6-model comparison grouped bar chart showing accuracy, coherence, and capability gap across from-scratch, pre-trained fine-tune, and pre-trained instruct families](docs/figures/qlora_comparison.png)
 
@@ -196,7 +200,7 @@ Please read the following disclaimers carefully before using or referencing ALS-
 
 ### This is not a medical resource
 
-ALS-LM is a machine-learning research project. It is **not** a diagnostic tool, treatment guide, or substitute for professional medical advice. The models generate text that sounds authoritative but is factually incorrect—the best-performing variant (unmodified Qwen 2.5 1.5B Instruct) achieves only 10.31% accuracy, the QLoRA domain-adapted variant achieves 7.24%, and the from-scratch model achieves 0.0% binary pass rate. None of the 6 model variants produces reliable medical information.
+ALS-LM is a machine-learning research project. It is **not** a diagnostic tool, treatment guide, or substitute for professional medical advice. The models generate text that sounds authoritative but is factually incorrect—the best-performing of the six variants (unmodified Qwen 2.5 1.5B Instruct) achieves only 10.31% accuracy, the QLoRA domain-adapted variant achieves 7.24%, and the from-scratch model achieves 0.0% binary pass rate. None of the 6 model variants produces reliable medical information.
 
 **If you or someone you know is affected by ALS, please consult qualified healthcare providers and trusted resources such as:**
 
@@ -206,7 +210,7 @@ ALS-LM is a machine-learning research project. It is **not** a diagnostic tool, 
 
 ### On hallucinations and medical safety
 
-All 6 model variants exhibit high fabrication rates: from 66.4% (from-scratch 500M) to 87.6% (unmodified Qwen 2.5 baseline). The QLoRA domain-adapted model fabricates at 81.0% while producing coherent output 50.0% of the time, making it the most deceptive variant—it sounds plausible more often while remaining factually unreliable. In a medical context, all models represent a potential harm. This project treats hallucination measurement as a primary research question, not a side effect to be minimized.
+Among the 6 model variants, fabrication rates range from 66.4% (from-scratch 500M) to 87.6% (unmodified Qwen 2.5 baseline) for models that produced mostly or partly readable output. The from-scratch 1B base model flagged every entity it extracted (100.0%), and the instruction-tuned 1B model's 0.0% entry only reflects that all 160 of its outputs were degenerate, so there was nothing to check. The QLoRA domain-adapted model fabricates at 81.0% while producing coherent output 50.0% of the time, making it the most deceptive variant—it sounds plausible more often while remaining factually unreliable. In a medical context, all models represent a potential harm. This project treats hallucination measurement as a primary research question, not a side effect to be minimized.
 
 All model outputs should be treated as experimental results, not as medical information.
 
