@@ -77,7 +77,7 @@ See the [6-model comparison table](#evaluation-results) for the GPT-2 large eval
 
 Two additional models were evaluated to test instruction tuning and pretrained domain adaptation. These used external base models rather than the ALS-LM architecture.
 
-**1B SFT (instruction-tuned).** The from-scratch 1B base model was instruction-tuned with supervised fine-tuning (SFT) on 970 Alpaca-format ALS question-answer pairs using completion-only loss masking. The result was catastrophic: 160/160 responses were degenerate (100%), producing no evaluable factual content. This demonstrates that instruction tuning cannot surface knowledge that was never internalized during pretraining. See [Section 8 of the research paper](v2-research-paper.md) for full methodology and root cause analysis.
+**1B SFT (instruction-tuned).** The from-scratch 1B base model was instruction-tuned with supervised fine-tuning (SFT) on 970 Alpaca-format ALS question-answer pairs using completion-only loss masking. The result was catastrophic: 160/160 responses were degenerate (100%), producing no evaluable factual content. This is consistent with instruction tuning being unable to surface knowledge that was never internalized during pretraining, though we did not test that directly. See [Section 8 of the research paper](v2-research-paper.md) for full methodology and root cause analysis.
 
 **Qwen 2.5 1.5B Instruct (unmodified baseline).** The unmodified Qwen 2.5 1.5B Instruct model was evaluated without any ALS-specific training to establish the pretrained knowledge baseline. It achieves 10.31% mean key-fact accuracy — the highest result in the six-model comparison — with 29.4% coherent non-degenerate output and 87.6% fabrication rate. This suggests that a model's pretrained parametric knowledge sets its ALS performance floor. (Llama 3.1 8B answering without retrieval scored 14.3% in the separate RAG comparison, but it is a larger model and is not one of the six.)
 
@@ -142,8 +142,8 @@ The following table compares all six model variants at the Q8_0 quantization lev
 |---------------------------------------------|----------------------|:--------:|:---------------:|:----------------:|
 | ALS-LM 500M (from-scratch)                  | From-scratch         |    0.21% |           32.5% |            66.4% |
 | ALS-LM 1B base (from-scratch)               | From-scratch         |    0.00% |           65.0% |           100.0% |
-| GPT-2 large 774M (fine-tuned)               | Pretrained fine-tune |    3.12% |           97.5% |            77.0% |
-| ALS-LM 1B SFT (instruction-tuned)           | From-scratch SFT     |    0.00% |          100.0% |            0.0%* |
+| GPT-2 large 774M (fine-tuned)               | Fine-tuned           |    3.12% |           97.5% |            77.0% |
+| ALS-LM 1B SFT (instruction-tuned)           | Fine-tuned           |    0.00% |          100.0% |            0.0%* |
 | Qwen 2.5 1.5B Instruct (unmodified)         | Pretrained instruct  |   10.31% |           70.6% |            87.6% |
 | Qwen 2.5 1.5B QLoRA (domain-adapted)        | Pretrained QLoRA     |    7.24% |           50.0% |            81.0% |
 
@@ -187,7 +187,7 @@ We recommend that anyone encountering ALS-LM treat it exclusively as a research 
 
 ## Conclusions
 
-This investigation began with a focused question: what can a purpose-built language model learn from a narrow medical corpus? Over 15 milestones spanning from-scratch training, pretrained fine-tuning, supervised fine-tuning, and QLoRA domain adaptation, we evaluated six model variants against a 160-question ALS factual benchmark. The answer is consistent across all approaches: data scarcity is the fundamental constraint.
+This investigation began with a focused question: what can a purpose-built language model learn from a narrow medical corpus? Over 15 milestones spanning from-scratch training, pretrained fine-tuning, supervised fine-tuning, and QLoRA domain adaptation, we evaluated six model variants against a 160-question ALS factual benchmark. The results are consistent across all approaches with data scarcity as a plausible contributor, though we did not vary data volume and so cannot confirm it.
 
 For the original 516M run, the ALS corpus gives about 0.25 training tokens per parameter (about 128.5M training tokens, 142.9M in total), roughly 80x below the Chinchilla reference ratio of approximately 20. Data scarcity is a plausible contributor to the results. From-scratch models achieve near-zero accuracy despite healthy convergence. Scaling from 500M to 1B parameters did not improve accuracy. Instruction tuning the from-scratch 1B model produced complete output collapse, which led us to add a QLoRA experiment on a pretrained instruct model. QLoRA on Qwen 2.5 1.5B Instruct lowered mean key-fact accuracy from 10.31% to 7.24% while raising the share of non-degenerate responses from 29.4% to 50.0%. No approach exceeds the 14.3% that Llama 3.1 8B achieved without retrieval. The corpus appears sufficient for learning how ALS research sounds but not what it says.
 

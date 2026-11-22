@@ -86,14 +86,14 @@ The best RAG configuration (500-token chunks with PubMedBERT) achieves 13.8% mea
 
 **Table 2.** Cross-approach accuracy comparison on the 160-question ALS benchmark. ALS-LM values use Q8_0 as the representative quantization level (all three levels produce equivalent results). The no-retrieval row is Llama 3.1 8B answering without retrieval.
 
-| Approach                | Mean accuracy | Binary pass | Fabrication rate |
-|-------------------------|---------------|-------------|------------------|
-| ALS-LM (Q8_0)           |        0.0021 |       0.0%  |            66.4% |
-| Llama 3.1 8B (no retrieval) |    0.1432 |      13.8%  |            87.2% |
-| RAG 500-MiniLM          |        0.0219 |       1.9%  |            51.4% |
-| RAG 200-MiniLM          |        0.0969 |       8.1%  |            81.0% |
-| RAG 500-PubMedBERT      |        0.1380 |      10.6%  |            80.3% |
-| RAG 200-PubMedBERT      |        0.1151 |      12.5%  |            84.0% |
+| Approach                    | Mean accuracy | Binary pass | Fabrication rate |
+|-----------------------------|---------------|-------------|------------------|
+| ALS-LM (Q8_0)               |        0.0021 |        0.0% |            66.4% |
+| Llama 3.1 8B (no retrieval) |        0.1432 |       13.8% |            87.2% |
+| RAG 500-MiniLM              |        0.0219 |        1.9% |            51.4% |
+| RAG 200-MiniLM              |        0.0969 |        8.1% |            81.0% |
+| RAG 500-PubMedBERT          |        0.1380 |       10.6% |            80.3% |
+| RAG 200-PubMedBERT          |        0.1151 |       12.5% |            84.0% |
 
 Failure decomposition shows retrieval failures account for 52-89% of wrong answers depending on configuration, which points to retrieval quality as the main bottleneck.
 
@@ -107,8 +107,8 @@ The following table compares all 6 model variants on the 160-question ALS benchm
 |--------------------------------------|-----------------------|----------|-----------|-----------|----------|
 | ALS-LM 500M (from-scratch)           | From-scratch          |    0.21% |     66.4% |     67.5% |    67.3% |
 | ALS-LM 1B (from-scratch base)        | From-scratch          |    0.00% |    100.0% |     35.0% |    35.0% |
-| GPT-2 large 774M (fine-tuned)        | Pre-trained fine-tune |    3.12% |     77.0% |      2.5% |    -0.6% |
-| ALS-LM 1B (instruction-tuned)        | From-scratch + SFT    |    0.00% |     0.0%* |      0.0% |     0.0% |
+| GPT-2 large 774M (fine-tuned)        | Fine-tuned            |    3.12% |     77.0% |      2.5% |    -0.6% |
+| ALS-LM 1B (instruction-tuned)        | Fine-tuned            |    0.00% |     0.0%* |      0.0% |     0.0% |
 | Qwen 2.5 1.5B Instruct (unmodified)  | Pre-trained instruct  |   10.31% |     87.6% |     29.4% |    19.1% |
 | Qwen 2.5 1.5B QLoRA (domain-adapted) | Pre-trained instruct  |    7.24% |     81.0% |     50.0% |    42.8% |
 
