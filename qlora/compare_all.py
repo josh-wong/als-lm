@@ -763,6 +763,11 @@ def build_json_output(
             "model_short_labels": {c["key"]: c["short_label"] for c in model_configs},
             "model_families": {c["key"]: c["family"] for c in model_configs},
             "quantization": "Q8_0",
+            "note": (
+                "Display names refer to Qwen 2.5 1.5B Instruct (substituted for Llama 3.2 1B "
+                "Instruct, which was gated). Keys and result directories keep the legacy "
+                "llama32_* names."
+            ),
         },
         "accuracy": accuracy,
         "taxonomy_distribution": taxonomy,

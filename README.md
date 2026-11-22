@@ -12,7 +12,7 @@ ALS-LM is a completed research investigation into domain-specific language model
 
 ## Key findings
 
-The central result across 6 model variants is that knowledge source matters most: a model's pre-trained parametric knowledge determines its ALS accuracy floor, and small-scale domain fine-tuning cannot reliably improve on it. The unmodified Qwen 2.5 1.5B Instruct model achieves 10.31% mean key-fact accuracy on the 160-question benchmark without any ALS-specific training. This is the highest result in the six-model comparison, ahead of QLoRA domain adaptation on 970 ALS instruction pairs (7.24%), which lowered accuracy by 3.07 percentage points. From-scratch models trained on 143M ALS tokens achieve near-zero accuracy regardless of model size, which is consistent with a severe data deficit.
+The central result across 6 model variants is that knowledge source matters most: a model's pre-trained parametric knowledge determines its ALS accuracy floor, and small-scale domain fine-tuning cannot reliably improve on it. The unmodified Qwen 2.5 1.5B Instruct model achieves 10.31% mean key-fact accuracy on the 160-question benchmark without any ALS-specific training. This is the highest result in the six-model comparison, ahead of QLoRA domain adaptation on 970 ALS instruction pairs (7.24%), which lowered accuracy by 3.07 percentage points. From-scratch models trained on a 143M-token ALS corpus (128.5M training tokens) achieve near-zero accuracy regardless of model size, which is consistent with a severe data deficit.
 
 The Qwen experiments were added after the original v2 plan. The instruction-tuned ALS-LM 1B checkpoint (trained from scratch, then instruction-tuned) produced degenerate responses on all 160 benchmark questions, so the project added a QLoRA experiment on a pretrained instruct model. The original plan targeted Llama 3.2 1B Instruct, but gated access was not available, so Qwen 2.5 1.5B Instruct was used instead. The v1 investigation and the original v2 research plan are preserved as historical records.
 
@@ -116,7 +116,7 @@ The following table compares all 6 model variants on the 160-question ALS benchm
 
 The unmodified Qwen 2.5 1.5B Instruct model achieves the highest mean key-fact accuracy in this six-model comparison (10.31%) without any ALS-specific training, which is consistent with pre-trained parametric knowledge mattering more than model size or training approach. QLoRA domain adaptation on 970 ALS instruction pairs reduced accuracy by 3.07 percentage points while raising the share of non-degenerate responses from 29.4% to 50.0%, widening the perceived capability gap. Llama 3.1 8B without retrieval (14.3%) scored higher, but it is a larger model evaluated in the separate RAG comparison and is not one of the six. See the [full 6-model comparison report](reports/qlora_comparison_report.md) for failure taxonomy analysis and implications.
 
-![6-model comparison grouped bar chart showing accuracy, coherence, and capability gap across from-scratch, pre-trained fine-tune, and pre-trained instruct families](docs/figures/qlora_comparison.png)
+![6-model comparison grouped bar chart showing accuracy, coherence, and capability gap across from-scratch, fine-tuned, and pre-trained instruct families](docs/figures/qlora_comparison.png)
 
 ## Getting started
 
@@ -210,7 +210,7 @@ ALS-LM is a machine-learning research project. It is **not** a diagnostic tool, 
 
 ### On hallucinations and medical safety
 
-Among the 6 model variants, fabrication rates range from 66.4% (from-scratch 500M) to 87.6% (unmodified Qwen 2.5 baseline) for models that produced mostly or partly readable output. The from-scratch 1B base model flagged every entity it extracted (100.0%), and the instruction-tuned 1B model's 0.0% entry only reflects that all 160 of its outputs were degenerate, so there was nothing to check. The QLoRA domain-adapted model fabricates at 81.0% while producing coherent output 50.0% of the time, making it the most deceptive variant—it sounds plausible more often while remaining factually unreliable. In a medical context, all models represent a potential harm. This project treats hallucination measurement as a primary research question, not a side effect to be minimized.
+Among the 6 model variants, fabrication rates range from 66.4% (from-scratch 500M) to 87.6% (unmodified Qwen 2.5 baseline) computed over entities extracted from non-degenerate responses. Two entries fall outside that range: the from-scratch 1B base model flagged every entity it extracted (100.0%), and the instruction-tuned 1B model's 0.0% entry only reflects that all 160 of its outputs were degenerate, so there was nothing to check. The QLoRA domain-adapted model fabricates at 81.0% while producing coherent output 50.0% of the time, making it the most deceptive variant—it sounds plausible more often while remaining factually unreliable. In a medical context, all models represent a potential harm. This project treats hallucination measurement as a primary research question, not a side effect to be minimized.
 
 All model outputs should be treated as experimental results, not as medical information.
 

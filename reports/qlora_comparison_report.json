@@ -33,7 +33,8 @@
       "llama32_base": "pretrained_instruct",
       "llama32_qlora": "pretrained_instruct"
     },
-    "quantization": "Q8_0"
+    "quantization": "Q8_0",
+    "note": "Display names refer to Qwen 2.5 1.5B Instruct (substituted for Llama 3.2 1B Instruct, which was gated). Keys and result directories keep the legacy llama32_* names."
   },
   "accuracy": {
     "scratch_500m": {
